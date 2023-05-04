@@ -1,0 +1,40 @@
+{
+  "name": "ActionName2",
+  "description": "Action Description2",
+  "result_name": "ResultName",
+  "category":  "TestAction",
+  "parameters": [
+    {
+      "name": "threshold",
+      "value": "3",
+      "type": "string",
+      "mandatory": true
+    },
+    {
+      "name": "country",
+      "value": "usa",
+      "type": "string",
+      "mandatory": false
+    },
+    {
+      "name": "aa",
+      "value": "ff",
+      "type": "string",
+      "mandatory": true
+    },
+    {
+      "name": "sfghdf",
+      "value": "fgh",
+      "type": "Boolean",
+      "mandatory": true
+    }
+  ],
+  "configuration": {
+    "Provider2": {
+      "ApiKey": "44fsdkfjsdklfjlkewjlrk3wr,msfnd,mfnsd,m",
+      "test2": "ggggg",
+      "dyfgh": "fgh"
+    }
+  },
+  "entities": ["10.0.0.51","User41@siemplify","lab@siemplify.local","10.0.0.28","XWzNr1l@gmail.com","MrlCS.sob","USB_DEVICE_1","ckIYC2","172.21.135.124"]
+}

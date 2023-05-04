@@ -1,0 +1,24 @@
+{
+	"case_id": "37",
+	"alert_id": "PORT SCAN 1558869342348_46E030578-CB66-4738-A0B5-FE75CD0ECF5E",
+	"target_entities": [
+		"SRC_HOST_1",
+		"10.0.0.49",
+		"DST_HOST_5",
+		"200.0.0.20"
+	],
+	"workflow_id": "8ae07429-abc1-4c9a-8e7a-9564e944dd97",
+	"parameters": {
+		"Rule Generator": "true",
+		"Port": "true",
+		"Category Outcome": "true",
+		"Entity Identifier": "true",
+		"Days Back": "6"
+	},
+	"integration_identifier": "Siemplify",
+	"action_definition_name": "Get Similar Cases",
+	"environment": "BBB",
+	"original_requesting_user": "System",
+	"execution_deadline_unix_time_ms": 1558896817543,
+	"default_result_value": null
+}
