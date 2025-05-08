@@ -1,0 +1,6 @@
+{
+    "CyberarkVault": {
+        "manager_module_name": "CyberarkVaultManager",
+        "manager_class_name": "PasswordVaultManager"
+    }
+}
