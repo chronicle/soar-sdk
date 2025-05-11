@@ -241,7 +241,8 @@ test_alert = Alert(
 
 class TestSiemplifyAction:
     def test_siemplify_action_init_mock_stdin_is_none(
-        self, mocker: unittest.mock.Mock
+        self,
+        mocker: unittest.mock.Mock,
     ) -> None:
         # arrange
         mocker.patch("sys.stdin.read", return_value=DATA.encode())
@@ -267,7 +268,8 @@ class TestSiemplifyAction:
         assert siemplify_action._target_entities == []
 
     def test_siemplify_action_init_mock_stdin_is_not_none(
-        self, mocker: unittest.mock.Mock
+        self,
+        mocker: unittest.mock.Mock,
     ) -> None:
         # arrange
         mock_response = mocker.Mock()
@@ -295,7 +297,8 @@ class TestSiemplifyAction:
         assert siemplify_action._target_entities is None
 
     def test_siemplify_action_init_old_entities(
-        self, mocker: unittest.mock.Mock
+        self,
+        mocker: unittest.mock.Mock,
     ) -> None:
         # arrange
         mock_response = mocker.Mock()

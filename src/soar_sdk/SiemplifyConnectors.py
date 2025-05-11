@@ -212,7 +212,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         return is_overflowed
 
     def return_package(
-        self, cases: list, output_variables: dict = {}, log_items: list = []
+        self,
+        cases: list,
+        output_variables: dict = {},
+        log_items: list = [],
     ) -> None:
         """Return data
         :param cases: {list} of cases {CaseInfo}
@@ -239,7 +242,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         )
 
     def return_test_result(
-        self, is_success: bool, result_params_dictionary: dict
+        self,
+        is_success: bool,
+        result_params_dictionary: dict,
     ) -> None:
         """In case of testing, return
         :param is_success: {boolean}
@@ -288,7 +293,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         )
 
     def get_context_property(
-        self, context_type: int, identifier: str, property_key: str
+        self,
+        context_type: int,
+        identifier: str,
+        property_key: str,
     ) -> any:
         if self.is_locally_scheduled_remote_connector:
             context_type = self.CONTEXT_TYPE
@@ -337,7 +345,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         )
 
     def set_connector_context_property(
-        self, identifier: str, property_key: str, property_value: any
+        self,
+        identifier: str,
+        property_key: str,
+        property_value: any,
     ) -> any:
         return self.set_context_property(
             self.CONTEXT_TYPE,
@@ -361,7 +372,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         )
 
     def fetch_timestamp(
-        self, datetime_format: bool = False, timezone: bool = False
+        self,
+        datetime_format: bool = False,
+        timezone: bool = False,
     ) -> any:
         return super(SiemplifyConnectorExecution, self).fetch_timestamp(
             datetime_format,

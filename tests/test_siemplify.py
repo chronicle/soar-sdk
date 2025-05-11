@@ -79,7 +79,8 @@ class TestSiemplify:
         assert response == parameters
 
     def test_get_err_message(
-        self, exception: Exception = Exception("Test exception")
+        self,
+        exception: Exception = Exception("Test exception"),
     ) -> None:
         # arrange
         siemplify = Siemplify()
@@ -89,7 +90,9 @@ class TestSiemplify:
         assert response == "Test exception"
 
     def test_get_case_by_id_when_source_is_false(
-        self, mocker: unittest.mock.Mock, case_id: int = 1
+        self,
+        mocker: unittest.mock.Mock,
+        case_id: int = 1,
     ) -> None:
         # arrange
         # create a mock response object

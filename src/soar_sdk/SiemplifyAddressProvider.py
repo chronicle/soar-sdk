@@ -301,7 +301,8 @@ class SiemplifyAddressProvider:
         return _build_address_with_format_query_param(address)
 
     def provide_get_connector_parameters_address(
-        self, connector_identifier: str
+        self,
+        connector_identifier: str,
     ) -> str:
         return self._create_address(SdkEndpoint.GET_CONNECTOR_PARAMETERS).format(
             connector_identifier,
@@ -345,7 +346,8 @@ class SiemplifyAddressProvider:
         return _build_address_with_format_query_param(address)
 
     def provide_get_integration_version_address(
-        self, integration_identifier: str
+        self,
+        integration_identifier: str,
     ) -> str:
         address = self._create_address(SdkEndpoint.GET_INTEGRATION_VERSION).format(
             integration_identifier,

@@ -15,14 +15,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar
 
 import SiemplifyUtils
 from Siemplify import Siemplify
 from SiemplifyBase import MaximumContextLengthException
 from SiemplifyUtils import extract_script_param
-
-# import SiemplifyVaultUtils - this is imported only when in use
 
 T = TypeVar("T")
 
@@ -56,7 +54,10 @@ class SiemplifyJob(Siemplify):
         return self.get_context_property_from_server(3, identifier, property_key)
 
     def set_job_context_property(
-        self, identifier: str, property_key: str, property_value: Any
+        self,
+        identifier: str,
+        property_key: str,
+        property_value: Any,
     ) -> Any:
         if not SiemplifyUtils.validate_property_value(property_value):
             raise MaximumContextLengthException(
@@ -71,7 +72,10 @@ class SiemplifyJob(Siemplify):
         )
 
     def get_context_property(
-        self, context_type: int, identifier: str, property_key: str
+        self,
+        context_type: int,
+        identifier: str,
+        property_key: str,
     ) -> Any:
         return self.get_context_property_from_server(
             context_type,
@@ -126,7 +130,9 @@ class SiemplifyJob(Siemplify):
         return self.get_job_context_property(self.unique_identifier, property_key)
 
     def set_scoped_job_context_property(
-        self, property_key: str, property_value: Any
+        self,
+        property_key: str,
+        property_value: Any,
     ) -> Any:
         """Set scoped job context property, uses the unique identifier of a job
         :param property_key: {string} key of the context property of the job
@@ -184,7 +190,9 @@ class SiemplifyJob(Siemplify):
         return response.json()
 
     def get_faulted_connectors(
-        self, start_unix_time: int, end_unix_time: int
+        self,
+        start_unix_time: int,
+        end_unix_time: int,
     ) -> dict[str, Any]:
         """Get all the connectors that had failed in the last hours
         :return: {dict} failed connectors
@@ -235,18 +243,15 @@ class SiemplifyJob(Siemplify):
             print_value=print_value,
         )
         if not self.vault_settings:
-            return cast(T, script_param)
+            return script_param
 
         # we import SiemplifyVaultUtils only when needed, in order to not import
         # dependencies which are not needed
         import SiemplifyVaultUtils
 
-        return cast(
-            T,
-            SiemplifyVaultUtils.extract_vault_param(
-                script_param,
-                self.vault_settings,
-            ),
+        return SiemplifyVaultUtils.extract_vault_param(
+            script_param,
+            self.vault_settings,
         )
 
     def save_timestamp(
@@ -264,7 +269,9 @@ class SiemplifyJob(Siemplify):
         )
 
     def fetch_timestamp(
-        self, datetime_format: bool = False, timezone: bool = False
+        self,
+        datetime_format: bool = False,
+        timezone: bool = False,
     ) -> int | str:
         return super(SiemplifyJob, self).fetch_timestamp(
             datetime_format,
@@ -339,7 +346,8 @@ class SiemplifyJob(Siemplify):
         return configurations
 
     def get_connector_parameters(
-        self, connector_instance_identifier: str
+        self,
+        connector_instance_identifier: str,
     ) -> dict[str, Any]:
         """Get connector parameters
         :param connector_instance_identifier: {string} the identifier of the
