@@ -16,17 +16,18 @@ from __future__ import annotations
 
 import json
 import os
+from typing import Any, Never
 
 import requests
 from six import string_types
 
 # CONSTS
-REST_CALLS_FILE = r"rest_calls.json"
+REST_CALLS_FILE: str = r"rest_calls.json"
 
 
 class SiemplifySession(requests.Session):
     @staticmethod
-    def write_rest_calls_to_file(address, data):
+    def write_rest_calls_to_file(address: str, data: str) -> None:
         """Publisher collects all requests and save it to file.
         :param address: requests address
         :param data:
@@ -57,7 +58,13 @@ class SiemplifySession(requests.Session):
             json_file.write(json.dumps(json_data))
 
     # override post
-    def post(self, address, data=None, json=None, **kwargs):
+    def post(
+        self,
+        address: str,
+        data: str | None = None,
+        json: str | None = None,
+        **kwargs: Any,
+    ) -> requests.Response:
         if json:
             request_data = json
         elif data:
@@ -74,7 +81,7 @@ class SiemplifySession(requests.Session):
         res.status_code = 200
         return res
 
-    def get(self, address, **kwargs):
+    def get(self, address: str, **kwargs: Any) -> Never:
         # Override get
         # get requests are not supported in 'publisher' mode
         raise Exception("GET requests are not supported in publisher mode")

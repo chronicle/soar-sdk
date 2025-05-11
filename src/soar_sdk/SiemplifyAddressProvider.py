@@ -253,7 +253,7 @@ SDK_1P_ENDPOINT_URLS = {
 
 
 class SiemplifyAddressProvider:
-    def __init__(self, sdk_config, support_one_platform):
+    def __init__(self, sdk_config: object, support_one_platform: bool) -> None:
         if support_one_platform:
             self.API_BASE_ROOT = "{0}/{1}".format(
                 sdk_config.one_platform_api_root_uri_format.format(
@@ -268,66 +268,68 @@ class SiemplifyAddressProvider:
             )
             self.endpoint_mapper = SDK_ENDPOINT_URLS
 
-    def provide_set_context_property_address(self):
+    def provide_set_context_property_address(self) -> str:
         return self._create_address(SdkEndpoint.SET_CONTEXT_PROPERTY)
 
-    def provide_try_set_context_property_address(self):
+    def provide_try_set_context_property_address(self) -> str:
         return self._create_address(SdkEndpoint.TRY_SET_CONTEXT_PROPERTY)
 
-    def provide_get_context_property_address(self):
+    def provide_get_context_property_address(self) -> str:
         return self._create_address(SdkEndpoint.GET_CONTEXT_PROPERTY)
 
-    def provide_add_agent_logs_address(self):
+    def provide_add_agent_logs_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ADD_AGENT_LOGS),
         )
 
-    def provide_get_failed_actions_address(self, number_of_hours):
+    def provide_get_failed_actions_address(self, number_of_hours: int) -> str:
         address = self._create_address(SdkEndpoint.GET_FAILED_ACTIONS).format(
             number_of_hours,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_failed_jobs_address(self, number_of_hours):
+    def provide_get_failed_jobs_address(self, number_of_hours: int) -> str:
         address = self._create_address(SdkEndpoint.GET_FAILED_JOBS).format(
             number_of_hours,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_failed_etl_operations_address(self, number_of_hours):
+    def provide_get_failed_etl_operations_address(self, number_of_hours: int) -> str:
         address = self._create_address(SdkEndpoint.GET_FAILED_ETL_OPERATIONS).format(
             number_of_hours,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_connector_parameters_address(self, connector_identifier):
+    def provide_get_connector_parameters_address(
+        self, connector_identifier: str
+    ) -> str:
         return self._create_address(SdkEndpoint.GET_CONNECTOR_PARAMETERS).format(
             connector_identifier,
         )
 
     def provide_set_connector_parameter_address(
         self,
-        connector_identifier,
-        parameter_name,
-    ):
+        connector_identifier: str,
+        parameter_name: str,
+    ) -> str:
         address = self._create_address(SdkEndpoint.SET_CONNECTOR_PARAMETER).format(
             connector_identifier,
             parameter_name,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_failed_connectors_address(self):
+    def provide_get_failed_connectors_address(self) -> str:
         address = self._create_address(SdkEndpoint.GET_FAILED_CONNECTORS)
         return _build_address_with_format_query_param(address)
 
-    def provide_create_connector_package_address(self):
+    def provide_create_connector_package_address(self) -> str:
         return self._create_address(SdkEndpoint.CREATE_CONNECTOR_PACKAGE)
 
     def provide_set_configuration_property_address(
         self,
-        integration_instance_identifier,
-        property_name,
-    ):
+        integration_instance_identifier: str,
+        property_name: str,
+    ) -> str:
         address = self._create_address(
             SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY,
         ).format(integration_instance_identifier, property_name)
@@ -335,20 +337,22 @@ class SiemplifyAddressProvider:
 
     def provide_get_integration_configuration_address(
         self,
-        integration_instance_identifier,
-    ):
+        integration_instance_identifier: str,
+    ) -> str:
         address = self._create_address(
             SdkEndpoint.GET_INTEGRATION_CONFIGURATION,
         ).format(integration_instance_identifier)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_integration_version_address(self, integration_identifier):
+    def provide_get_integration_version_address(
+        self, integration_identifier: str
+    ) -> str:
         address = self._create_address(SdkEndpoint.GET_INTEGRATION_VERSION).format(
             integration_identifier,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_send_email_with_attachment_address(self):
+    def provide_send_email_with_attachment_address(self) -> str:
         address = self._create_address(SdkEndpoint.SEND_EMAIL_WITH_ATTACHMENT)
         return _build_address_with_format_query_param(address)
 
@@ -633,11 +637,11 @@ class SiemplifyAddressProvider:
         )
         return _build_address_with_format_query_param(address)
 
-    def _create_address(self, endpoint_type):
+    def _create_address(self, endpoint_type: SdkEndpoint) -> str:
         return self.API_BASE_ROOT.format(self.endpoint_mapper.get(endpoint_type))
 
 
-def _build_address_with_format_query_param(base_address):
+def _build_address_with_format_query_param(base_address: str) -> str:
     """Builds an address with a format parameter.
 
     Args:

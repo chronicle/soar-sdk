@@ -22,8 +22,7 @@ from typing import TYPE_CHECKING, Any
 from . import SiemplifyUtils
 
 if TYPE_CHECKING:
-    from collections.abc import MutableMapping
-
+    from .SiemplifyConnectors import SiemplifyConnectorExecution
     from .SiemplifyLogger import SiemplifyLogger
 
 
@@ -42,7 +41,7 @@ class OverflowManager:
         manager_cache_folder_path: str,
         overflow_manager_settings: OverflowManagerSettings | None = None,
         overflow_manager_config_file_path: str | None = None,
-        connector_instance: str | None = None,
+        connector_instance: SiemplifyConnectorExecution | None = None,
     ):
         self.is_test_run = is_test_run
         self.LOGGER = logger
@@ -121,7 +120,7 @@ class OverflowManager:
         return manager_settings
 
     @staticmethod
-    def version_safe_json_loads(json_content: MutableMapping[str, Any]) -> None:
+    def version_safe_json_loads(json_content: dict[str, Any]) -> None:
         kwargs = {}
         if json_content == None:
             return {}
@@ -131,7 +130,7 @@ class OverflowManager:
         return json.loads(json_content, **kwargs)
 
     @staticmethod
-    def version_safe_json_dumps(jsonable_object: MutableMapping[str, Any]) -> str:
+    def version_safe_json_dumps(jsonable_object: dict[str, Any]) -> str:
         kwargs = {"sort_keys": True, "indent": 4, "separators": (",", ": ")}
 
         if not SiemplifyUtils.is_python_37():
@@ -253,7 +252,7 @@ class OverflowManager:
 
     def _save_alerts_overflow_cache(
         self,
-        alert_times: MutableMapping[str, Any],
+        alert_times: dict[str, Any],
     ) -> None:
         """Save cache
         :param alert_times: {dict} overflow cache
@@ -265,7 +264,7 @@ class OverflowManager:
             json_content,
         )
 
-    def _clear_old_alerts_times(self, overflow_cache: MutableMapping[str, Any]) -> None:
+    def _clear_old_alerts_times(self, overflow_cache: dict[str, Any]) -> None:
         """Remove old alerts
         :param overflow_cache: {dict} overflow cache
         """

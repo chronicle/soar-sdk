@@ -50,7 +50,8 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_set_context_property_address()
@@ -62,7 +63,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -76,7 +78,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_context_property_address()
@@ -88,13 +91,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_add_agent_logs_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AddAgentLogs"), FORMAT_QUERY_PARAM,
+                expected_address.format("AddAgentLogs"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_failed_actions_address(self):
@@ -103,7 +108,8 @@ class TestSiemplify:
         number_of_hours = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_failed_actions_address(
@@ -130,7 +136,8 @@ class TestSiemplify:
         number_of_hours = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_failed_jobs_address(
@@ -157,7 +164,8 @@ class TestSiemplify:
         number_of_hours = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -186,7 +194,8 @@ class TestSiemplify:
         connector_identifier = "connectorIdentifier"
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -203,7 +212,8 @@ class TestSiemplify:
 
             else:
                 assert address == "{0}/{1}/parameters".format(
-                    expected_address.format("connectors"), connector_identifier,
+                    expected_address.format("connectors"),
+                    connector_identifier,
                 )
 
     def test_set_connector_parameter_address(self):
@@ -214,12 +224,14 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
                 siemplify_address_provider.provide_set_connector_parameter_address(
-                    connector_identifier, param_name,
+                    connector_identifier,
+                    param_name,
                 )
             )
             # assert
@@ -247,12 +259,14 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
                 siemplify_address_provider.provide_set_configuration_property_address(
-                    integration_instance_identifier, property_name,
+                    integration_instance_identifier,
+                    property_name,
                 )
             )
             # assert
@@ -279,7 +293,8 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_integration_configuration_address(
@@ -307,7 +322,8 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -335,7 +351,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -359,19 +376,22 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_failed_connectors_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("GetFailedConnectors"), FORMAT_QUERY_PARAM,
+                    expected_address.format("GetFailedConnectors"),
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("GetFailedConnectors"), FORMAT_QUERY_PARAM,
+                    expected_address.format("GetFailedConnectors"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_case_metadata_address(self):
@@ -380,7 +400,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_case_metadata_address(
@@ -389,12 +410,16 @@ class TestSiemplify:
             # assert
             if support_one_platform:
                 assert address == "{0}?caseId={1}&{2}".format(
-                    expected_address.format("CaseMetadata"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("CaseMetadata"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}/{1}?{2}".format(
-                    expected_address.format("CaseMetadata"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("CaseMetadata"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_case_attachments_address(self):
@@ -403,7 +428,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_case_attachments_address(
@@ -412,12 +438,16 @@ class TestSiemplify:
             # assert
             if support_one_platform:
                 assert address == "{0}?caseId={1}&{2}".format(
-                    expected_address.format("Attachments"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("Attachments"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}/{1}?{2}".format(
-                    expected_address.format("Attachments"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("Attachments"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_case_comments_address(self):
@@ -426,7 +456,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_case_comments_address(
@@ -453,7 +484,8 @@ class TestSiemplify:
         attachment_id = "attachmentIdentifier"
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_attachment_data_address(
@@ -480,7 +512,8 @@ class TestSiemplify:
         start_time_unixtime_ms = "10"
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_system_info_address(
@@ -507,7 +540,8 @@ class TestSiemplify:
         start_time_unixtime_ms = "10"
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_system_info_address(
@@ -533,7 +567,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -541,7 +576,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AlertFullDetails"), FORMAT_QUERY_PARAM,
+                expected_address.format("AlertFullDetails"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_update_alert_full_details_address(self):
@@ -549,13 +585,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_update_alert_additional_data_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("UpdateAlertsAdditional"), FORMAT_QUERY_PARAM,
+                expected_address.format("UpdateAlertsAdditional"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_assign_user_address(self):
@@ -563,13 +601,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_assign_user_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AssignUser"), FORMAT_QUERY_PARAM,
+                expected_address.format("AssignUser"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_add_tag_address(self):
@@ -577,13 +617,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_add_tag_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AddTag"), FORMAT_QUERY_PARAM,
+                expected_address.format("AddTag"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_similar_cases_ids_address(self):
@@ -591,13 +633,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_similar_cases_ids_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetSimilarCasesIds"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetSimilarCasesIds"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_dismissed_alerts_ticket_ids_address(self):
@@ -605,7 +649,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -622,7 +667,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_close_case_alerts_ticket_ids_address()
@@ -640,7 +686,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_case_alerts_ticket_ids_address(
@@ -668,12 +715,14 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address_with_original_file = (
                 siemplify_address_provider.provide_get_case_full_details_address(
-                    case_id, populate_original_file=True,
+                    case_id,
+                    populate_original_file=True,
                 )
             )
             address_without_original_file = (
@@ -721,13 +770,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_proxy_settings_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetProxySettings"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetProxySettings"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_update_entities_address(self):
@@ -735,13 +786,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_update_entities_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("UpdateEntities"), FORMAT_QUERY_PARAM,
+                expected_address.format("UpdateEntities"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_change_case_stage_address(self):
@@ -749,13 +802,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_change_case_stage_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("ChangeCaseStage"), FORMAT_QUERY_PARAM,
+                expected_address.format("ChangeCaseStage"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_change_case_stage_address(self):
@@ -763,13 +818,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_change_case_priority_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("ChangePriority"), FORMAT_QUERY_PARAM,
+                expected_address.format("ChangePriority"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_close_case_address(self):
@@ -777,19 +834,22 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_close_case_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("CloseCase"), FORMAT_QUERY_PARAM,
+                    expected_address.format("CloseCase"),
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("Close"), FORMAT_QUERY_PARAM,
+                    expected_address.format("Close"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_case_closure_details_address(self):
@@ -797,7 +857,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -805,7 +866,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetCaseClosureDetails"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetCaseClosureDetails"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_dismiss_alert_address(self):
@@ -813,13 +875,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_dismiss_alert_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("DismissAlert"), FORMAT_QUERY_PARAM,
+                expected_address.format("DismissAlert"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_dismiss_alert_address(self):
@@ -827,13 +891,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_close_alert_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("CloseAlert"), FORMAT_QUERY_PARAM,
+                expected_address.format("CloseAlert"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_create_case_insight_address(self):
@@ -841,13 +907,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_create_case_insight_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("CreateCaseInsight"), FORMAT_QUERY_PARAM,
+                expected_address.format("CreateCaseInsight"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_mark_case_as_important_address(self):
@@ -855,7 +923,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -863,7 +932,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("MarkAsImportant"), FORMAT_QUERY_PARAM,
+                expected_address.format("MarkAsImportant"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_raise_incident_address(self):
@@ -871,13 +941,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_raise_incident_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("RaiseIncident"), FORMAT_QUERY_PARAM,
+                expected_address.format("RaiseIncident"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_system_version_address(self):
@@ -885,7 +957,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_system_version_address()
@@ -900,13 +973,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_create_case_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("CreateCase"), FORMAT_QUERY_PARAM,
+                expected_address.format("CreateCase"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_create_entity_address(self):
@@ -914,13 +989,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_create_entity_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("CreateEntity"), FORMAT_QUERY_PARAM,
+                expected_address.format("CreateEntity"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_attach_workflow_to_case_address(self):
@@ -928,7 +1005,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -936,7 +1014,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AttacheWorkflowToCase"), FORMAT_QUERY_PARAM,
+                expected_address.format("AttacheWorkflowToCase"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_send_system_notification_address(self):
@@ -944,7 +1023,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -952,7 +1032,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("SendSystemNotification"), FORMAT_QUERY_PARAM,
+                expected_address.format("SendSystemNotification"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_cases_by_filter_address(self):
@@ -960,13 +1041,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_cases_by_filter_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetCasesByFilter"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetCasesByFilter"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_cases_ids_by_filter_address(self):
@@ -974,7 +1057,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -982,7 +1066,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetCasesIdByFilter"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetCasesIdByFilter"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_check_marketplace_status_address(self):
@@ -990,7 +1075,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1004,7 +1090,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1012,7 +1099,8 @@ class TestSiemplify:
             )
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AddOrUpdateCaseTask"), FORMAT_QUERY_PARAM,
+                expected_address.format("AddOrUpdateCaseTask"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_get_case_tasks_address(self):
@@ -1021,19 +1109,24 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_case_tasks_address(case_id)
             # assert
             if support_one_platform:
                 assert address == "{0}?caseId={1}&{2}".format(
-                    expected_address.format("GetCaseTasks"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseTasks"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}/{1}?{2}".format(
-                    expected_address.format("GetCaseTasks"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseTasks"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_any_entity_in_list_address(self):
@@ -1041,13 +1134,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_any_entity_in_list_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AnyEntityInCustomList"), FORMAT_QUERY_PARAM,
+                expected_address.format("AnyEntityInCustomList"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_add_entities_to_list_address(self):
@@ -1055,13 +1150,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_add_entities_to_list_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AddEntitiesToCustomList"), FORMAT_QUERY_PARAM,
+                expected_address.format("AddEntitiesToCustomList"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_remove_entities_from_list_address(self):
@@ -1069,7 +1166,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1086,13 +1184,15 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_custom_categories_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("GetCustomListCategories"), FORMAT_QUERY_PARAM,
+                expected_address.format("GetCustomListCategories"),
+                FORMAT_QUERY_PARAM,
             )
 
     def test_remote_connectors_keys_map_address(self):
@@ -1101,7 +1201,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_remote_connectors_keys_map_address(
@@ -1128,7 +1229,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_publisher_by_id_address(
@@ -1155,7 +1257,8 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_agent_by_id_address(
@@ -1164,12 +1267,16 @@ class TestSiemplify:
             # assert
             if support_one_platform:
                 assert address == "{0}?agentId={1}&{2}".format(
-                    expected_address.format("GetAgentById"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetAgentById"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?agentIdStr={1}&{2}".format(
-                    expected_address.format("GetAgentById"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetAgentById"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_create_connector_package_address(self):
@@ -1177,7 +1284,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1194,12 +1302,14 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
                 siemplify_address_provider.provide_add_agent_connector_logs_address(
-                    agent_id, connector_identifier,
+                    agent_id,
+                    connector_identifier,
                 )
             )
             # assert
@@ -1215,7 +1325,9 @@ class TestSiemplify:
 
             else:
                 assert address == "{0}/{1}/connectors/{2}/logs".format(
-                    expected_address.format("agents"), agent_id, connector_identifier,
+                    expected_address.format("agents"),
+                    agent_id,
+                    connector_identifier,
                 )
 
     def test_get_sync_cases_metadata_address(self):
@@ -1223,7 +1335,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1238,7 +1351,8 @@ class TestSiemplify:
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/cases/metadata"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/cases/metadata"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_sync_cases_address(self):
@@ -1246,19 +1360,22 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_sync_cases_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("GetSyncCases"), FORMAT_QUERY_PARAM,
+                    expected_address.format("GetSyncCases"),
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/cases"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/cases"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_sync_alerts_metadata_address(self):
@@ -1266,7 +1383,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1281,7 +1399,8 @@ class TestSiemplify:
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/alerts/metadata"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/alerts/metadata"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_get_sync_alerts_address(self):
@@ -1289,19 +1408,22 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_get_sync_alerts_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("GetSyncAlerts"), FORMAT_QUERY_PARAM,
+                    expected_address.format("GetSyncAlerts"),
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/alerts"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/alerts"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_update_cases_address(self):
@@ -1309,7 +1431,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_update_cases_address()
@@ -1322,7 +1445,8 @@ class TestSiemplify:
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/cases/matches"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/cases/matches"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_set_case_sla_address(self):
@@ -1331,19 +1455,24 @@ class TestSiemplify:
         case_id = 4
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_set_case_sla_address(case_id)
             # assert
             if support_one_platform:
                 assert address == "{0}?caseId={1}&{2}".format(
-                    expected_address.format("SetCaseSla"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("SetCaseSla"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}/{1}/sla?{2}".format(
-                    expected_address.format("cases"), case_id, FORMAT_QUERY_PARAM,
+                    expected_address.format("cases"),
+                    case_id,
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_set_alert_sla_address(self):
@@ -1354,11 +1483,13 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_set_alert_sla_address(
-                case_id, alert_identifier,
+                case_id,
+                alert_identifier,
             )
             # assert
             if support_one_platform:
@@ -1382,7 +1513,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = (
@@ -1391,12 +1523,14 @@ class TestSiemplify:
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("GetAlertsToSync"), FORMAT_QUERY_PARAM,
+                    expected_address.format("GetAlertsToSync"),
+                    FORMAT_QUERY_PARAM,
                 )
 
             else:
                 assert address == "{0}?{1}".format(
-                    expected_address.format("sync/new-alerts"), FORMAT_QUERY_PARAM,
+                    expected_address.format("sync/new-alerts"),
+                    FORMAT_QUERY_PARAM,
                 )
 
     def test_update_new_alerts_sync_status_address(self):
@@ -1404,7 +1538,8 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_update_new_alerts_sync_status_address()
@@ -1428,12 +1563,14 @@ class TestSiemplify:
 
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address_with_original_file = (
                 siemplify_address_provider.provide_get_alerts_full_details_address(
-                    case_id, populate_original_file=True,
+                    case_id,
+                    populate_original_file=True,
                 )
             )
             address_without_original_file = (
@@ -1481,11 +1618,13 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
             siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config, support_one_platform,
+                sdk_config,
+                support_one_platform,
             )
             # act
             address = siemplify_address_provider.provide_add_attachment_address()
             # assert
             assert address == "{0}?{1}".format(
-                expected_address.format("AddAttachment"), FORMAT_QUERY_PARAM,
+                expected_address.format("AddAttachment"),
+                FORMAT_QUERY_PARAM,
             )

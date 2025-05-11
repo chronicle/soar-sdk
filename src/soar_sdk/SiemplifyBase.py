@@ -21,6 +21,7 @@ import json
 import os
 import signal
 import sys
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -31,31 +32,34 @@ from SiemplifyAddressProvider import SiemplifyAddressProvider
 from SiemplifyPublisherUtils import SiemplifySession
 from SiemplifySdkConfig import SiemplifySdkConfig
 
-HEADERS = {"Content-Type": "application/json", "Accept": "application/json"}
-REQUEST_CA_BUNDLE = "REQUESTS_CA_BUNDLE"
-NO_CONTENT_STATUS_CODE = 204
+HEADERS: dict[str, str] = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+}
+REQUEST_CA_BUNDLE: str = "REQUESTS_CA_BUNDLE"
+NO_CONTENT_STATUS_CODE: int = 204
 
 
 class SiemplifyBase:
-    TIMESTAMP_KEY = "timestamp"
-    SIGNAL_CODES = {signal.SIGTERM: 143, signal.SIGINT: 130}
+    TIMESTAMP_KEY: str = "timestamp"
+    SIGNAL_CODES: dict[int, int] = {signal.SIGTERM: 143, signal.SIGINT: 130}
 
-    def __init__(self, is_connector=False):
-        self.api_key = None
-        self.sdk_config = SiemplifySdkConfig()
-        self.RUN_FOLDER = self.sdk_config.run_folder_path
-        self.script_name = ""
-        self._logger = None
-        self._logs_collector = None
-        self._log_path = None
-        self.API_ROOT = self.sdk_config.api_root_uri
-        self.FILE_STORAGE_API_ROOT = self.sdk_config.file_storage_api_root_uri
-        self.FILE_SYSTEM_CONTEXT_PATH = os.path.join(
+    def __init__(self, is_connector: bool = False):
+        self.api_key: str | None = None
+        self.sdk_config: SiemplifySdkConfig = SiemplifySdkConfig()
+        self.RUN_FOLDER: str = self.sdk_config.run_folder_path
+        self.script_name: str = ""
+        self._logger: SiemplifyLogger.SiemplifyLogger | None = None
+        self._logs_collector: SiemplifyLogger.FileLogsCollector | None = None
+        self._log_path: str | None = None
+        self.API_ROOT: str = self.sdk_config.api_root_uri
+        self.FILE_STORAGE_API_ROOT: str = self.sdk_config.file_storage_api_root_uri
+        self.FILE_SYSTEM_CONTEXT_PATH: str = os.path.join(
             self.RUN_FOLDER,
             "context_file.json",
         )
-        self.is_locally_scheduled_remote_connector = False
-        self._one_platform_support = False
+        self.is_locally_scheduled_remote_connector: bool = False
+        self._one_platform_support: bool = False
 
         options, _ = getopt.gnu_getopt(
             sys.argv[1:],
@@ -129,12 +133,12 @@ class SiemplifyBase:
         if self.sdk_config.gcp_auth_required:
             GcpTokenProvider.add_gcp_token(self)
 
-    def _init_remote_session(self, key):
+    def _init_remote_session(self, key: str) -> None:
         self.api_key = key
-        self.remote_agent_proxy = os.environ.get("PROXY_ADDRESS")
+        self.remote_agent_proxy: str | None = os.environ.get("PROXY_ADDRESS")
         self.session = self._create_remote_session(self.api_key, HEADERS)
 
-    def _create_remote_session(self, key, headers={}):
+    def _create_remote_session(self, key: str, headers: dict = {}) -> requests.Session:
         """Create a remote requests session to be used from the Agent
         :param key: API key for remote calls
         :param headers: headers to use when initializing the session
@@ -156,7 +160,7 @@ class SiemplifyBase:
         return session
 
     @property
-    def platform_url(self):
+    def platform_url(self) -> str:
         """Returns the URL to the instance"""
         if not self.sdk_config.is_remote_publisher_sdk:
             platfrom_url = os.environ.get("CLIENT_ADDRESS", None)
@@ -175,7 +179,7 @@ class SiemplifyBase:
         return f"{parsed.scheme}://{parsed.netloc}/"
 
     @property
-    def run_folder(self):
+    def run_folder(self) -> str:
         r"""Build run_folder base on script name
         :return: {string} full path (e.g.
         C:\Siemplify_Server\Scripting\SiemplifyAction\<script name>)
@@ -196,11 +200,11 @@ class SiemplifyBase:
         return path
 
     @property
-    def log_location(self):
+    def log_location(self) -> str:
         return "smp_python"
 
     @property
-    def LOGGER(self):
+    def LOGGER(self) -> SiemplifyLogger.SiemplifyLogger:
         if not self._logger:
             self._logger = SiemplifyLogger.SiemplifyLogger(
                 self._log_path,
@@ -211,7 +215,7 @@ class SiemplifyBase:
         return self._logger
 
     @staticmethod
-    def validate_siemplify_error(response):
+    def validate_siemplify_error(response: requests.Response) -> None:
         """Validate error
         :param response: {response}
         """
@@ -221,7 +225,7 @@ class SiemplifyBase:
             raise Exception(f"{e}: {response.content}")
 
     @staticmethod
-    def create_session(app_key, headers={}):
+    def create_session(app_key: str, headers: dict = {}) -> requests.Session:
         """Create default siemplify requests session
         :param app_key: the SDK app key
         :param headers: headers to use when initializing the session
@@ -233,16 +237,19 @@ class SiemplifyBase:
         session.headers.update(headers)
         return session
 
-    def set_logs_collector(self, logs_collector):
+    def set_logs_collector(
+        self,
+        logs_collector: SiemplifyLogger.FileLogsCollector | None,
+    ) -> None:
         self._logs_collector = logs_collector
 
     def fetch_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        context_type=None,
-        identifier=None,
-    ):
+        datetime_format: bool = False,
+        timezone: bool | str = False,
+        context_type: int | None = None,
+        identifier: str | None = None,
+    ) -> int | datetime.datetime:
         """Get timestamp
         :param datetime_format: {boolean} if datetime - return timestamp as datetime
         :param timezone: NOT SUPPORTED anymore!
@@ -277,12 +284,12 @@ class SiemplifyBase:
 
     def save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-        context_type=None,
-        identifier=None,
-    ):
+        datetime_format: bool = False,
+        timezone: bool | str = False,
+        new_timestamp: int | datetime.datetime = SiemplifyUtils.unix_now(),
+        context_type: int | None = None,
+        identifier: str | None = None,
+    ) -> None:
         """Save timestamp
         :param datetime_format: {boolean} if datetime - return timestamp as datetime
         :param timezone:  NOT SUPPORTED anymore!
@@ -303,12 +310,12 @@ class SiemplifyBase:
 
     def fetch_and_save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-        context_type=None,
-        identifier=None,
-    ):
+        datetime_format: bool = False,
+        timezone: bool | str = False,
+        new_timestamp: int | datetime.datetime = SiemplifyUtils.unix_now(),
+        context_type: int | None = None,
+        identifier: str | None = None,
+    ) -> int | datetime.datetime:
         """Fetach and save timestamp
         :param datetime_format: {boolean} if datetime - return timestamp as datetime
         :param timezone: NOT SUPPORTED anymore!
@@ -333,11 +340,11 @@ class SiemplifyBase:
 
     def set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+        property_value: str | float | bool | dict | list | None,
+    ) -> bool | None:
         """Set context property
         :param context_type: {int} ContextKeyValueEnum
         :param identifier: {string} identifier
@@ -378,7 +385,7 @@ class SiemplifyBase:
                 with open(self.FILE_SYSTEM_CONTEXT_PATH, "w") as json_file:
                     json.dump(json_decoded, json_file)
 
-            except e:
+            except Exception as e:
                 self.LOGGER.error(
                     f"Exception was thrown in set_context_property: {e}",
                 )
@@ -389,11 +396,11 @@ class SiemplifyBase:
 
     def set_context_property_in_server(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+        property_value: str | float | bool | dict | list | None,
+    ) -> None:
         request_dict = {
             "ContextType": context_type,
             "Identifier": identifier,
@@ -406,11 +413,11 @@ class SiemplifyBase:
 
     def try_set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+        property_value: str | float | bool | dict | list | None,
+    ) -> bool | bytes:
         """Try set context property
         :param context_type: {int} ContextKeyValueEnum
         :param identifier: {string} identifier
@@ -458,11 +465,11 @@ class SiemplifyBase:
 
     def try_set_context_property_in_server(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+        property_value: str | float | bool | dict | list | None,
+    ) -> bytes:
         request_dict = {
             "ContextType": context_type,
             "Identifier": identifier,
@@ -474,7 +481,12 @@ class SiemplifyBase:
         self.validate_siemplify_error(response)
         return response.content
 
-    def get_context_property(self, context_type, identifier, property_key):
+    def get_context_property(
+        self,
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+    ) -> Any:
         if (
             not self.sdk_config.is_remote_publisher_sdk
             or self.is_locally_scheduled_remote_connector
@@ -495,7 +507,12 @@ class SiemplifyBase:
             context = {}
         return context.get(property_key)
 
-    def get_context_property_from_server(self, context_type, identifier, property_key):
+    def get_context_property_from_server(
+        self,
+        context_type: int | None,
+        identifier: str | None,
+        property_key: str,
+    ) -> Any:
         # read from DB
         request_dict = {
             "ContextType": context_type,
@@ -511,8 +528,7 @@ class SiemplifyBase:
         return response.json()
 
     @staticmethod
-    def get_script_context():
-        # type: () -> str | bytes
+    def get_script_context() -> str | bytes:
         """Retrieve the script context from stdin, handling Python version differences.
 
         Returns:
@@ -524,11 +540,11 @@ class SiemplifyBase:
 
         return sys.stdin.read()
 
-    def termination_signal_handler(self, sig, _):
+    def termination_signal_handler(self, sig: int, _: Any) -> None:
         self.LOGGER.warning(f"Termination signal [{sig}] received, exiting...")
         sys.exit(-self.SIGNAL_CODES[sig])
 
-    def cancellation_signal_handler(self, sig, _):
+    def cancellation_signal_handler(self, sig: int, _: Any) -> None:
         self.LOGGER.warning(
             f"Cancellation signal [{sig}] received, ignoring to finish execution "
             "gracefully.",

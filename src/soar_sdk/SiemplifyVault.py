@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import SiemplifyUtils
 
 """
@@ -22,28 +24,23 @@ Base vault class. All vault provider managers should inherit from it.
 
 
 class SiemplifyVault:
-    def __init__(self, vault_settings):
+    def __init__(self, vault_settings: dict[str, Any]) -> None:
         # Extract and validate vault parameters
         if vault_settings is not None:
             self.session = SiemplifyUtils.SessionCreator.create_session()
-            self.api_root = vault_settings.get("vault_api_root", None)
+            self.api_root = vault_settings.get("vault_api_root")
             self.verify_ssl = vault_settings.get("vault_verify_ssl", False)
-            self.username = vault_settings.get("vault_username", None)
-            self.password = vault_settings.get("vault_password", None)
+            self.username = vault_settings.get("vault_username")
+            self.password = vault_settings.get("vault_password")
             self.client_ca_certificate = vault_settings.get(
                 "vault_client_ca_certificate",
-                None,
             )
-            self.client_certificate = vault_settings.get(
-                "vault_client_certificate",
-                None,
-            )
+            self.client_certificate = vault_settings.get("vault_client_certificate")
             self.client_certificate_passphrase = vault_settings.get(
                 "vault_client_certificate_passphrase",
-                None,
             )
             self.validate_vault_params()
 
-    def validate_vault_params(self):
+    def validate_vault_params(self) -> None:
         if not self.username or not self.password or not self.api_root:
             raise Exception("Cannot initialize vault. Missing parameters")

@@ -24,7 +24,10 @@ import urllib
 import uuid
 from collections.abc import Callable
 from datetime import timedelta
-from typing import Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 
 import requests
 import SiemplifyUtils
@@ -49,6 +52,9 @@ from SiemplifyDataModel import (
     Task,
 )
 from SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
+
+if TYPE_CHECKING:
+    from soar_sdk.SiemplifyDataModel import DomainEntityInfo
 
 SiemplifyUtils.override_stdout()
 
@@ -106,7 +112,8 @@ class Siemplify(SiemplifyBase):
         :return: {dict} case data
         """
         address = self.address_provider.provide_get_case_full_details_address(
-            case_id, get_source_file,
+            case_id,
+            get_source_file,
         )
         response = self.session.get(address)
         self.validate_siemplify_error(response)
@@ -123,7 +130,10 @@ class Siemplify(SiemplifyBase):
         return response.json()
 
     def _get_current_alert_by_id(
-        self, case_id, alert_id, get_source_file=False,
+        self,
+        case_id,
+        alert_id,
+        get_source_file=False,
     ) -> dict[str, Any]:
         """Get Alert object by case and alert id
         :param case_id: {string} case identifier
@@ -144,7 +154,7 @@ class Siemplify(SiemplifyBase):
         return response.json()
 
     @property
-    def result(self):
+    def result(self) -> ScriptResult:
         return self._result
 
     def _get_proxy_settings(self) -> dict[str, Any]:
@@ -156,11 +166,11 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def init_proxy_settings(self):
+    def init_proxy_settings(self) -> None:
         proxy_settings = self._get_proxy_settings()
         SiemplifyUtils.set_proxy_state(proxy_settings)
 
-    def update_entities(self, updated_entities):
+    def update_entities(self, updated_entities: dict[Any]) -> None:
         """Update entities
         :param updated_entities: {list of entities}
         """
@@ -191,7 +201,11 @@ class Siemplify(SiemplifyBase):
         :return: {dict} attachment_id
         """
         attachment = Attachment.fromfile(
-            file_path, case_id, alert_identifier, description, is_favorite,
+            file_path,
+            case_id,
+            alert_identifier,
+            description,
+            is_favorite,
         )
         attachment.case_identifier = case_id
         attachment.alert_identifier = alert_identifier
@@ -218,7 +232,7 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_attachment(self, attachment_id):
+    def get_attachment(self, attachment_id: str) -> io.BytesIO:
         """Get attachment data by identifier
         :param attachment_id: {string} attachment identifier
         :return: {BytesIO} attachment data
@@ -232,7 +246,7 @@ class Siemplify(SiemplifyBase):
         self.session.stream = False
         return io.BytesIO(response.content)
 
-    def assign_case(self, user, case_id, alert_identifier):
+    def assign_case(self, user: str, case_id: str, alert_identifier: str) -> None:
         """Assign case to user
         :param user: {string} user/role (e.g. Admin, @Tier1)
         :param case_id: {string} case identifier
@@ -247,7 +261,7 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def add_comment(self, comment, case_id, alert_identifier):
+    def add_comment(self, comment: str, case_id: str, alert_identifier: str) -> None:
         """Add new comment to specific case
         :param comment: {string} comment to be added to case wall
         :param case_id: {string} case identifier
@@ -259,12 +273,13 @@ class Siemplify(SiemplifyBase):
             "comment": comment,
         }
         address = "{0}/{1}".format(
-            self.API_ROOT, "external/v1/cases/comments?format=snake",
+            self.API_ROOT,
+            "external/v1/cases/comments?format=snake",
         )
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def add_tag(self, tag, case_id, alert_identifier):
+    def add_tag(self, tag: str, case_id: str, alert_identifier: str) -> None:
         """Add new tag to specific case
         :param tag: {string} tag to be added
         :param case_id: {string} case identifier
@@ -280,7 +295,11 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def update_alerts_additional_data(self, case_id, alerts_additional_data):
+    def update_alerts_additional_data(
+        self,
+        case_id: str,
+        alerts_additional_data: dict[str, Any],
+    ) -> None:
         """Update alerts additional data
         :param case_id: {string} case identifier
         :param alerts_additional_data: {dict}
@@ -295,14 +314,14 @@ class Siemplify(SiemplifyBase):
 
     def get_similar_cases(
         self,
-        case_id,
-        ports_filter,
-        category_outcome_filter,
-        rule_generator_filter,
-        entity_identifiers_filter,
-        start_time_unix_ms,
-        end_time_unix_ms,
-    ):
+        case_id: str,
+        ports_filter: bool,
+        category_outcome_filter: bool,
+        rule_generator_filter: bool,
+        entity_identifiers_filter: bool,
+        start_time_unix_ms: int,
+        end_time_unix_ms: int,
+    ) -> dict[str, Any]:
         """Get similar cases
         :param case_id: {string} case identifier
         :param ports_filter: {boolean} true/false use port filter
@@ -327,7 +346,10 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_ticket_ids_for_alerts_dismissed_since_timestamp(self, timestamp_unix_ms):
+    def get_ticket_ids_for_alerts_dismissed_since_timestamp(
+        self,
+        timestamp_unix_ms: int,
+    ) -> list[str]:
         """Get ticket ids for alerts dismissed since timestamp
         :param timestamp_unix_ms: {long} (e.g. 1550409785000L)
         :return: {list} alerts
@@ -340,8 +362,10 @@ class Siemplify(SiemplifyBase):
         return response.json()
 
     def get_alerts_ticket_ids_from_cases_closed_since_timestamp(
-        self, timestamp_unix_ms, rule_generator,
-    ):
+        self,
+        timestamp_unix_ms: int,
+        rule_generator: str,
+    ) -> list[str]:
         """Get alerts from cases that were closed since timestamp
         :param timestamp_unix_ms: {long} (e.g. 1550409785000L)
         :param rule_generator: {string} (e.g. 'Phishing email detector')
@@ -357,7 +381,7 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_alerts_ticket_ids_by_case_id(self, case_id):
+    def get_alerts_ticket_ids_by_case_id(self, case_id: int) -> list[str]:
         """Get alert ticket ids for a specific case (distinct)
         :param case_id: {long} (e.g. 1201)
         :return: {list} alert ticket ids
@@ -367,7 +391,12 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def change_case_stage(self, stage, case_id, alert_identifier):
+    def change_case_stage(
+        self,
+        stage: str,
+        case_id: str,
+        alert_identifier: str,
+    ) -> None:
         """Change case stage
         :param stage: {string} (e.g. Incident)
         :param case_id: {string} case identifier
@@ -382,7 +411,12 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def change_case_priority(self, priority, case_id, alert_identifier):
+    def change_case_priority(
+        self,
+        priority: int,
+        case_id: str,
+        alert_identifier: str,
+    ) -> None:
         """Change case priority
         :param priority: {int} {"Low": 40, "Medium": 60, "High": 80, "Critical": 100}
         :param case_id: {string} case identifier
@@ -397,7 +431,14 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def close_case(self, root_cause, comment, reason, case_id, alert_identifier):
+    def close_case(
+        self,
+        root_cause: str,
+        comment: str,
+        reason: str,
+        case_id: str,
+        alert_identifier: str,
+    ) -> None:
         """Close case
         :param root_cause: {string} close case root cause
         :param comment: {string} comment
@@ -416,7 +457,10 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def get_case_closure_details(self, case_id_list):
+    def get_case_closure_details(
+        self,
+        case_id_list: list[str],
+    ) -> list[dict[str, Any]]:
         """Get case closure details
         :param case_id_list: {list} of case ids {string}
         :return: {list| of case closure details {dict}
@@ -428,10 +472,10 @@ class Siemplify(SiemplifyBase):
 
     def dismiss_alert(
         self,
-        alert_group_identifier,
-        should_close_case_if_all_alerts_were_dismissed,
-        case_id,
-    ):
+        alert_group_identifier: str,
+        should_close_case_if_all_alerts_were_dismissed: bool,
+        case_id: str | int,
+    ) -> None:
         """Dismiss alert
         :param alert_group_identifier:
         :param should_close_case_if_all_alerts_were_dismissed:
@@ -447,7 +491,14 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def close_alert(self, root_cause, comment, reason, case_id, alert_id):
+    def close_alert(
+        self,
+        root_cause: str,
+        comment: str,
+        reason: str,
+        case_id: str | int,
+        alert_id: str,
+    ) -> dict[str, Any]:
         """Close alert
         :param root_cause: {string} close case root cause
         :param comment: {string} comment
@@ -467,7 +518,13 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def add_entity_insight(self, domain_entity_info, message, case_id, alert_id):
+    def add_entity_insight(
+        self,
+        domain_entity_info: DomainEntityInfo,
+        message: str,
+        case_id: str,
+        alert_id: str,
+    ) -> bool:
         """Add insight
         :param domain_entity_info: {entity}
         :param message: {string} insight message
@@ -495,20 +552,20 @@ class Siemplify(SiemplifyBase):
 
     def create_case_insight_internal(
         self,
-        case_id,
-        alert_identifier,
-        triggered_by,
-        title,
-        content,
-        entity_identifier,
-        severity,
-        insight_type,
-        additional_data=None,
-        additional_data_type=None,
-        additional_data_title=None,
-        original_requesting_user=None,
-        entity_type=None,
-    ):
+        case_id: str,
+        alert_identifier: str,
+        triggered_by: str,
+        title: str,
+        content: str,
+        entity_identifier: str,
+        severity: int,
+        insight_type: int,
+        additional_data: Any = None,
+        additional_data_type: str | None = None,
+        additional_data_title: str | None = None,
+        original_requesting_user: str | None = None,
+        entity_type: str | None = None,
+    ) -> bool:
         """Add insight
         :param case_id: {string} case identifier
         :param alert_identifier: {string} alert identifier
@@ -545,7 +602,7 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return True
 
-    def escalate_case(self, comment, case_id, alert_identifier):
+    def escalate_case(self, comment: str, case_id: str, alert_identifier: str) -> None:
         """Escalate case
         :param comment: {string} escalate comment
         :param case_id: {string} case identifier
@@ -558,13 +615,14 @@ class Siemplify(SiemplifyBase):
         }
         # This endpoint in not mapped in the server
         address = "{0}/{1}".format(
-            self.API_ROOT, "external/v1/sdk/Escalate?format=snake",
+            self.API_ROOT,
+            "external/v1/sdk/Escalate?format=snake",
         )
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
         return json.loads(response.text)
 
-    def mark_case_as_important(self, case_id, alert_identifier):
+    def mark_case_as_important(self, case_id: str, alert_identifier: str) -> None:
         """Mark case as important
         :param case_id: {string} case identifier
         :param alert_identifier: {string} alert identifier
@@ -574,7 +632,7 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def raise_incident(self, case_id, alert_identifier):
+    def raise_incident(self, case_id: str, alert_identifier: str) -> None:
         """Raise incident
         :param case_id: {string} case identifier
         :param alert_identifier: {string} alert identifier
@@ -584,7 +642,12 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def end(self, message, result_value, execution_state=EXECUTION_STATE_COMPLETED):
+    def end(
+        self,
+        message: str,
+        result_value: Any,
+        execution_state: int = EXECUTION_STATE_COMPLETED,
+    ) -> None:
         """Ends the script
         :param message: output message to be displayed to the client
         :param result_value: return value (can be int/string/dict)
@@ -597,15 +660,14 @@ class Siemplify(SiemplifyBase):
         self.remove_temp_folder()
         self.end_script()
 
-    def end_script(self):
-        """Deprecated - do not use. Kept for backwards compatibility with old scripts
-        """
+    def end_script(self) -> None:
+        """Deprecated - do not use. Kept for backwards compatibility with old scripts"""
         output_object = self._build_output_object()
         SiemplifyUtils.real_stdout.write(json.dumps(output_object))
         sys.exit(0)
 
     @staticmethod
-    def _remap_keys(result_object):
+    def _remap_keys(result_object: dict[Any, Any]) -> dict[str, Any]:
         """Maps result object to result object json serializable
         :param result_object: {dict} dict of entities and results, keys are tuple (identifier, type)
         """
@@ -623,9 +685,8 @@ class Siemplify(SiemplifyBase):
             result_object_remaped[k] = result_val
         return result_object_remaped
 
-    def _build_output_object(self):
-        """Kept for backwards compatibility with old scripts
-        """
+    def _build_output_object(self) -> dict[str, Any]:
+        """Kept for backwards compatibility with old scripts"""
         if self.result.support_old_entities:
             result = self.result._result_object
         else:
@@ -639,7 +700,12 @@ class Siemplify(SiemplifyBase):
         }
         return output_object
 
-    def get_configuration(self, provider, environment=None, integration_instance=None):
+    def get_configuration(
+        self,
+        provider: str,
+        environment: str | None = None,
+        integration_instance: str | None = None,
+    ) -> dict[str, Any]:
         """Get integration configuration
         :param provider: {string} integration name (e.g. "VirusTotal")
         :param environment: {string} configuration for specific environment or 'all'
@@ -647,21 +713,26 @@ class Siemplify(SiemplifyBase):
         :return: {dict} configuration details
         """
         configuration = self.get_configuration_from_server(
-            integration_instance, provider,
+            integration_instance,
+            provider,
         )
         if self.vault_settings is None:
             return configuration
 
         return self.load_vault_settings(configuration)
 
-    def load_vault_settings(self, configurations):
+    def load_vault_settings(
+        self,
+        configurations: dict[str, Any],
+    ) -> dict[str, Any]:
         # we import SiemplifyVaultUtils only when needed, in order to not import dependencies which are not needed
         self.LOGGER.info("Importing SiemplifyVaultUtils to extract vault params")
         import SiemplifyVaultUtils
 
         for key, value in list(configurations.items()):
             configurations[key] = SiemplifyVaultUtils.extract_vault_param(
-                value, self.vault_settings,
+                value,
+                self.vault_settings,
             )
         return configurations
 
@@ -684,7 +755,8 @@ class Siemplify(SiemplifyBase):
         :return: {dict} configuration details
         """
         return self.get_configuration_from_server(
-            integration_instance=None, provider=identifier,
+            integration_instance=None,
+            provider=identifier,
         )
 
     def get_system_info(self, start_time_unixtime_ms):
@@ -728,7 +800,9 @@ class Siemplify(SiemplifyBase):
             import imp
 
             SiemplifyUtils.link_brother_envrionment(self, config_provider)
-            integration_name = f"{config_provider}_V{self.get_integration_version(config_provider)!s}"
+            integration_name = (
+                f"{config_provider}_V{self.get_integration_version(config_provider)!s}"
+            )
             module_name = external_providers[config_provider]["manager_module_name"]
             module_path = os.path.join(
                 *[
@@ -745,7 +819,8 @@ class Siemplify(SiemplifyBase):
             )
         try:
             manager_class = getattr(
-                mod, external_providers[config_provider]["manager_class_name"],
+                mod,
+                external_providers[config_provider]["manager_class_name"],
             )
         except AttributeError:
             raise Exception(
@@ -756,7 +831,8 @@ class Siemplify(SiemplifyBase):
             config_provider,
         )
         return manager_class.get_config_siemplify(
-            config_name, **provider_integration_config,
+            config_name,
+            **provider_integration_config,
         )
 
     def create_case(self, case_info):
@@ -809,7 +885,10 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
 
     def attach_workflow_to_case(
-        self, workflow_name, cyber_case_id, indicator_identifier,
+        self,
+        workflow_name,
+        cyber_case_id,
+        indicator_identifier,
     ):
         """Attach workflow to case
         :param workflow_name: {string} workflow name
@@ -828,7 +907,9 @@ class Siemplify(SiemplifyBase):
         return json.loads(response.text)
 
     def send_system_notification(
-        self, message, message_id=SYSTEM_NOTIFICATION_CUSTOM_MESSAGE_ID,
+        self,
+        message,
+        message_id=SYSTEM_NOTIFICATION_CUSTOM_MESSAGE_ID,
     ):
         """Send system notification with optional message id
         :param message: {string} notification message
@@ -1167,7 +1248,8 @@ class Siemplify(SiemplifyBase):
         :param logs_package: {dict} ConnectorLogPackage
         """
         address = self.address_provider.provide_add_agent_connector_logs_address(
-            agent_id, connector_id,
+            agent_id,
+            connector_id,
         )
         response = self.session.post(address, json=logs_package)
         self.validate_siemplify_error(response)
@@ -1375,7 +1457,11 @@ class Siemplify(SiemplifyBase):
         sys.exit(-self.SIGNAL_CODES[sig])
 
     def get_updated_sync_cases_metadata(
-        self, start_timestamp_unix_ms, count, allowed_environments=None, vendor=None,
+        self,
+        start_timestamp_unix_ms,
+        count,
+        allowed_environments=None,
+        vendor=None,
     ):
         """Retrieve updated tracked cases metadata.
         :param start_timestamp_unix_ms: {long} Search for updated cases starting at @start_timestamp_unix_ms or later.
@@ -1398,7 +1484,8 @@ class Siemplify(SiemplifyBase):
         raw_cases_metadata = response.json()
         cases_metadata = [
             SyncCaseMetadata(
-                str(raw_case["id"]), int(raw_case["tracking_time_unix_time_in_ms"]),
+                str(raw_case["id"]),
+                int(raw_case["tracking_time_unix_time_in_ms"]),
             )
             for raw_case in raw_cases_metadata
         ]
@@ -1616,7 +1703,8 @@ class Siemplify(SiemplifyBase):
             )
 
         address = self.address_provider.provide_set_alert_sla_address(
-            case_id, urllib.parse.quote(alert_identifier, safe=""),
+            case_id,
+            urllib.parse.quote(alert_identifier, safe=""),
         )
         request = {
             "period_time": period_time,

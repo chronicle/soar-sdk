@@ -16,15 +16,15 @@ from __future__ import annotations
 
 import calendar
 import copy
-
-# Date Time Converter:
 import datetime
+import functools
 import json
 import logging
 import os
 import re
 import sys
 from functools import reduce
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
 import arrow
@@ -34,6 +34,9 @@ import requests
 from dateutil import parser, tz
 from dateutil.tz import tzoffset
 from six import string_types
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 if sys.version_info >= (3, 7):
     from io import StringIO  # for handling unicode strings
@@ -47,18 +50,16 @@ else:
 real_stdout = sys.stdout
 my_stdout = StringIO()
 
-# CONSTS
-SCRIPT_LOG_FILE = "script.log"
-EMAIL_REGEX = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
-DOMAIN_REGEX = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
-ENCODING_UTF_8 = "utf-8"
-MAXIMUM_PROPERTY_VALUE = 3000000
+SCRIPT_LOG_FILE: str = "script.log"
+EMAIL_REGEX: str = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
+DOMAIN_REGEX: str = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
+ENCODING_UTF_8: str = "utf-8"
+MAXIMUM_PROPERTY_VALUE: int = 3_000_000
 
 
 class SessionCreator:
     @staticmethod
-    def create_session():
-        # type: () -> requests.Session
+    def create_session() -> requests.Session:
         """Creates and return a new `requests` session.
 
         Returns:
@@ -68,7 +69,10 @@ class SessionCreator:
         return requests.Session()
 
 
-def set_proxy_state(proxy_settings, is_enabled=True):
+def set_proxy_state(
+    proxy_settings: dict[str, Any],
+    is_enabled: bool = True,
+) -> None:
     """Set proxy state
     :proxy_settings: {dict} The proxy settings (address, username, password etc)
     :param is_enabled: {boolean} is proxy enabled
@@ -106,8 +110,9 @@ def set_proxy_state(proxy_settings, is_enabled=True):
             os.environ["proxy"] = "off"
 
 
-def output_handler(func):
-    def wrapper(*args, **kwargs):
+def output_handler(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    @functools.wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except Exception:
@@ -119,15 +124,15 @@ def output_handler(func):
     return wrapper
 
 
-def override_stdout():
+def override_stdout() -> None:
     sys.stdout = my_stdout
 
 
-def resume_stdout():
+def resume_stdout() -> None:
     sys.stdout = real_stdout
 
 
-def create_logger():
+def create_logger() -> logging.Logger:
     """Create logger"""
     logger = logging.getLogger("simple_example")
     logger.setLevel(logging.DEBUG)
@@ -148,10 +153,7 @@ def create_logger():
     fh.setFormatter(formatter)
 
 
-# logger.addHandler(fh)
-
-
-def enrich_entities(siemplify, enrichment_data):
+def enrich_entities(siemplify: Any, enrichment_data: dict[str, Any]) -> None:
     """Enrich entities
     :param siemplify: {Siemplify instance}
     :param enrichment_data: {dict}
@@ -168,7 +170,7 @@ def enrich_entities(siemplify, enrichment_data):
     siemplify.update_entities(entities_to_enrich)
 
 
-def from_unix_time(unix_ms):
+def from_unix_time(unix_ms: int) -> datetime.datetime:
     """Returns the time in local time, but without stated TZ. Consider using
     convert_unixtime_to_datetime, for calculations.
     :param unix_ms: {unix time}
@@ -177,7 +179,7 @@ def from_unix_time(unix_ms):
     return datetime.datetime.fromtimestamp(unix_ms / 1000)
 
 
-def convert_unixtime_to_datetime(unix_time):
+def convert_unixtime_to_datetime(unix_time: int) -> datetime.datetime:
     """Returns the time in local time with stated TZ
     :param unix_time: {unix time}
     :return: {datetime}
@@ -193,7 +195,7 @@ def convert_unixtime_to_datetime(unix_time):
         )
 
 
-def convert_datetime_to_unix_time(dt):
+def convert_datetime_to_unix_time(dt: datetime.datetime) -> int:
     """Returns the time in unix time
     :param dt: {datetime}
     :return: {unix time}
@@ -211,7 +213,10 @@ def convert_datetime_to_unix_time(dt):
         )
 
 
-def convert_string_to_datetime(datetime_str, timezone_str=None):
+def convert_string_to_datetime(
+    datetime_str: str,
+    timezone_str: str | None = None,
+) -> datetime.datetime:
     """Returns time in datetime format
     :param datetime_str: {string} "Tue, 28 Mar 2017 21:34:39 +0700"
     :param timezone_str: {string} ("UTC", etc)
@@ -235,7 +240,7 @@ def convert_string_to_datetime(datetime_str, timezone_str=None):
         raise Exception("{0}: {1}".format("convert_string_to_datetime Failed", str(e)))
 
 
-def convert_string_to_unix_time(datetime_str=None):
+def convert_string_to_unix_time(datetime_str: str | None = None) -> int:
     """Return time in unix time format
     :param datetime_str: {string} "Tue, 28 Mar 2017 21:34:39 +0700"
     :return: {unix time}
@@ -247,14 +252,14 @@ def convert_string_to_unix_time(datetime_str=None):
         raise Exception("{0}: {1}".format("convert_string_to_unix_time Failed", str(e)))
 
 
-def utc_now():
+def utc_now() -> datetime.datetime:
     """Get utc current time
     :return: {datetime}
     """
     return datetime.datetime.now(tz=tz.gettz("UTC"))
 
 
-def unix_now():
+def unix_now() -> int:
     """Get utc current time ad unix time
     :return: {long} unix time
     """
@@ -262,7 +267,7 @@ def unix_now():
     return new_timestamp
 
 
-def utc_to_local(utc_dt):
+def utc_to_local(utc_dt: datetime.datetime) -> datetime.datetime:
     """Return local time (without stated TZ)
     :param utc_dt: {datetime} (with stated TZ - UTC)
     :return: {datetime}
@@ -275,7 +280,10 @@ def utc_to_local(utc_dt):
 
 
 # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-def convert_timezone(source_aware_datetime, destination_timezone_str):
+def convert_timezone(
+    source_aware_datetime: datetime.datetime,
+    destination_timezone_str: str,
+) -> datetime.datetime:
     """Stated TZ to datetime object.
     :param source_aware_datetime: {datetime}
     :param destination_timezone_str: {string} timezone (e.g. Africa/Abidjan)
@@ -287,7 +295,9 @@ def convert_timezone(source_aware_datetime, destination_timezone_str):
     return converted_dt
 
 
-def set_utc_timezone_to_naive_datetime(naive_datetime):
+def set_utc_timezone_to_naive_datetime(
+    naive_datetime: datetime.datetime,
+) -> datetime.datetime:
     """Convert naive datetime to aware datetime
     :param naive_datetime: {datetime} without stated TZ
     :return: {datetime} aware datetime
@@ -297,20 +307,10 @@ def set_utc_timezone_to_naive_datetime(naive_datetime):
     return time_zone.localize(dt=naive_datetime)
 
 
-# Untested. Also, missing reverse method (with normalize etc'?)
-# def _is_dst_in_effect(pytz_timezone):
-#    """Determine whether or not Daylight Savings Time (DST)
-#       is currently in effect"""
-#    now = datetime.datetime.now()
-#    x = datetime.datetime(now.year, 1, 1, 0, 0, 0, tzinfo=pytz_timezone)  # Jan 1 of
-#    this year
-#    y = datetime.datetime.now(pytz_timezone)
-#
-#    # if DST is in effect, their offsets will be different
-#    return not (y.utcoffset() == x.utcoffset())
-
-
-def add_prefix_to_dict(given_dict, prefix):
+def add_prefix_to_dict(
+    given_dict: dict[str, Any],
+    prefix: str,
+) -> dict[str, Any]:
     """Add prefix to the given dict keys
     :param given_dict: {dict}
     :param prefix: {string} prefix to be added to the given dict
@@ -319,7 +319,7 @@ def add_prefix_to_dict(given_dict, prefix):
     return {f"{prefix}_{key}": value for key, value in list(given_dict.items())}
 
 
-def extract_domain(email):
+def extract_domain(email: str) -> str:
     """Get domain dfrom email address
     :param email: {string} email address (user@domain.com)
     :return: {string} domain (domain.com)
@@ -327,7 +327,7 @@ def extract_domain(email):
     return email.split("@")[-1]
 
 
-def get_email_address(entity):
+def get_email_address(entity: Any) -> str | None:
     """Get email address
     :param entity: {entity}
     :return: email address if found, else None.
@@ -342,7 +342,7 @@ def get_email_address(entity):
     return None
 
 
-def get_domain(entity):
+def get_domain(entity: Any) -> str | None:
     """Get domain
     :param entity: {entity}
     :return: domain if found, else None.
@@ -358,11 +358,11 @@ def get_domain(entity):
 
 
 def add_prefix_to_dict_encoded_keys(
-    target_dict,
-    prefix,
-    encoding=ENCODING_UTF_8,
-    error_handling="strict",
-):
+    target_dict: dict[str, Any],
+    prefix: str,
+    encoding: str = ENCODING_UTF_8,
+    error_handling: str = "strict",
+) -> dict[str, Any]:
     """Add prefix to the given dict keys.
     In Python2 assuming keys are either 'unicode' or 'str' with the
     appropriate encoding and prefix is 'unicode' or ASCII 'str'.
@@ -401,7 +401,10 @@ def add_prefix_to_dict_encoded_keys(
     return result_dict
 
 
-def add_prefix_to_dict_keys(target_dict, prefix):
+def add_prefix_to_dict_keys(
+    target_dict: dict[str, Any],
+    prefix: str,
+) -> dict[str, Any]:
     """Add prefix to the given dict keys
     :param target_dict: {dict}
     :param prefix: {string} prefix to be added to the given dict
@@ -412,7 +415,7 @@ def add_prefix_to_dict_keys(target_dict, prefix):
     return add_prefix_to_dict_encoded_keys(target_dict, prefix)
 
 
-def is_dict_in_list(target_list):
+def is_dict_in_list(target_list: list[Any]) -> dict[Any, Any] | None:
     """Check if dict is in list
     :param target_list: {list}
     :return: First dict at the list : {dict}
@@ -423,7 +426,7 @@ def is_dict_in_list(target_list):
     return None
 
 
-def dict_to_flat(target_dict):
+def dict_to_flat(target_dict: dict[str, Any]) -> dict[str, Any]:
     """Receives nested dictionary and returns it as a flat dictionary.
     :param target_dict: {dict}
     :return: Flat dict : {dict}
@@ -512,7 +515,7 @@ def dict_to_flat(target_dict):
     return dict(items)
 
 
-def flat_dict_to_csv(flat_dict):
+def flat_dict_to_csv(flat_dict: dict[str, Any]) -> list[str]:
     """Turns flat dict to CSV format string list.
     :param flat_dict: {dict}
     :return: CSV format string list : {list}
@@ -527,10 +530,10 @@ def flat_dict_to_csv(flat_dict):
     return csv_format
 
 
-def get_domain_from_entity(entity):
+def get_domain_from_entity(entity: Any) -> str | None:
     """Extract domain from entity
     :param entity: {entity}
-    :return:
+    :return: {str} domain or None
     """
     if "@" in entity.identifier:
         return entity.identifier.split("@", 1)[-1]
@@ -546,7 +549,9 @@ def get_domain_from_entity(entity):
         raise ImportError("tldextract is not installed. Use pip and install it.")
 
 
-def construct_csv(list_of_dicts):
+def construct_csv(
+    list_of_dicts: list[dict[str, Any]],
+) -> list[str]:
     """Constructs a csv from list_of_dicts
     :param list_of_dicts: The list_of_dicts to add to the csv (list_of_dicts are list
     of flat dicts)
@@ -580,7 +585,7 @@ def construct_csv(list_of_dicts):
     return csv_output
 
 
-def delete_older_files_from_folder(folder_path, days_to_keep=1):
+def delete_older_files_from_folder(folder_path: str, days_to_keep: int = 1) -> None:
     """Delete files from a folder that are older than given number of days
     backwards
     :param folder_path: {str} The full path to the folder
@@ -596,7 +601,11 @@ def delete_older_files_from_folder(folder_path, days_to_keep=1):
                 os.remove(full_path)
 
 
-def validate_string(string, convert_none=False, ignore_non_str=False):
+def validate_string(
+    string: Any,
+    convert_none: bool = False,
+    ignore_non_str: bool = False,
+) -> str:
     """Differentiate string encoding between python2 and python3
     :param string:  {Basestring}
     :return: {str}
@@ -606,7 +615,11 @@ def validate_string(string, convert_none=False, ignore_non_str=False):
     return validate_string_python2(string, convert_none, ignore_non_str)
 
 
-def validate_string_python3(string, convert_none=False, ignore_non_str=False):
+def validate_string_python3(
+    string: Any,
+    convert_none: bool = False,
+    ignore_non_str: bool = False,
+) -> str:
     """Validates string encoding, in case of unicode the string will be encoded and
     returned as a string object
     :param string:  {Basestring}
@@ -624,7 +637,11 @@ def validate_string_python3(string, convert_none=False, ignore_non_str=False):
     )
 
 
-def validate_string_python2(string, convert_none=False, ignore_non_str=False):
+def validate_string_python2(
+    string: Any,
+    convert_none: bool = False,
+    ignore_non_str: bool = False,
+) -> str:
     """Validates string encoding, in case of unicode the string will be encoded and
     returned as a string object
     :param string:  {Basestring}
@@ -642,7 +659,10 @@ def validate_string_python2(string, convert_none=False, ignore_non_str=False):
     )
 
 
-def create_entity_json_result_object(entity_identifier, json_result_for_entity):
+def create_entity_json_result_object(
+    entity_identifier: str,
+    json_result_for_entity: dict[str, Any],
+) -> dict[str, Any]:
     """Organize entity json result object to set format.
     :param entity_identifier: {string} Entity identifier string.
     :param json_result_for_entity: {dict} JSON result for specific entity.
@@ -651,7 +671,9 @@ def create_entity_json_result_object(entity_identifier, json_result_for_entity):
     return {"Entity": entity_identifier, "EntityResult": json_result_for_entity}
 
 
-def convert_dict_to_json_result_dict(json_result_dict):
+def convert_dict_to_json_result_dict(
+    json_result_dict: dict[str, Any] | str,
+) -> list[dict[str, Any]]:
     """Convert key, value JSON result to JSON result object list.
     :param json_result_dict: {dict} Key, val JSON result.
     :return: {list} List of entity JSON result objects.
@@ -666,11 +688,11 @@ def convert_dict_to_json_result_dict(json_result_dict):
     ]
 
 
-def get_brother_virtualenv_directory(integration_name):
+def get_brother_virtualenv_directory(integration_name: str) -> str:
     """Creates and validates the path of a parallel virtual environment folder. This
     structure is coupled with server code
-    :param integration_name:
-    :return:
+    :param integration_name: {str} Name of the integration
+    :return: {str} Path to the virtual environment directory
     """
     current_directory_parent = os.path.dirname(os.getcwd())
     brother_virutal_env_directory = os.path.join(
@@ -686,11 +708,12 @@ def get_brother_virtualenv_directory(integration_name):
     return brother_virutal_env_directory
 
 
-def link_brother_envrionment(siemplify, integration_identifier):
+def link_brother_envrionment(siemplify: Any, integration_identifier: str) -> None:
     """Links the virutal envrionment folder of another integration to current process (
     Managers & pip modules)
-    :param integration_identifier:
-    :return:
+    :param siemplify: {Siemplify} Siemplify instance
+    :param integration_identifier: {str} Integration identifier
+    :return: None
     """
     integration_name = f"{integration_identifier}_V{siemplify.get_integration_version(integration_identifier)!s}"
     brother_directory = get_brother_virtualenv_directory(integration_name)
@@ -710,14 +733,14 @@ def link_brother_envrionment(siemplify, integration_identifier):
 
 
 def extract_script_param(
-    siemplify,
-    input_dictionary,
-    param_name,
-    default_value=None,
-    input_type=str,
-    is_mandatory=False,
-    print_value=False,
-):
+    siemplify: Any,
+    input_dictionary: dict[str, Any],
+    param_name: str,
+    default_value: Any = None,
+    input_type: type = str,
+    is_mandatory: bool = False,
+    print_value: bool = False,
+) -> Any:
     # internal param validation:
     if not siemplify:
         raise Exception("Parameter 'siemplify' cannot be None")
@@ -780,19 +803,23 @@ def extract_script_param(
     return result
 
 
-def extract_environment(envrioment_field_name, default_envrioment_value, data):
+def extract_environment(
+    envrioment_field_name: str | None,
+    default_envrioment_value: Any,
+    data: dict[str, Any],
+) -> Any:
     if envrioment_field_name:
         return data.get(envrioment_field_name)
     return default_envrioment_value
 
 
-def get_unicode(value):
+def get_unicode(value: Any) -> str:
     if is_python_37():
         return get_unicode_python3(value)
     return get_unicode_python2(value)
 
 
-def decode_bytes(value):
+def decode_bytes(value: bytes) -> str:
     try:
         return value.decode("utf-8")
     except UnicodeDecodeError:
@@ -804,7 +831,7 @@ def decode_bytes(value):
     return value
 
 
-def get_unicode_python3(value):
+def get_unicode_python3(value: Any) -> str:
     if value is None:
         return ""
     if isinstance(value, str):
@@ -817,7 +844,7 @@ def get_unicode_python3(value):
         return "Unable to get text representation of object"
 
 
-def get_unicode_python2(value):
+def get_unicode_python2(value: Any) -> str:
     if isinstance(value, unicode):
         return value
     if not isinstance(value, basestring):
@@ -834,49 +861,48 @@ def get_unicode_python2(value):
     return value
 
 
-def adjust_to_csv(value):
+def adjust_to_csv(value: str | None) -> str:
     if value is None:
         return ""
     return value
 
 
-def is_python_37():
+def is_python_37() -> bool:
     return sys.version_info >= (3, 7)
 
 
-def is_at_least_python_3_11():
-    # type: () -> bool
+def is_at_least_python_3_11() -> bool:
     return sys.version_info >= (3, 11)
 
 
-def is_old_entities_format(entities):
+def is_old_entities_format(entities: list[Any]) -> bool:
     if entities and all(isinstance(e, string_types) for e in entities):
         return True
     return False
 
 
-def is_json_result_size_valid(result_json, max_size_in_mb):
+def is_json_result_size_valid(result_json: str, max_size_in_mb: int) -> bool:
     # check if string len is greater than max size after conversion to bytes
-    if len(result_json) > max_size_in_mb * 1048576:
+    if len(result_json) > max_size_in_mb * 1_048_576:
         return False
     return True
 
 
-def validate_property_value(property_value):
+def validate_property_value(property_value: str) -> bool:
     if len(str(property_value)) > MAXIMUM_PROPERTY_VALUE:
         return False
     return True
 
 
-def is_unixtimestamp_valid(timestamp_unix_ms):
+def is_unixtimestamp_valid(timestamp_unix_ms: int) -> bool:
     try:
-        datetime.datetime.fromtimestamp(timestamp_unix_ms // 1000)
+        datetime.datetime.fromtimestamp(timestamp_unix_ms // 1_000)
         return True
     except Exception:
         return False
 
 
-def is_str_instance(value):
+def is_str_instance(value: Any) -> bool:
     """Returns true if the value is a str instance
     Support python2.7 and python 3.7+
     """

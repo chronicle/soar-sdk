@@ -12,13 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import uuid
+from typing import TYPE_CHECKING
 
 from soar_sdk.SiemplifyJob import SiemplifyJob
 from soar_sdk.SiemplifyUtils import is_python_37
 
+if TYPE_CHECKING:
+    import unittest.mock
 
-def _create_siemplify_job(mocker):
+
+def _create_siemplify_job(mocker: unittest.mock.Mock) -> SiemplifyJob:
     raw_context_data_with_bom = b'{"parameters": ""}'  # With BOM
     # Mock sys.stdin.buffer.read using patch
     if is_python_37():
@@ -30,7 +36,10 @@ def _create_siemplify_job(mocker):
 
 
 class TestSiemplifyJob:
-    def test_set_configuration_property_response_success(self, mocker):
+    def test_set_configuration_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -52,16 +61,22 @@ class TestSiemplifyJob:
 
         # act
         result = siemplify_job.set_configuration_property(
-            configuration_identifier, property_name, property_value,
+            configuration_identifier,
+            property_name,
+            property_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.put.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
         assert result is mock_response.json.return_value
 
-    def test_set_configuration_property_remote_success(self, mocker):
+    def test_set_configuration_property_remote_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         siemplify_job.is_remote = True
@@ -84,16 +99,22 @@ class TestSiemplifyJob:
 
         # act
         result = siemplify_job.set_configuration_property(
-            configuration_identifier, property_name, property_value,
+            configuration_identifier,
+            property_name,
+            property_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.put.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
         assert result is mock_response.json.return_value
 
-    def test_set_connector_parameter_response_success(self, mocker):
+    def test_set_connector_parameter_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -115,16 +136,22 @@ class TestSiemplifyJob:
 
         # act
         result = siemplify_job.set_connector_parameter(
-            connector_instance_identifier, parameter_name, parameter_value,
+            connector_instance_identifier,
+            parameter_name,
+            parameter_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.put.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
         assert result is mock_response.json.return_value
 
-    def test_set_connector_parameter_remote_success(self, mocker):
+    def test_set_connector_parameter_remote_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         siemplify_job.is_remote = True
@@ -147,16 +174,22 @@ class TestSiemplifyJob:
 
         # act
         result = siemplify_job.set_connector_parameter(
-            connector_instance_identifier, parameter_name, parameter_value,
+            connector_instance_identifier,
+            parameter_name,
+            parameter_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.put.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
         assert result is mock_response.json.return_value
 
-    def test_get_connector_parameters_response_success(self, mocker):
+    def test_get_connector_parameters_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -179,7 +212,10 @@ class TestSiemplifyJob:
         siemplify_job.session.get.assert_called_with(expected_address)
         assert result is mock_response.json.return_value
 
-    def test_get_connector_parameters_remote_success(self, mocker):
+    def test_get_connector_parameters_remote_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         siemplify_job.is_remote = True
@@ -203,7 +239,7 @@ class TestSiemplifyJob:
         siemplify_job.session.get.assert_called_with(expected_address)
         assert result is mock_response.json.return_value
 
-    def test_send_mail_response_success(self, mocker):
+    def test_send_mail_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         subject = "Test"
@@ -227,15 +263,23 @@ class TestSiemplifyJob:
 
         # act
         siemplify_job.send_mail(
-            subject, message, recipients, attachment_file_name, attachment_content,
+            subject,
+            message,
+            recipients,
+            attachment_file_name,
+            attachment_content,
         )
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_extract_job_param_response_failed(self, mocker):
+    def test_extract_job_param_response_failed(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         param_name = "TestParam"
@@ -246,7 +290,10 @@ class TestSiemplifyJob:
         # assert
         assert result == None
 
-    def test_get_faulted_connectors_response_success(self, mocker):
+    def test_get_faulted_connectors_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -271,11 +318,15 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
         assert result is mock_response.json.return_value
 
-    def test_get_faulted_jobs_response_success(self, mocker):
+    def test_get_faulted_jobs_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -298,7 +349,10 @@ class TestSiemplifyJob:
         siemplify_job.session.get.assert_called_with(expected_address)
         assert result is mock_response.json.return_value
 
-    def test_get_failed_etljobs_response_success(self, mocker):
+    def test_get_failed_etljobs_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -321,7 +375,10 @@ class TestSiemplifyJob:
         siemplify_job.session.get.assert_called_with(expected_address)
         assert result is mock_response.json.return_value
 
-    def test_get_failed_actions_response_success(self, mocker):
+    def test_get_failed_actions_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
 
@@ -344,7 +401,10 @@ class TestSiemplifyJob:
         siemplify_job.session.get.assert_called_with(expected_address)
         assert result is mock_response.json.return_value
 
-    def test_save_publisher_logs_response_success(self, mocker):
+    def test_save_publisher_logs_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         expected_body = ["test_log_1", "test_log_2", "test_log_3"]
@@ -353,7 +413,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/AddAgentLogs?format=snake",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/AddAgentLogs?format=snake",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -362,10 +423,11 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_fetch_timestamp_response_success(self, mocker):
+    def test_fetch_timestamp_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         expected_body = {"ContextType": 3, "Identifier": "", "PropertyKey": "timestamp"}
@@ -374,7 +436,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = 1717606868990
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/GetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/GetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -383,10 +446,11 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_save_timestamp_response_success(self, mocker):
+    def test_save_timestamp_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         new_timestamp = 1717606868990
@@ -401,7 +465,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = new_timestamp
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/SetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/SetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -410,10 +475,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_fetch_and_save_timestamp_response_success(self, mocker):
+    def test_fetch_and_save_timestamp_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         new_timestamp = 1717606868990
@@ -428,7 +497,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = new_timestamp
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/SetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/SetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -437,10 +507,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_set_scoped_job_context_property_response_success(self, mocker):
+    def test_set_scoped_job_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -456,7 +530,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/SetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/SetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -465,10 +540,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_get_scoped_job_context_property_response_success(self, mocker):
+    def test_get_scoped_job_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -482,7 +561,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/GetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/GetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -491,10 +571,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_try_set_context_property_response_success(self, mocker):
+    def test_try_set_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -512,21 +596,29 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/TrySetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/TrySetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
         # act
         siemplify_job.try_set_context_property(
-            context_type, identifier, property_key, property_value,
+            context_type,
+            identifier,
+            property_key,
+            property_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_set_context_property_response_success(self, mocker):
+    def test_set_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -544,21 +636,29 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/SetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/SetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
         # act
         siemplify_job.set_context_property(
-            context_type, identifier, property_key, property_value,
+            context_type,
+            identifier,
+            property_key,
+            property_value,
         )
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_get_context_property_response_success(self, mocker):
+    def test_get_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -574,7 +674,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/GetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/GetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -583,10 +684,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_set_job_context_property_response_success(self, mocker):
+    def test_set_job_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -604,7 +709,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/SetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/SetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -613,10 +719,14 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_get_job_context_property_response_success(self, mocker):
+    def test_get_job_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         property_key = "TestKey"
@@ -632,7 +742,8 @@ class TestSiemplifyJob:
         mock_response = mocker.Mock()
         mock_response.json.return_value = "return_value"
         expected_address = "{0}/{1}".format(
-            siemplify_job.API_ROOT, "external/v1/sdk/GetContextProperty",
+            siemplify_job.API_ROOT,
+            "external/v1/sdk/GetContextProperty",
         )
         mocker.patch.object(siemplify_job.session, "post", return_value=mock_response)
 
@@ -641,10 +752,11 @@ class TestSiemplifyJob:
 
         # assert the correct API address is called
         siemplify_job.session.post.assert_called_with(
-            expected_address, json=expected_body,
+            expected_address,
+            json=expected_body,
         )
 
-    def test_get_system_info_response_success(self, mocker):
+    def test_get_system_info_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         start_time_unixtime_ms = 1717606868990
@@ -666,7 +778,10 @@ class TestSiemplifyJob:
         # assert the correct API address is called
         siemplify_job.session.get.assert_called_with(expected_address)
 
-    def test_get_configuration_by_provider_response_success(self, mocker):
+    def test_get_configuration_by_provider_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         identifier = "Test"
@@ -688,7 +803,10 @@ class TestSiemplifyJob:
         # assert the correct API address is called
         siemplify_job.session.get.assert_called_with(expected_address)
 
-    def test_get_configuration_response_success(self, mocker):
+    def test_get_configuration_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_job = _create_siemplify_job(mocker)
         provider = "Test"

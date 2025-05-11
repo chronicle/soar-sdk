@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any, TypeVar, cast
 
 import SiemplifyUtils
 from Siemplify import Siemplify
@@ -23,9 +24,11 @@ from SiemplifyUtils import extract_script_param
 
 # import SiemplifyVaultUtils - this is imported only when in use
 
+T = TypeVar("T")
+
 
 class SiemplifyJob(Siemplify):
-    def __init__(self):
+    def __init__(self) -> None:
         super(SiemplifyJob, self).__init__()
 
         raw_context_data = self.get_script_context()
@@ -43,16 +46,18 @@ class SiemplifyJob(Siemplify):
         if self.use_proxy_settings:
             self.init_proxy_settings()
 
-    def get_configuration_by_provider(self, identifier):
+    def get_configuration_by_provider(self, identifier: str) -> dict[str, Any]:
         return self.get_configuration_from_server(None, identifier)
 
-    def get_system_info(self, start_time_unixtime_ms):
+    def get_system_info(self, start_time_unixtime_ms: int) -> dict[str, Any]:
         return super(SiemplifyJob, self).get_system_info(start_time_unixtime_ms)
 
-    def get_job_context_property(self, identifier, property_key):
+    def get_job_context_property(self, identifier: str, property_key: str) -> Any:
         return self.get_context_property_from_server(3, identifier, property_key)
 
-    def set_job_context_property(self, identifier, property_key, property_value):
+    def set_job_context_property(
+        self, identifier: str, property_key: str, property_value: Any
+    ) -> Any:
         if not SiemplifyUtils.validate_property_value(property_value):
             raise MaximumContextLengthException(
                 "Exception was thrown in set_context_property: property value has "
@@ -65,7 +70,9 @@ class SiemplifyJob(Siemplify):
             property_value,
         )
 
-    def get_context_property(self, context_type, identifier, property_key):
+    def get_context_property(
+        self, context_type: int, identifier: str, property_key: str
+    ) -> Any:
         return self.get_context_property_from_server(
             context_type,
             identifier,
@@ -74,11 +81,11 @@ class SiemplifyJob(Siemplify):
 
     def set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int,
+        identifier: str,
+        property_key: str,
+        property_value: Any,
+    ) -> Any:
         if not SiemplifyUtils.validate_property_value(property_value):
             raise MaximumContextLengthException(
                 "Exception was thrown in set_context_property: property value has "
@@ -93,11 +100,11 @@ class SiemplifyJob(Siemplify):
 
     def try_set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int,
+        identifier: str,
+        property_key: str,
+        property_value: Any,
+    ) -> Any:
         if not SiemplifyUtils.validate_property_value(property_value):
             raise MaximumContextLengthException(
                 "Exception was thrown in try_set_context_property: property value has "
@@ -111,14 +118,16 @@ class SiemplifyJob(Siemplify):
             property_value,
         )
 
-    def get_scoped_job_context_property(self, property_key):
+    def get_scoped_job_context_property(self, property_key: str) -> Any:
         """Get scoped job context property, uses the unique identifier of a job
         :param property_key: {string} key of the context property of the job
         :return: value of a specific key
         """
         return self.get_job_context_property(self.unique_identifier, property_key)
 
-    def set_scoped_job_context_property(self, property_key, property_value):
+    def set_scoped_job_context_property(
+        self, property_key: str, property_value: Any
+    ) -> Any:
         """Set scoped job context property, uses the unique identifier of a job
         :param property_key: {string} key of the context property of the job
         :param property_value: {string} value of the context property of the job
@@ -130,7 +139,7 @@ class SiemplifyJob(Siemplify):
             property_value,
         )
 
-    def save_publisher_logs(self, records):
+    def save_publisher_logs(self, records: list[dict[str, Any]]) -> None:
         """Save publisher log records
         :param records: {list} records to be saved
         :return:
@@ -140,10 +149,10 @@ class SiemplifyJob(Siemplify):
         self.validate_siemplify_error(response)
 
     @property
-    def log_location(self):
+    def log_location(self) -> str:
         return "SDK_Jobs"
 
-    def get_failed_actions(self, number_of_hours):
+    def get_failed_actions(self, number_of_hours: int) -> dict[str, Any]:
         """Get all the etl jobs that had failed in the last hours
         :return: {dict} failed jobs
         """
@@ -154,7 +163,7 @@ class SiemplifyJob(Siemplify):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_failed_etljobs(self, number_of_hours):
+    def get_failed_etljobs(self, number_of_hours: int) -> dict[str, Any]:
         """Get all the etl jobs that had failed in the last hours
         :return: {dict} failed jobs
         """
@@ -165,7 +174,7 @@ class SiemplifyJob(Siemplify):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_faulted_jobs(self, number_of_hours):
+    def get_faulted_jobs(self, number_of_hours: int) -> dict[str, Any]:
         """Get all the jobs that had failed in the last hours
         :return: {dict} failed jobs
         """
@@ -174,7 +183,9 @@ class SiemplifyJob(Siemplify):
         self.validate_siemplify_error(response)
         return response.json()
 
-    def get_faulted_connectors(self, start_unix_time, end_unix_time):
+    def get_faulted_connectors(
+        self, start_unix_time: int, end_unix_time: int
+    ) -> dict[str, Any]:
         """Get all the connectors that had failed in the last hours
         :return: {dict} failed connectors
         """
@@ -189,12 +200,12 @@ class SiemplifyJob(Siemplify):
 
     def send_mail(
         self,
-        subject,
-        message,
-        recipients,
-        attachment_file_name,
-        attachment_content,
-    ):
+        subject: str,
+        message: str,
+        recipients: list[str],
+        attachment_file_name: str,
+        attachment_content: str,
+    ) -> None:
         request = {
             "subject": subject,
             "message": message,
@@ -208,12 +219,12 @@ class SiemplifyJob(Siemplify):
 
     def extract_job_param(
         self,
-        param_name,
-        default_value=None,
-        input_type=str,
-        is_mandatory=False,
-        print_value=False,
-    ):
+        param_name: str,
+        default_value: Any = None,
+        input_type: type[T] = str,
+        is_mandatory: bool = False,
+        print_value: bool = False,
+    ) -> T:
         script_param = extract_script_param(
             siemplify=self,
             input_dictionary=self.parameters,
@@ -224,23 +235,26 @@ class SiemplifyJob(Siemplify):
             print_value=print_value,
         )
         if not self.vault_settings:
-            return script_param
+            return cast(T, script_param)
 
         # we import SiemplifyVaultUtils only when needed, in order to not import
         # dependencies which are not needed
         import SiemplifyVaultUtils
 
-        return SiemplifyVaultUtils.extract_vault_param(
-            script_param,
-            self.vault_settings,
+        return cast(
+            T,
+            SiemplifyVaultUtils.extract_vault_param(
+                script_param,
+                self.vault_settings,
+            ),
         )
 
     def save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-    ):
+        datetime_format: bool = False,
+        timezone: bool = False,
+        new_timestamp: int = SiemplifyUtils.unix_now(),
+    ) -> int | str:
         return super(SiemplifyJob, self).save_timestamp(
             datetime_format,
             timezone,
@@ -249,7 +263,9 @@ class SiemplifyJob(Siemplify):
             self.script_name,
         )
 
-    def fetch_timestamp(self, datetime_format=False, timezone=False):
+    def fetch_timestamp(
+        self, datetime_format: bool = False, timezone: bool = False
+    ) -> int | str:
         return super(SiemplifyJob, self).fetch_timestamp(
             datetime_format,
             timezone,
@@ -259,20 +275,20 @@ class SiemplifyJob(Siemplify):
 
     def fetch_and_save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-    ):
+        datetime_format: bool = False,
+        timezone: bool = False,
+        new_timestamp: int = SiemplifyUtils.unix_now(),
+    ) -> int | str:
         last_run_time = self.fetch_timestamp(datetime_format, timezone)
         self.save_timestamp(datetime_format, timezone, new_timestamp)
         return last_run_time
 
     def set_configuration_property(
         self,
-        integration_instance_identifier,
-        property_name,
-        property_value,
-    ):
+        integration_instance_identifier: str,
+        property_name: str,
+        property_value: str,
+    ) -> dict[str, Any]:
         """Set integration configuration property
         :param integration_instance_identifier: {string} the identifier of the
         integration instance.
@@ -297,10 +313,10 @@ class SiemplifyJob(Siemplify):
 
     def set_connector_parameter(
         self,
-        connector_instance_identifier,
-        parameter_name,
-        parameter_value,
-    ):
+        connector_instance_identifier: str,
+        parameter_name: str,
+        parameter_value: str,
+    ) -> dict[str, Any]:
         """Set connector parameter value
         :param connector_instance_identifier: {string} the identifier of the
         connector instance.
@@ -322,7 +338,9 @@ class SiemplifyJob(Siemplify):
 
         return configurations
 
-    def get_connector_parameters(self, connector_instance_identifier):
+    def get_connector_parameters(
+        self, connector_instance_identifier: str
+    ) -> dict[str, Any]:
         """Get connector parameters
         :param connector_instance_identifier: {string} the identifier of the
         connector instance.

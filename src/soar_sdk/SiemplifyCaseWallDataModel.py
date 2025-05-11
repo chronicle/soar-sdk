@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 
 class BaseWallActivity:
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+    ) -> None:
         self.creator_user_id = creator_user_id
         self.id = id
         self.type = type
@@ -34,14 +36,14 @@ class BaseWallActivity:
 class CaseCommentWallActivity(BaseWallActivity):
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-        comment,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+        comment: str,
+    ) -> None:
         BaseWallActivity.__init__(
             self,
             creator_user_id,
@@ -57,18 +59,18 @@ class CaseCommentWallActivity(BaseWallActivity):
 class CaseEvidenceWallActivity(BaseWallActivity):
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-        evidence_name,
-        description,
-        evidence_thumbnail_base64,
-        evidence_id,
-        file_type,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+        evidence_name: str,
+        description: str,
+        evidence_thumbnail_base64: str,
+        evidence_id: str,
+        file_type: str,
+    ) -> None:
         BaseWallActivity.__init__(
             self,
             creator_user_id,
@@ -88,15 +90,15 @@ class CaseEvidenceWallActivity(BaseWallActivity):
 class CaseStatusChangedWallActivity(BaseWallActivity):
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-        description,
-        activity_kind,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+        description: str,
+        activity_kind: str,
+    ) -> None:
         BaseWallActivity.__init__(
             self,
             creator_user_id,
@@ -113,20 +115,20 @@ class CaseStatusChangedWallActivity(BaseWallActivity):
 class CaseTaskChangedWallActivity(BaseWallActivity):
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-        status,
-        priority,
-        name,
-        owner,
-        completion_comment,
-        completion_date_time,
-        due_date,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+        status: str,
+        priority: int,
+        name: str,
+        owner: str,
+        completion_comment: str | None,
+        completion_date_time: str | None,
+        due_date: str | None,
+    ) -> None:
         BaseWallActivity.__init__(
             self,
             creator_user_id,
@@ -148,21 +150,21 @@ class CaseTaskChangedWallActivity(BaseWallActivity):
 class CaseActionWallActivity(BaseWallActivity):
     def __init__(
         self,
-        creator_user_id,
-        id,
-        type,
-        case_id,
-        is_favorite,
-        modification_time_unix_time_in_ms,
-        action_trigger_type,
-        integration,
-        executing_user,
-        playbook_name,
-        status,
-        action_provider,
-        action_identifier,
-        action_result,
-    ):
+        creator_user_id: str,
+        id: str,
+        type: str,
+        case_id: str,
+        is_favorite: bool,
+        modification_time_unix_time_in_ms: int,
+        action_trigger_type: str,
+        integration: str,
+        executing_user: str,
+        playbook_name: str,
+        status: str,
+        action_provider: str,
+        action_identifier: str,
+        action_result: str,
+    ) -> None:
         BaseWallActivity.__init__(
             self,
             creator_user_id,
@@ -185,17 +187,19 @@ class CaseActionWallActivity(BaseWallActivity):
 class CaseWallData:
     def __init__(
         self,
-        case_action_wall_activities,
-        case_comment_wall_activities,
-        case_evidence_walla_ctivities,
-        case_status_changed_wall_activities,
-        case_task_changed_wall_activities,
-    ):
-        self.case_action_wall_activities = []
-        self.case_comment_wall_activities = []
-        self.case_evidence_walla_ctivities = []
-        self.case_status_changed_wall_activities = []
-        self.case_task_changed_wall_activities = []
+        case_action_wall_activities: list[dict],
+        case_comment_wall_activities: list[dict],
+        case_evidence_walla_ctivities: list[dict],
+        case_status_changed_wall_activities: list[dict],
+        case_task_changed_wall_activities: list[dict],
+    ) -> None:
+        self.case_action_wall_activities: list[CaseActionWallActivity] = []
+        self.case_comment_wall_activities: list[CaseCommentWallActivity] = []
+        self.case_evidence_walla_ctivities: list[CaseEvidenceWallActivity] = []
+        self.case_status_changed_wall_activities: list[
+            CaseStatusChangedWallActivity
+        ] = []
+        self.case_task_changed_wall_activities: list[CaseTaskChangedWallActivity] = []
         for case_action_wall_activitie in case_action_wall_activities:
             self.case_action_wall_activities.append(
                 CaseActionWallActivity(**case_action_wall_activitie),

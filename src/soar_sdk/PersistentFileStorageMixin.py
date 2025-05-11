@@ -17,7 +17,6 @@ from __future__ import annotations
 import io
 import os
 from base64 import b64decode, b64encode
-from collections.abc import Buffer, Sized
 from hashlib import sha512
 from typing import TYPE_CHECKING
 
@@ -26,6 +25,8 @@ from requests import HTTPError
 from SiemplifyUtils import ENCODING_UTF_8
 
 if TYPE_CHECKING:
+    from collections.abc import Buffer, Sized
+
     from soar_sdk.SiemplifyLogger import SiemplifyLogger
 
 DEFAULT_DIRECTORY_NAME: str = "Default"

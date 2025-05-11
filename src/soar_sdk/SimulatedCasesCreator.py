@@ -17,13 +17,14 @@ from __future__ import annotations
 import json
 import os
 import uuid
+from typing import Any
 
 import SiemplifyUtils
 from SiemplifyConnectorsDataModel import CaseInfo
 
 
 class SimulatedCasesCreator:
-    def create_cases_from_json(self, file_path):
+    def create_cases_from_json(self, file_path: str) -> list[CaseInfo]:
         absolute_path = self.convert_to_absolut_path(file_path)
         f = open(absolute_path)
         jsonContent = f.read()
@@ -63,7 +64,10 @@ class SimulatedCasesCreator:
 
         return cases
 
-    def build_events_from_json_events(self, jsonEvents):
+    def build_events_from_json_events(
+        self,
+        jsonEvents: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         events = []
 
         for jsonEvent in jsonEvents:
@@ -72,7 +76,7 @@ class SimulatedCasesCreator:
 
         return events
 
-    def convert_to_absolut_path(self, relative_path):
+    def convert_to_absolut_path(self, relative_path: str) -> str:
         running_folder = os.path.dirname(os.path.abspath(__file__))
         absolut_path = os.path.join(running_folder, relative_path)
         return absolut_path

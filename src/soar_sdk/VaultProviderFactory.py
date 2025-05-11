@@ -14,25 +14,27 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from SiemplifyVaultCyberArkPam import SiemplifyVaultCyberArkPam
 
 # vault providers enums
-CYBERARK_VAULT_PROVIDER = 0
+CYBERARK_VAULT_PROVIDER: int = 0
 
 
 # the vault factory class creates the vault correct vault provider according to the
 # vault type
 class VaultProviderFactory:
     @staticmethod
-    def create_vault_class_by_provider_type(vault_settings):
+    def create_vault_class_by_provider_type(
+        vault_settings: dict[str, Any] | None,
+    ) -> SiemplifyVaultCyberArkPam:
         if vault_settings is None:
-            msg: str = "Vault settings were not supplied"
-            raise Exception(msg)
+            raise Exception("Vault settings were not supplied")
 
         provider_type = vault_settings.get("vault_type", CYBERARK_VAULT_PROVIDER)
 
         # For now, we only support CyberArkVault provider
         if provider_type == CYBERARK_VAULT_PROVIDER:
             return SiemplifyVaultCyberArkPam(vault_settings)
-        msg: str = f"The vault provider {provider_type} is not supported"
-        raise Exception(msg)
+        raise Exception(f"The vault provider {provider_type} is not supported")

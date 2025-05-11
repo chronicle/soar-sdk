@@ -20,11 +20,11 @@ import json
 class ConnectorContext:
     def __init__(
         self,
-        connector_info,
-        vault_settings=None,
-        environment_api_key=None,
-        connector_api_key=None,
-    ):
+        connector_info: dict,
+        vault_settings: dict | None = None,
+        environment_api_key: str | None = None,
+        connector_api_key: str | None = None,
+    ) -> None:
         self.connector_info = ConnectorInfo(**connector_info)
         self.vault_settings = vault_settings
         self.environment_api_key = environment_api_key
@@ -32,7 +32,7 @@ class ConnectorContext:
 
 
 class ConnectorInfo:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: dict) -> None:
         self.environment = kwargs.get("environment")
         self.integration = kwargs.get("integration")
         self.connector_definition_name = kwargs.get("connector_definition_name")
@@ -57,33 +57,33 @@ class ConnectorInfo:
 
 
 class CaseInfo:
-    def __init__(self):
-        self.environment = None
-        self.ticket_id = None
-        self.description = None
-        self.display_id = None
-        self.reason = None
-        self.name = None
-        self.source_system_url = None
-        self.source_rule_identifier = None
-        self.device_vendor = None
-        self.device_product = None
-        self.start_time = None
-        self.end_time = None
-        self.is_test_case = False
-        self.priority = -1
-        self.rule_generator = None
-        self.source_grouping_identifier = None
-        self.extensions = {}
-        self.events = []
-        self.attachments = []
-        self.siem_alert_id = None
-        self.updated_fields = {}
-        self.alert_update_supported = False
-        self.alert_metadata = {}
-        self.data_access_scope = None
+    def __init__(self) -> None:
+        self.environment: str | None = None
+        self.ticket_id: str | None = None
+        self.description: str | None = None
+        self.display_id: str | None = None
+        self.reason: str | None = None
+        self.name: str | None = None
+        self.source_system_url: str | None = None
+        self.source_rule_identifier: str | None = None
+        self.device_vendor: str | None = None
+        self.device_product: str | None = None
+        self.start_time: str | None = None
+        self.end_time: str | None = None
+        self.is_test_case: bool = False
+        self.priority: int = -1
+        self.rule_generator: str | None = None
+        self.source_grouping_identifier: str | None = None
+        self.extensions: dict = {}
+        self.events: list = []
+        self.attachments: list = []
+        self.siem_alert_id: str | None = None
+        self.updated_fields: dict = {}
+        self.alert_update_supported: bool = False
+        self.alert_metadata: dict = {}
+        self.data_access_scope: str | None = None
 
 
 class AlertInfo(CaseInfo):
-    def __init__(self):
+    def __init__(self) -> None:
         super(AlertInfo, self).__init__()

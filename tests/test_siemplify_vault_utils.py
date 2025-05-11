@@ -24,14 +24,16 @@ class TestSiemplifyVaultUtils:
 
         # act
         result = soar_sdk.SiemplifyVaultUtils.extract_vault_param(
-            not_vault_placeholder_configuration_item, "dummy settings",
+            not_vault_placeholder_configuration_item,
+            "dummy settings",
         )
 
         # assert
         assert result == not_vault_placeholder_configuration_item
 
     def test_extract_vault_param_vault_placeholder_returns_the_mock_param_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         vault_placeholder_configuration_item = (
@@ -42,7 +44,8 @@ class TestSiemplifyVaultUtils:
 
         # act
         result = soar_sdk.SiemplifyVaultUtils.extract_vault_param(
-            vault_placeholder_configuration_item, "dummy settings",
+            vault_placeholder_configuration_item,
+            "dummy settings",
         )
 
         # assert

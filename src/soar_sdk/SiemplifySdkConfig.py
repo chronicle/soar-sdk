@@ -16,17 +16,18 @@ from __future__ import annotations
 
 import configparser
 from os import environ, getenv, path
+from typing import Any
 
-ONE_PLATFORM_URL_DOMAIN = "ONE_PLATFORM_URL_DOMAIN"
-ONE_PLATFORM_URL_PROJECT = "ONE_PLATFORM_URL_PROJECT"
-ONE_PLATFORM_URL_LOCATION = "ONE_PLATFORM_URL_LOCATION"
-ONE_PLATFORM_URL_INSTANCE = "ONE_PLATFORM_URL_INSTANCE"
+ONE_PLATFORM_URL_DOMAIN: str = "ONE_PLATFORM_URL_DOMAIN"
+ONE_PLATFORM_URL_PROJECT: str = "ONE_PLATFORM_URL_PROJECT"
+ONE_PLATFORM_URL_LOCATION: str = "ONE_PLATFORM_URL_LOCATION"
+ONE_PLATFORM_URL_INSTANCE: str = "ONE_PLATFORM_URL_INSTANCE"
 
 
 class SiemplifySdkConfig:
     config_file_path = path.join(path.dirname(__file__), "sdk_config.ini")
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._config = configparser.ConfigParser()
         self._config.read(self.config_file_path)
         self.is_remote_publisher_sdk = self._config.getboolean(
@@ -53,10 +54,10 @@ class SiemplifySdkConfig:
         self.one_platform_api_root_uri_format = self._build_1p_api_server_uri_format()
         self.gcp_auth_required = self._gcp_auth_required()
 
-    def _build_api_server_uri(self):
+    def _build_api_server_uri(self) -> str:
         return f"{self.__build_server_uri()}/api"
 
-    def _build_api_server_uri_for_remote_file_storage(self):
+    def _build_api_server_uri_for_remote_file_storage(self) -> str:
         use_ssl_env = self._safe_cast(getenv("APP_USE_SSL"), bool)
         use_ssl = (
             use_ssl_env
@@ -69,7 +70,7 @@ class SiemplifySdkConfig:
         _scheme = "https" if use_ssl else "http"
         return f"{_scheme}://webhooks" if is_production else "https://localhost:8310"
 
-    def _build_remote_api_server_uri(self):
+    def _build_remote_api_server_uri(self) -> str | None:
         publisher_suffix = "pub/api"
         publisher_api_root = environ.get("SERVER_API_ROOT")
         if not publisher_api_root or not publisher_api_root.endswith(publisher_suffix):
@@ -77,7 +78,7 @@ class SiemplifySdkConfig:
         api_root = publisher_api_root.rstrip(publisher_suffix)
         return f"{api_root}/api"
 
-    def _build_1p_api_server_uri_format(self):
+    def _build_1p_api_server_uri_format(self) -> str:
         project = getenv(
             ONE_PLATFORM_URL_PROJECT,
             self._config.get("ServerService", "Project", fallback="project"),
@@ -103,7 +104,7 @@ class SiemplifySdkConfig:
             + f"/projects/{project}/locations/{location}/instances/{instance}"
         )
 
-    def __build_server_uri(self):
+    def __build_server_uri(self) -> str:
         use_ssl_env = self._safe_cast(getenv("APP_USE_SSL"), bool)
         use_ssl = (
             use_ssl_env
@@ -122,12 +123,12 @@ class SiemplifySdkConfig:
         )
         return f"{_scheme}://{_host}:{_port}"
 
-    def _gcp_auth_required(self):
+    def _gcp_auth_required(self) -> bool:
         domain = getenv(ONE_PLATFORM_URL_DOMAIN)
         return domain is not None
 
     @staticmethod
-    def _safe_cast(val, to_type, default=None):
+    def _safe_cast(val: str, to_type: type, default: Any | None = None) -> Any | None:
         try:
             _val = eval(val)
             return _val if type(_val) == to_type else default

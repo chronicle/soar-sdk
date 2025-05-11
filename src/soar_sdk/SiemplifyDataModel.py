@@ -17,8 +17,12 @@ from __future__ import annotations
 import base64
 import logging
 import os
+from typing import TYPE_CHECKING, Any
 
 import SiemplifyUtils
+
+if TYPE_CHECKING:
+    import datetime
 
 logger = logging.getLogger("simple_example")
 
@@ -80,11 +84,11 @@ class InsightType:
 class Base:
     def __init__(
         self,
-        identifier,
-        creation_time=None,
-        modification_time=None,
-        additional_properties=None,
-    ):
+        identifier: str,
+        creation_time: int | None = None,
+        modification_time: int | None = None,
+        additional_properties: dict[str, Any] | None = None,
+    ) -> None:
         logger.info("Creating Base model object")
         if self.is_identifier_mandatory:
             if not identifier:
@@ -98,35 +102,35 @@ class Base:
         logger.info("Base model created successfully")
 
     @property
-    def is_identifier_mandatory(self):
+    def is_identifier_mandatory(self) -> bool:
         return True
 
 
 class CyberCaseInfo(Base):
     def __init__(
         self,
-        identifier,
-        creation_time,
-        modification_time,
-        alert_count,
-        priority,
-        is_touched,
-        is_merged,
-        is_important,
-        assigned_user,
-        title,
-        description,
-        status,
-        environment,
-        is_incident,
-        stage,
-        has_suspicious_entity,
-        high_risk_products,
-        is_locked,
-        has_workflow,
-        sla_expiration_unix_time,
-        additional_properties,
-    ):
+        identifier: str,
+        creation_time: int,
+        modification_time: int,
+        alert_count: int,
+        priority: int,
+        is_touched: bool,
+        is_merged: bool,
+        is_important: bool,
+        assigned_user: str,
+        title: str,
+        description: str,
+        status: str,
+        environment: str,
+        is_incident: bool,
+        stage: str,
+        has_suspicious_entity: bool,
+        high_risk_products: list[str],
+        is_locked: bool,
+        has_workflow: bool,
+        sla_expiration_unix_time: int,
+        additional_properties: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating CyberCaseInfo model object")
         super(CyberCaseInfo, self).__init__(
             identifier,
@@ -155,7 +159,7 @@ class CyberCaseInfo(Base):
         logger.info("CyberCaseInfo model created successfully")
 
     @property
-    def end_time(self):
+    def end_time(self) -> int:
         return (
             int(self.additional_properties.get("EndTime", 0))
             if self.additional_properties
@@ -166,24 +170,24 @@ class CyberCaseInfo(Base):
 class AlertInfo(Base):
     def __init__(
         self,
-        identifier,
-        alert_group_identifier,
-        creation_time,
-        modification_time,
-        case_identifier,
-        reporting_vendor,
-        reporting_product,
-        environment,
-        name,
-        description,
-        external_id,
-        severity,
-        rule_generator,
-        tags,
-        detected_time,
-        additional_properties,
-        additional_data,
-    ):
+        identifier: str,
+        alert_group_identifier: str,
+        creation_time: int,
+        modification_time: int,
+        case_identifier: str,
+        reporting_vendor: str,
+        reporting_product: str,
+        environment: str,
+        name: str,
+        description: str,
+        external_id: str,
+        severity: int,
+        rule_generator: str,
+        tags: list[str],
+        detected_time: int,
+        additional_properties: dict[str, Any] | None,
+        additional_data: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating AlertInfo model object")
         super(AlertInfo, self).__init__(
             identifier,
@@ -211,16 +215,16 @@ class AlertInfo(Base):
 class Attachment(Base):
     def __init__(
         self,
-        case_identifier,
-        alert_identifier,
-        base64_blob,
-        attachment_type,
-        name,
-        description,
-        is_favorite,
-        orig_size,
-        size,
-    ):
+        case_identifier: str,
+        alert_identifier: str | None,
+        base64_blob: str,
+        attachment_type: str,
+        name: str,
+        description: str | None,
+        is_favorite: bool,
+        orig_size: int,
+        size: int,
+    ) -> None:
         super(Attachment, self).__init__(case_identifier)
         logger.info("Creating AlertInfo model object")
         self.case_identifier = case_identifier
@@ -236,12 +240,12 @@ class Attachment(Base):
 
     @staticmethod
     def fromfile(
-        path,
-        case_id=None,
-        alert_identifier=None,
-        description=None,
-        is_favorite=False,
-    ):
+        path: str,
+        case_id: str | None = None,
+        alert_identifier: str | None = None,
+        description: str | None = None,
+        is_favorite: bool = False,
+    ) -> Attachment:
         path = path.replace("\\", "/")
         if not os.path.isfile(path):
             raise OSError("File not found")
@@ -267,83 +271,83 @@ class Attachment(Base):
         )
 
     @property
-    def is_identifier_mandatory(self):
+    def is_identifier_mandatory(self) -> bool:
         return False
 
 
 class SecurityEventInfo(Base):
     def __init__(
         self,
-        identifier=None,
-        creation_time=None,
-        modification_time=None,
-        case_identifier=None,
-        alert_identifier=None,
-        name=None,
-        description=None,
-        event_id=None,
-        device_severity=None,
-        device_product=None,
-        device_vendor=None,
-        device_version=None,
-        event_class_id=None,
-        severity=None,
-        start_time=None,
-        end_time=None,
-        event_type=None,
-        rule_generator=None,
-        is_correlation=None,
-        device_host_name=None,
-        device_address=None,
-        source_dns_domain=None,
-        source_nt_domain=None,
-        source_host_name=None,
-        source_address=None,
-        source_user_name=None,
-        source_user_id=None,
-        source_process_name=None,
-        destination_dns_domain=None,
-        destination_nt_domain=None,
-        destination_host_name=None,
-        destination_address=None,
-        destination_user_name=None,
-        destination_url=None,
-        destination_port=None,
-        destination_process_name=None,
-        file_name=None,
-        file_hash=None,
-        file_type=None,
-        email_subject=None,
-        usb=None,
-        application_protocol=None,
-        transport_protocol=None,
-        category_outcome=None,
-        signature=None,
-        deployment=None,
-        additional_properties=None,
-        threat_actor=None,
-        source_mac_address=None,
-        destination_mac_address=None,
-        credit_card=None,
-        phone_number=None,
-        cve=None,
-        threat_campaign=None,
-        generic_entity=None,
-        process=None,
-        parent_process=None,
-        parent_hash=None,
-        child_process=None,
-        child_hash=None,
-        source_domain=None,
-        destination_domain=None,
-        ipset=None,
-        cluster=None,
-        application=None,
-        database=None,
-        pod=None,
-        container=None,
-        service=None,
-    ):
+        identifier: str | None = None,
+        creation_time: int | None = None,
+        modification_time: int | None = None,
+        case_identifier: str | None = None,
+        alert_identifier: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        event_id: str | None = None,
+        device_severity: str | None = None,
+        device_product: str | None = None,
+        device_vendor: str | None = None,
+        device_version: str | None = None,
+        event_class_id: str | None = None,
+        severity: int | None = None,
+        start_time: int | None = None,
+        end_time: int | None = None,
+        event_type: str | None = None,
+        rule_generator: str | None = None,
+        is_correlation: bool | None = None,
+        device_host_name: str | None = None,
+        device_address: str | None = None,
+        source_dns_domain: str | None = None,
+        source_nt_domain: str | None = None,
+        source_host_name: str | None = None,
+        source_address: str | None = None,
+        source_user_name: str | None = None,
+        source_user_id: str | None = None,
+        source_process_name: str | None = None,
+        destination_dns_domain: str | None = None,
+        destination_nt_domain: str | None = None,
+        destination_host_name: str | None = None,
+        destination_address: str | None = None,
+        destination_user_name: str | None = None,
+        destination_url: str | None = None,
+        destination_port: str | None = None,
+        destination_process_name: str | None = None,
+        file_name: str | None = None,
+        file_hash: str | None = None,
+        file_type: str | None = None,
+        email_subject: str | None = None,
+        usb: str | None = None,
+        application_protocol: str | None = None,
+        transport_protocol: str | None = None,
+        category_outcome: str | None = None,
+        signature: str | None = None,
+        deployment: str | None = None,
+        additional_properties: dict[str, Any] | None = None,
+        threat_actor: str | None = None,
+        source_mac_address: str | None = None,
+        destination_mac_address: str | None = None,
+        credit_card: str | None = None,
+        phone_number: str | None = None,
+        cve: str | None = None,
+        threat_campaign: str | None = None,
+        generic_entity: str | None = None,
+        process: str | None = None,
+        parent_process: str | None = None,
+        parent_hash: str | None = None,
+        child_process: str | None = None,
+        child_hash: str | None = None,
+        source_domain: str | None = None,
+        destination_domain: str | None = None,
+        ipset: str | None = None,
+        cluster: str | None = None,
+        application: str | None = None,
+        database: str | None = None,
+        pod: str | None = None,
+        container: str | None = None,
+        service: str | None = None,
+    ) -> None:
         logger.info("Creating SecurityEventInfo model object")
         super(SecurityEventInfo, self).__init__(
             identifier,
@@ -420,35 +424,35 @@ class SecurityEventInfo(Base):
         logger.info("SecurityEventInfo model created successfully")
 
     @property
-    def is_identifier_mandatory(self):
+    def is_identifier_mandatory(self) -> bool:
         return False
 
 
 class DomainRelationInfo(Base):
     def __init__(
         self,
-        identifier,
-        creation_time,
-        modification_time,
-        case_identifier,
-        alert_identifier,
-        security_event_identifier,
-        relation_type,
-        event_id,
-        from_identifier,
-        to_identifier,
-        device_product,
-        device_vendor,
-        event_class_id,
-        severity,
-        start_time,
-        end_time,
-        destination_port,
-        category_outcome,
-        additional_properties,
-        to_type=None,
-        from_type=None,
-    ):
+        identifier: str,
+        creation_time: int,
+        modification_time: int,
+        case_identifier: str,
+        alert_identifier: str,
+        security_event_identifier: str,
+        relation_type: str,
+        event_id: str,
+        from_identifier: str,
+        to_identifier: str,
+        device_product: str,
+        device_vendor: str,
+        event_class_id: str,
+        severity: int,
+        start_time: int,
+        end_time: int,
+        destination_port: str | None,
+        category_outcome: str,
+        additional_properties: dict[str, Any] | None,
+        to_type: str | None = None,
+        from_type: str | None = None,
+    ) -> None:
         logger.info("Creating DomainRelationInfo model object")
         super(DomainRelationInfo, self).__init__(
             identifier,
@@ -479,20 +483,20 @@ class DomainRelationInfo(Base):
 class DomainEntityInfo(Base):
     def __init__(
         self,
-        identifier,
-        creation_time,
-        modification_time,
-        case_identifier,
-        alert_identifier,
-        entity_type,
-        is_internal,
-        is_suspicious,
-        is_artifact,
-        is_enriched,
-        is_vulnerable,
-        is_pivot,
-        additional_properties,
-    ):
+        identifier: str,
+        creation_time: int,
+        modification_time: int,
+        case_identifier: str,
+        alert_identifier: str,
+        entity_type: str,
+        is_internal: bool,
+        is_suspicious: bool,
+        is_artifact: bool,
+        is_enriched: bool,
+        is_vulnerable: bool,
+        is_pivot: bool,
+        additional_properties: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating DomainEntityInfo model object")
         super(DomainEntityInfo, self).__init__(
             identifier,
@@ -511,46 +515,46 @@ class DomainEntityInfo(Base):
         self.is_pivot = is_pivot
         logger.info("DomainEntityInfo model created successfully")
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return self.__dict__
 
-    def _update_internal_properties(self):
+    def _update_internal_properties(self) -> None:
         self.additional_properties["IsInternalAsset"] = str(self.is_internal)
         self.additional_properties["IsEnriched"] = str(self.is_enriched)
         self.additional_properties["IsSuspicious"] = str(self.is_suspicious)
         self.additional_properties["IsVulnerable"] = str(self.is_vulnerable)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.identifier
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.identifier
 
 
 class Alert(AlertInfo):
     def __init__(
         self,
-        identifier,
-        alert_group_identifier,
-        creation_time,
-        modification_time,
-        case_identifier,
-        reporting_vendor,
-        reporting_product,
-        environment,
-        name,
-        description,
-        external_id,
-        severity,
-        rule_generator,
-        tags,
-        detected_time,
-        security_events,
-        domain_relations,
-        domain_entities,
-        additional_properties,
-        additional_data,
-    ):
+        identifier: str,
+        alert_group_identifier: str,
+        creation_time: int,
+        modification_time: int,
+        case_identifier: str,
+        reporting_vendor: str,
+        reporting_product: str,
+        environment: str,
+        name: str,
+        description: str,
+        external_id: str,
+        severity: int,
+        rule_generator: str,
+        tags: list[str],
+        detected_time: int,
+        security_events: list[dict[str, Any]],
+        domain_relations: list[dict[str, Any]],
+        domain_entities: list[dict[str, Any]],
+        additional_properties: dict[str, Any] | None,
+        additional_data: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating Alert model object")
         super(Alert, self).__init__(
             identifier,
@@ -588,7 +592,11 @@ class Alert(AlertInfo):
 
         logger.info("Alert model created successfully")
 
-    def get_alert_start_time(self, creation_time, security_events):
+    def get_alert_start_time(
+        self,
+        creation_time: int,
+        security_events: list[dict[str, Any]],
+    ) -> datetime.datetime:
         min_time = 0
 
         for sec in security_events:
@@ -606,7 +614,11 @@ class Alert(AlertInfo):
         return minimum_time
 
     @staticmethod
-    def get_prop_if_exists(dictionary, prop_name, default_value):
+    def get_prop_if_exists(
+        dictionary: dict[str, Any],
+        prop_name: str,
+        default_value: Any,
+    ) -> Any:
         result = default_value
         if prop_name in dictionary:
             result = dictionary[prop_name]
@@ -617,29 +629,29 @@ class Alert(AlertInfo):
 class CyberCase(CyberCaseInfo):
     def __init__(
         self,
-        identifier,
-        creation_time,
-        modification_time,
-        alert_count,
-        priority,
-        is_touched,
-        is_merged,
-        is_important,
-        environment,
-        assigned_user,
-        title,
-        description,
-        status,
-        is_incident,
-        stage,
-        has_suspicious_entity,
-        high_risk_products,
-        is_locked,
-        has_workflow,
-        sla_expiration_unix_time,
-        cyber_alerts,
-        additional_properties,
-    ):
+        identifier: str,
+        creation_time: int,
+        modification_time: int,
+        alert_count: int,
+        priority: int,
+        is_touched: bool,
+        is_merged: bool,
+        is_important: bool,
+        environment: str,
+        assigned_user: str,
+        title: str,
+        description: str,
+        status: str,
+        is_incident: bool,
+        stage: str,
+        has_suspicious_entity: bool,
+        high_risk_products: list[str],
+        is_locked: bool,
+        has_workflow: bool,
+        sla_expiration_unix_time: int,
+        cyber_alerts: list[dict[str, Any]],
+        additional_properties: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating CyberCase model object")
         super(CyberCase, self).__init__(
             identifier,
@@ -670,7 +682,7 @@ class CyberCase(CyberCaseInfo):
 
         logger.info("CyberCase model created successfully")
 
-    def has_alerts_loaded(self):
+    def has_alerts_loaded(self) -> bool:
         # Alerts always loaded for CyberCase instance
         return True
 
@@ -678,29 +690,29 @@ class CyberCase(CyberCaseInfo):
 class CyberCaseLazy(CyberCaseInfo):
     def __init__(
         self,
-        alerts_provider,
-        identifier,
-        creation_time,
-        modification_time,
-        alert_count,
-        priority,
-        is_touched,
-        is_merged,
-        is_important,
-        environment,
-        assigned_user,
-        title,
-        description,
-        status,
-        is_incident,
-        stage,
-        has_suspicious_entity,
-        high_risk_products,
-        is_locked,
-        has_workflow,
-        sla_expiration_unix_time,
-        additional_properties,
-    ):
+        alerts_provider: Any,
+        identifier: str,
+        creation_time: int,
+        modification_time: int,
+        alert_count: int,
+        priority: int,
+        is_touched: bool,
+        is_merged: bool,
+        is_important: bool,
+        environment: str,
+        assigned_user: str,
+        title: str,
+        description: str,
+        status: str,
+        is_incident: bool,
+        stage: str,
+        has_suspicious_entity: bool,
+        high_risk_products: list[str],
+        is_locked: bool,
+        has_workflow: bool,
+        sla_expiration_unix_time: int,
+        additional_properties: dict[str, Any] | None,
+    ) -> None:
         logger.info("Creating CyberCaseLazy model object")
         super(CyberCaseLazy, self).__init__(
             identifier,
@@ -730,19 +742,19 @@ class CyberCaseLazy(CyberCaseInfo):
         logger.info("CyberCaseLazy model created successfully")
 
     @property
-    def alerts(self):
+    def alerts(self) -> list[Alert]:
         if self._alerts is None:
             loaded_alerts = self.__alerts_provider.get_alerts()
             self._alerts = [Alert(**alert) for alert in loaded_alerts]
 
         return self._alerts
 
-    def has_alerts_loaded(self):
+    def has_alerts_loaded(self) -> bool:
         return self._alerts is not None
 
 
 class CaseFilterValue:
-    def __init__(self, value, title):
+    def __init__(self, value: str, title: str) -> None:
         self.value = value
         self.title = title
 
@@ -750,23 +762,23 @@ class CaseFilterValue:
 class CasesFilter:
     def __init__(
         self,
-        environments=None,
-        analysts=None,
-        statuses=None,
-        case_names=None,
-        tags=None,
-        priorities=None,
-        stages=None,
-        case_types=None,
-        products=None,
-        networks=None,
-        ticked_ids_free_search="",
-        case_ids_free_search="",
-        wall_data_free_search="",
-        entities_free_search="",
-        start_time_unix_time_in_ms=-1,
-        end_time_unix_time_in_ms=-1,
-    ):
+        environments: list[str] | None = None,
+        analysts: list[str] | None = None,
+        statuses: list[str] | None = None,
+        case_names: list[str] | None = None,
+        tags: list[str] | None = None,
+        priorities: list[int] | None = None,
+        stages: list[str] | None = None,
+        case_types: list[str] | None = None,
+        products: list[str] | None = None,
+        networks: list[str] | None = None,
+        ticked_ids_free_search: str = "",
+        case_ids_free_search: str = "",
+        wall_data_free_search: str = "",
+        entities_free_search: str = "",
+        start_time_unix_time_in_ms: int = -1,
+        end_time_unix_time_in_ms: int = -1,
+    ) -> None:
         self.ticked_ids_free_search = ticked_ids_free_search
         self.environments = environments or []
         self.case_ids_free_search = case_ids_free_search
@@ -788,30 +800,30 @@ class CasesFilter:
 class Task(Base):
     def __init__(
         self,
-        case_id,
-        content,
-        creator_user_id,
-        due_date_unix_time_ms=None,
-        is_important=False,
-        is_favorite=False,
-        owner_comment=None,
-        priority=0,
-        owner=None,
-        status=0,
-        completion_comment=None,
-        completion_date_time_unix_time_in_ms=None,
-        alert_identifier=None,
-        id=0,
-        title=None,
-        creator_full_name=None,
-        owner_full_name=None,
-        creation_time_unix_time_in_ms=0,
-        modification_time_unix_time_in_ms=0,
-        last_modifier=None,
-        last_modifier_full_name=None,
-        completor=None,
-        completor_full_name=None,
-    ):
+        case_id: str,
+        content: str,
+        creator_user_id: str,
+        due_date_unix_time_ms: int | None = None,
+        is_important: bool = False,
+        is_favorite: bool = False,
+        owner_comment: str | None = None,
+        priority: int = 0,
+        owner: str | None = None,
+        status: int = 0,
+        completion_comment: str | None = None,
+        completion_date_time_unix_time_in_ms: int | None = None,
+        alert_identifier: str | None = None,
+        id: int = 0,
+        title: str | None = None,
+        creator_full_name: str | None = None,
+        owner_full_name: str | None = None,
+        creation_time_unix_time_in_ms: int = 0,
+        modification_time_unix_time_in_ms: int = 0,
+        last_modifier: str | None = None,
+        last_modifier_full_name: str | None = None,
+        completor: str | None = None,
+        completor_full_name: str | None = None,
+    ) -> None:
         """Task init
         :param case_id: {int}
         :param title: {str}
@@ -870,12 +882,12 @@ class Task(Base):
         self.id = id
 
     @property
-    def is_identifier_mandatory(self):
+    def is_identifier_mandatory(self) -> bool:
         return False
 
 
 class CustomList(Base):
-    def __init__(self, identifier, category, environment):
+    def __init__(self, identifier: str, category: str, environment: str) -> None:
         """CustomList init
         :param identifier: {string}
         :param category: {string}
@@ -886,11 +898,11 @@ class CustomList(Base):
         self.category = category
         self.environment = environment
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Identifier: {self.identifier}, Category: {self.category}, Environment: {self.environment}"
 
     @property
-    def is_identifier_mandatory(self):
+    def is_identifier_mandatory(self) -> bool:
         return False
 
 
@@ -903,19 +915,19 @@ class LogRecordTypeEnum:
 class ConnectorLogRecord:
     def __init__(
         self,
-        record_type,
-        message,
-        connector_identifier,
-        result_data_type,
-        original_source_file_name=None,
-        result_package_items_count=None,
-        environment=None,
-        source_system_name=None,
-        exception_message=None,
-        integration=None,
-        connector_definition_name=None,
-        timestamp=None,
-    ):
+        record_type: int,
+        message: str,
+        connector_identifier: str,
+        result_data_type: str,
+        original_source_file_name: str | None = None,
+        result_package_items_count: int | None = None,
+        environment: str | None = None,
+        source_system_name: str | None = None,
+        exception_message: str | None = None,
+        integration: str | None = None,
+        connector_definition_name: str | None = None,
+        timestamp: int | None = None,
+    ) -> None:
         self.RecordType = record_type
         self.Message = message
         self.ConnectorIdentifier = connector_identifier
@@ -933,19 +945,19 @@ class ConnectorLogRecord:
 class ActionLogRecord:
     def __init__(
         self,
-        record_type,
-        message,
-        original_source_file_name=None,
-        case_id=None,
-        alert_id=None,
-        workflow_id=None,
-        environment=None,
-        source_system_name=None,
-        exception_message=None,
-        integration=None,
-        action_definition_name=None,
-        timestamp=None,
-    ):
+        record_type: int,
+        message: str,
+        original_source_file_name: str | None = None,
+        case_id: str | None = None,
+        alert_id: str | None = None,
+        workflow_id: str | None = None,
+        environment: str | None = None,
+        source_system_name: str | None = None,
+        exception_message: str | None = None,
+        integration: str | None = None,
+        action_definition_name: str | None = None,
+        timestamp: int | None = None,
+    ) -> None:
         self.RecordType = record_type
         self.Message = message
         self.CaseId = case_id
@@ -961,7 +973,7 @@ class ActionLogRecord:
 
 
 class LogRow:
-    def __init__(self, message, log_level, timestamp):
+    def __init__(self, message: str, log_level: int, timestamp: int) -> None:
         self.message = message
         self.log_level = log_level
         self.timestamp = timestamp
@@ -1037,14 +1049,14 @@ class ApiSyncAlertUsefulnessEnum:
 class SyncCase:
     def __init__(
         self,
-        case_id,
-        environment,
-        priority,
-        stage,
-        status,
-        external_case_id,
-        title,
-    ):
+        case_id: int,
+        environment: str,
+        priority: int,
+        stage: str,
+        status: int,
+        external_case_id: str,
+        title: str,
+    ) -> None:
         """:param case_id: {int}
         :param environment: {string}
         :param priority: {int} represented by ApiSyncCasePriorityEnum values.
@@ -1063,7 +1075,7 @@ class SyncCase:
 
 
 class SyncCaseMetadata:
-    def __init__(self, case_id, tracking_time):
+    def __init__(self, case_id: int, tracking_time: int) -> None:
         """:param case_id: {int}
         :param tracking_time: {int} UTC tracking time in ms.
         """
@@ -1078,20 +1090,20 @@ class SyncAlert:
 
     def __init__(
         self,
-        alert_group_id,
-        alert_id,
-        case_id,
-        environment,
-        priority,
-        status,
-        ticket_id,
-        creation_time,
-        close_comment,
-        close_reason,
-        close_root_cause,
-        close_usefulness,
-        siem_alert_id=None,
-    ):
+        alert_group_id: str,
+        alert_id: str,
+        case_id: int,
+        environment: str,
+        priority: int,
+        status: int,
+        ticket_id: str,
+        creation_time: int,
+        close_comment: str | None,
+        close_reason: int | None,
+        close_root_cause: str | None,
+        close_usefulness: int | None,
+        siem_alert_id: str | None = None,
+    ) -> None:
         """:param alert_group_id: {string}
         :param alert_id: {string}
         :param case_id: {int}
@@ -1128,7 +1140,7 @@ class SyncAlert:
 
 
 class SyncAlertMetadata:
-    def __init__(self, alert_group_id, tracking_time):
+    def __init__(self, alert_group_id: str, tracking_time: int) -> None:
         """:param alert_group_id: {string}
         :param tracking_time: {int} UTC tracking time in ms.
         """
@@ -1142,7 +1154,7 @@ class SyncCaseIdMatch:
     external system.
     """
 
-    def __init__(self, case_id, external_case_id):
+    def __init__(self, case_id: int, external_case_id: str) -> None:
         """:param case_id: {int}
         :param external_case_id: {string}
         """

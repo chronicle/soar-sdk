@@ -29,10 +29,10 @@ SiemplifyUtils.override_stdout()
 
 
 class SiemplifyConnectorExecution(SiemplifyBase):
-    MAX_NUM_LOG_ROWS = 5000
-    CONTEXT_TYPE = 4
+    MAX_NUM_LOG_ROWS: int = 5_000
+    CONTEXT_TYPE: int = 4
 
-    def __init__(self, mock_stdin=None):
+    def __init__(self, mock_stdin: str | None = None) -> None:
         super(SiemplifyConnectorExecution, self).__init__(is_connector=True)
 
         self.context = self._get_connector_context(mock_stdin)
@@ -86,11 +86,11 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         SiemplifyUtils.set_proxy_state(proxy_settings)
 
     @property
-    def log_location(self):
+    def log_location(self) -> str:
         return "SDK_Connectors"
 
     @property
-    def run_folder(self):
+    def run_folder(self) -> str:
         r"""Build run_folder base on script name
         :return: {string} full path (e.g.
         C:\Siemplify_Server\Scripting\SiemplifyAction\<script name>)
@@ -116,7 +116,7 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         return path
 
     @property
-    def parameters(self):
+    def parameters(self) -> dict[str, str]:
         connector_parameters = dict()
 
         if (
@@ -131,19 +131,18 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         return connector_parameters
 
     @property
-    def whitelist(self):
+    def whitelist(self) -> dict | list | None:
         if self.context and self.context.connector_info:
             return self.context.connector_info.white_list
         return None
 
     @property
-    def is_test_run(self):
+    def is_test_run(self) -> bool:
         if len(sys.argv) >= 2 and sys.argv[1] == "False":
             return True
         return False
 
-    def create_overflow_manager(self):
-        # type: () -> OverflowManager
+    def create_overflow_manager(self) -> OverflowManager:
         return OverflowManager(
             manager_cache_folder_path=self.run_folder,
             logger=self.LOGGER,
@@ -153,21 +152,21 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
     def is_overflowed_alert(
         self,
-        environment,
-        alert_identifier,
-        ingestion_time=SiemplifyUtils.unix_now(),
-        original_file_path=None,
-        original_file_content=None,
-        alert_name=None,
-        product=None,
-        source_ip=None,
-        source_host=None,
-        destination_ip=None,
-        destination_host=None,
-        siem_alert_id=None,
-        source_system_url=None,
-        source_rule_identifier=None,
-    ):
+        environment: str,
+        alert_identifier: str,
+        ingestion_time: int = SiemplifyUtils.unix_now(),
+        original_file_path: str | None = None,
+        original_file_content: str | None = None,
+        alert_name: str | None = None,
+        product: str | None = None,
+        source_ip: str | None = None,
+        source_host: str | None = None,
+        destination_ip: str | None = None,
+        destination_host: str | None = None,
+        siem_alert_id: str | None = None,
+        source_system_url: str | None = None,
+        source_rule_identifier: str | None = None,
+    ) -> bool:
         """Check if alert is overflowed
         :param environment: {string} environment
         :param alert_identifier: {string} alert identifier
@@ -212,7 +211,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
         return is_overflowed
 
-    def return_package(self, cases, output_variables={}, log_items=[]):
+    def return_package(
+        self, cases: list, output_variables: dict = {}, log_items: list = []
+    ) -> None:
         """Return data
         :param cases: {list} of cases {CaseInfo}
         :param output_variables: {list}
@@ -237,7 +238,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
             json.dumps(output_object, default=lambda o: o.__dict__),
         )
 
-    def return_test_result(self, is_success, result_params_dictionary):
+    def return_test_result(
+        self, is_success: bool, result_params_dictionary: dict
+    ) -> None:
         """In case of testing, return
         :param is_success: {boolean}
         :param result_params_dictionary: {dict}
@@ -257,12 +260,12 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
     def extract_connector_param(
         self,
-        param_name,
-        default_value=None,
-        input_type=str,
-        is_mandatory=False,
-        print_value=False,
-    ):
+        param_name: str,
+        default_value: any = None,
+        input_type: type = str,
+        is_mandatory: bool = False,
+        print_value: bool = False,
+    ) -> any:
         script_param = extract_script_param(
             siemplify=self,
             input_dictionary=self.parameters,
@@ -284,7 +287,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
             self.context.vault_settings,
         )
 
-    def get_context_property(self, context_type, identifier, property_key):
+    def get_context_property(
+        self, context_type: int, identifier: str, property_key: str
+    ) -> any:
         if self.is_locally_scheduled_remote_connector:
             context_type = self.CONTEXT_TYPE
             identifier = self.context.connector_info.identifier
@@ -294,16 +299,16 @@ class SiemplifyConnectorExecution(SiemplifyBase):
             property_key,
         )
 
-    def get_connector_context_property(self, identifier, property_key):
+    def get_connector_context_property(self, identifier: str, property_key: str) -> any:
         return self.get_context_property(self.CONTEXT_TYPE, identifier, property_key)
 
     def set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int,
+        identifier: str,
+        property_key: str,
+        property_value: any,
+    ) -> any:
         if self.is_locally_scheduled_remote_connector:
             context_type = self.CONTEXT_TYPE
             identifier = self.context.connector_info.identifier
@@ -316,11 +321,11 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
     def try_set_context_property(
         self,
-        context_type,
-        identifier,
-        property_key,
-        property_value,
-    ):
+        context_type: int,
+        identifier: str,
+        property_key: str,
+        property_value: any,
+    ) -> bool:
         if self.is_locally_scheduled_remote_connector:
             context_type = self.CONTEXT_TYPE
             identifier = self.context.connector_info.identifier
@@ -331,7 +336,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
             property_value,
         )
 
-    def set_connector_context_property(self, identifier, property_key, property_value):
+    def set_connector_context_property(
+        self, identifier: str, property_key: str, property_value: any
+    ) -> any:
         return self.set_context_property(
             self.CONTEXT_TYPE,
             identifier,
@@ -341,10 +348,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
     def save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-    ):
+        datetime_format: bool = False,
+        timezone: bool = False,
+        new_timestamp: int = SiemplifyUtils.unix_now(),
+    ) -> any:
         return super(SiemplifyConnectorExecution, self).save_timestamp(
             datetime_format,
             timezone,
@@ -353,7 +360,9 @@ class SiemplifyConnectorExecution(SiemplifyBase):
             self.context.connector_info.identifier,
         )
 
-    def fetch_timestamp(self, datetime_format=False, timezone=False):
+    def fetch_timestamp(
+        self, datetime_format: bool = False, timezone: bool = False
+    ) -> any:
         return super(SiemplifyConnectorExecution, self).fetch_timestamp(
             datetime_format,
             timezone,
@@ -363,10 +372,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
 
     def fetch_and_save_timestamp(
         self,
-        datetime_format=False,
-        timezone=False,
-        new_timestamp=SiemplifyUtils.unix_now(),
-    ):
+        datetime_format: bool = False,
+        timezone: bool = False,
+        new_timestamp: int = SiemplifyUtils.unix_now(),
+    ) -> any:
         last_run_time = self.fetch_timestamp(datetime_format=False, timezone=False)
         self.save_timestamp(
             datetime_format=False,
@@ -375,7 +384,7 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         )
         return last_run_time
 
-    def get_case_status_by_id(self, case_id):
+    def get_case_status_by_id(self, case_id: str) -> int:
         """Get case status by case id
         :param case_id: {string} case identifier
         :return: {int} case status, Opened = 1, Closed = 2

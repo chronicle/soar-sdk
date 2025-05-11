@@ -52,7 +52,8 @@ class TestGcpTokenProvider:
             return_value=mock_impersonated_credentials_obj,
         )
         mocker.patch(
-            "google.auth.transport.requests.Request", return_value=mock_auth_request_obj,
+            "google.auth.transport.requests.Request",
+            return_value=mock_auth_request_obj,
         )
 
         # act
@@ -70,7 +71,8 @@ class TestGcpTokenProvider:
         )
 
     def test_add_gcp_token_local_with_impersonation_no_impersonation_credentials_failed(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         service_account_email = "mockEmail"
@@ -139,7 +141,8 @@ class TestGcpTokenProvider:
         # Define the side effect for the refresh method
 
         mock_auth_default = mocker.patch(
-            "google.auth.default", return_value=(None, "mocked_project_id"),
+            "google.auth.default",
+            return_value=(None, "mocked_project_id"),
         )
 
         # act
@@ -172,7 +175,8 @@ class TestGcpTokenProvider:
             return_value=(mock_credentials_obj, "mocked_project_id"),
         )
         mocker.patch(
-            "google.auth.transport.requests.Request", return_value=mock_auth_request_obj,
+            "google.auth.transport.requests.Request",
+            return_value=mock_auth_request_obj,
         )
 
         # act

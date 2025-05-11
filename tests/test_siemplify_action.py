@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 import os
 import signal
 import time
+import unittest.mock
 
 import pytest
 
@@ -237,7 +240,9 @@ test_alert = Alert(
 
 
 class TestSiemplifyAction:
-    def test_siemplify_action_init_mock_stdin_is_none(self, mocker):
+    def test_siemplify_action_init_mock_stdin_is_none(
+        self, mocker: unittest.mock.Mock
+    ) -> None:
         # arrange
         mocker.patch("sys.stdin.read", return_value=DATA.encode())
 
@@ -245,7 +250,9 @@ class TestSiemplifyAction:
         siemplify_action = SiemplifyAction()
         mocker.patch.object(siemplify_action, "_load_current_alert")
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
 
         # assert
@@ -259,7 +266,9 @@ class TestSiemplifyAction:
         assert siemplify_action.target_entities == []
         assert siemplify_action._target_entities == []
 
-    def test_siemplify_action_init_mock_stdin_is_not_none(self, mocker):
+    def test_siemplify_action_init_mock_stdin_is_not_none(
+        self, mocker: unittest.mock.Mock
+    ) -> None:
         # arrange
         mock_response = mocker.Mock()
         mock_response.status_code = None
@@ -269,7 +278,9 @@ class TestSiemplifyAction:
         mocker.patch.object(siemplify_action, "_load_current_alert")
         mocker.patch.object(siemplify_action, "_load_target_entities")
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
 
         # assert
@@ -283,7 +294,9 @@ class TestSiemplifyAction:
         assert siemplify_action.target_entities is None
         assert siemplify_action._target_entities is None
 
-    def test_siemplify_action_init_old_entities(self, mocker):
+    def test_siemplify_action_init_old_entities(
+        self, mocker: unittest.mock.Mock
+    ) -> None:
         # arrange
         mock_response = mocker.Mock()
         mock_response.status_code = None
@@ -299,7 +312,9 @@ class TestSiemplifyAction:
         mocker.patch.object(siemplify_action, "_load_current_alert")
         mocker.patch.object(siemplify_action, "_load_target_entities")
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
 
         # assert
@@ -314,7 +329,7 @@ class TestSiemplifyAction:
         assert siemplify_action.target_entities is None
         assert siemplify_action._target_entities is None
 
-    def test_init_proxy_settings(self, mocker):
+    def test_init_proxy_settings(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         mock_response = mocker.Mock()
         mock_response.status_code = None
@@ -390,7 +405,9 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=1,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=1,
         )
 
         # act
@@ -404,7 +421,9 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
-            siemplify_action, "_get_case_by_id", return_value=test_cyber_case,
+            siemplify_action,
+            "_get_case_by_id",
+            return_value=test_cyber_case,
         )
 
         # act
@@ -428,7 +447,9 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
-            siemplify_action, "_get_current_alert_by_id", return_value={"items": 1},
+            siemplify_action,
+            "_get_current_alert_by_id",
+            return_value={"items": 1},
         )
 
         # act
@@ -442,7 +463,9 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_has_alerts_already_loaded", return_value=True,
+            siemplify_action,
+            "_has_alerts_already_loaded",
+            return_value=True,
         )
         obj = mocker.patch.object(siemplify_action, "_find_alert_by_id")
 
@@ -463,7 +486,9 @@ class TestSiemplifyAction:
         siemplify_action = SiemplifyAction(mock_stdin=test_data)
 
         mock_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_property.return_value = test_alert
 
@@ -474,12 +499,15 @@ class TestSiemplifyAction:
         assert not response
 
     def test_load_target_entities_not_support_old_entities_response_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_property.return_value = test_alert
 
@@ -493,11 +521,15 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "case", new_callable=PropertyMock,
+            SiemplifyAction,
+            "case",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_lazy_case
         mocker.patch.object(
-            CaseAlertsProvider, "get_alerts", return_value=[test_dict_alert],
+            CaseAlertsProvider,
+            "get_alerts",
+            return_value=[test_dict_alert],
         )
 
         # act
@@ -557,7 +589,9 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
-            siemplify_action, "_get_case_by_id", return_value=test_cyber_case,
+            siemplify_action,
+            "_get_case_by_id",
+            return_value=test_cyber_case,
         )
 
         # act
@@ -586,10 +620,14 @@ class TestSiemplifyAction:
         )
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.add_attachment(
-            "test.txt", case_id=0, alert_identifier=1,
+            "test.txt",
+            case_id=0,
+            alert_identifier=1,
         )
 
         # delete the created file
@@ -598,7 +636,8 @@ class TestSiemplifyAction:
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/AddAttachment?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/AddAttachment?format=snake",
             ),
             json=attachment.__dict__,
         )
@@ -647,16 +686,22 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.assign_case(
-            user=user, case_id=case_id, alert_identifier=alert_identifier,
+            user=user,
+            case_id=case_id,
+            alert_identifier=alert_identifier,
         )
 
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}{2}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/AssignUser", "?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/AssignUser",
+                "?format=snake",
             ),
             json=request_dict,
         )
@@ -680,16 +725,22 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.add_comment(
-            comment=comment, case_id=case_id, alert_identifier=alert_identifier,
+            comment=comment,
+            case_id=case_id,
+            alert_identifier=alert_identifier,
         )
 
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}{2}".format(
-                siemplify_action.API_ROOT, "external/v1/cases/comments", "?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/cases/comments",
+                "?format=snake",
             ),
             json=request_dict,
         )
@@ -713,16 +764,22 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.add_tag(
-            tag=tag, case_id=case_id, alert_identifier=alert_identifier,
+            tag=tag,
+            case_id=case_id,
+            alert_identifier=alert_identifier,
         )
 
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}{2}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/AddTag", "?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/AddTag",
+                "?format=snake",
             ),
             json=request_dict,
         )
@@ -748,7 +805,9 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.attach_workflow_to_case(
             workflow_name=workflow_name,
@@ -776,7 +835,9 @@ class TestSiemplifyAction:
         mock_response.json.return_value = [25, 21, 26, 27, 23, 22, 20, 24]
         mock_response.raise_for_status.return_value = None
         mock_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_property.return_value = test_alert
         consider_ports = True
@@ -789,13 +850,19 @@ class TestSiemplifyAction:
         # set the mock response to be returned by the session.get method
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         mocker.patch.object(
-            siemplify_action, "_get_current_alert_by_id", return_value=test_alert,
+            siemplify_action,
+            "_get_current_alert_by_id",
+            return_value=test_alert,
         )
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
 
         # act
@@ -817,7 +884,8 @@ class TestSiemplifyAction:
         assert response == [25, 21, 26, 27, 23, 22, 20, 24]
 
     def test_get_ticket_ids_for_alerts_dismissed_since_timestamp_valid_response_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         # create a mock response object
@@ -830,7 +898,9 @@ class TestSiemplifyAction:
         request_dict = {"time_stamp_unix_ms": str(timestamp_unix_ms)}
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -852,7 +922,8 @@ class TestSiemplifyAction:
         assert response == [1, 2, 4, 9]
 
     def test_get_alerts_ticket_ids_from_cases_closed_since_timestamp_response_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         mock_response = mocker.Mock()
@@ -867,13 +938,16 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
         response = (
             siemplify_action.get_alerts_ticket_ids_from_cases_closed_since_timestamp(
-                timestamp_unix_ms, rule_generator,
+                timestamp_unix_ms,
+                rule_generator,
             )
         )
 
@@ -900,7 +974,9 @@ class TestSiemplifyAction:
         alert_identifier = 1
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -933,12 +1009,16 @@ class TestSiemplifyAction:
         alert_identifier = 1
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
         response = siemplify_action.change_case_priority(
-            priority, case_id, alert_identifier,
+            priority,
+            case_id,
+            alert_identifier,
         )
 
         # assert the correct API address is called
@@ -949,7 +1029,8 @@ class TestSiemplifyAction:
         }
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/ChangePriority?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/ChangePriority?format=snake",
             ),
             json=request_dict,
         )
@@ -971,12 +1052,18 @@ class TestSiemplifyAction:
         # set the mock response to be returned by the session.get method
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
         response = siemplify_action.close_case(
-            root_cause, comment, reason, case_id, alert_identifier,
+            root_cause,
+            comment,
+            reason,
+            case_id,
+            alert_identifier,
         )
 
         # assert the correct API address is called
@@ -989,7 +1076,8 @@ class TestSiemplifyAction:
         }
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/Close?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/Close?format=snake",
             ),
             json=request_dict,
         )
@@ -1014,7 +1102,9 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1027,7 +1117,8 @@ class TestSiemplifyAction:
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/DismissAlert?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/DismissAlert?format=snake",
             ),
             json=request_dict,
         )
@@ -1056,18 +1147,25 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
         response = siemplify_action.close_alert(
-            root_cause, comment, reason, case_id, alert_id,
+            root_cause,
+            comment,
+            reason,
+            case_id,
+            alert_id,
         )
 
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/CloseAlert?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/CloseAlert?format=snake",
             ),
             json=request_dict,
         )
@@ -1100,7 +1198,9 @@ class TestSiemplifyAction:
         entity._update_internal_properties()
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1159,7 +1259,9 @@ class TestSiemplifyAction:
         entity._update_internal_properties()
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1194,7 +1296,8 @@ class TestSiemplifyAction:
         assert response
 
     def test_add_entity_insight_integration_identifier_is_none_valid_response_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         # create a mock response object
@@ -1221,7 +1324,9 @@ class TestSiemplifyAction:
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         siemplify_action.integration_identifier = None
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1290,7 +1395,9 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1333,7 +1440,9 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1342,7 +1451,8 @@ class TestSiemplifyAction:
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/Escalate?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/Escalate?format=snake",
             ),
             json=request_dict,
         )
@@ -1360,7 +1470,9 @@ class TestSiemplifyAction:
         request_dict = {"case_id": case_id, "alert_identifier": alert_identifier}
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1383,11 +1495,15 @@ class TestSiemplifyAction:
         property_key = 1
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "case", new_callable=PropertyMock,
+            SiemplifyAction,
+            "case",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_lazy_case
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="TEST",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.get_case_context_property(property_key=property_key)
@@ -1400,15 +1516,20 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "case", new_callable=PropertyMock,
+            SiemplifyAction,
+            "case",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_lazy_case
         obj = mocker.patch.object(
-            SiemplifyBase, "set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "set_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.set_case_context_property(
-            property_key=1, property_value=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -1419,15 +1540,20 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "case", new_callable=PropertyMock,
+            SiemplifyAction,
+            "case",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_lazy_case
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.try_set_case_context_property(
-            property_key=1, property_value=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -1438,15 +1564,20 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_alert
         obj = mocker.patch.object(
-            SiemplifyBase, "set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "set_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.set_alert_context_property(
-            property_key=1, property_value=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -1457,11 +1588,15 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_alert
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="TEST",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.get_alert_context_property(property_key=1)
@@ -1474,15 +1609,20 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_alert
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.try_set_alert_context_property(
-            property_key=1, property_value=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -1493,14 +1633,20 @@ class TestSiemplifyAction:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_case_property.return_value = test_alert
         fetch_timestamp = mocker.patch.object(
-            SiemplifyBase, "fetch_timestamp", return_value="TEST",
+            SiemplifyBase,
+            "fetch_timestamp",
+            return_value="TEST",
         )
         save_timestamp = mocker.patch.object(
-            SiemplifyBase, "save_timestamp", return_value="TEST",
+            SiemplifyBase,
+            "save_timestamp",
+            return_value="TEST",
         )
         # act
         response = siemplify_action.fetch_and_save_timestamp()
@@ -1522,7 +1668,9 @@ class TestSiemplifyAction:
         request_dict = {"case_id": case_id, "alert_identifier": alert_identifier}
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1531,7 +1679,8 @@ class TestSiemplifyAction:
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/RaiseIncident?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/RaiseIncident?format=snake",
             ),
             json=request_dict,
         )
@@ -1561,7 +1710,9 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -1597,7 +1748,9 @@ class TestSiemplifyAction:
         mock_response = mocker.Mock()
         mock_response.raise_for_status.return_value = None
         mock_property = mocker.patch.object(
-            SiemplifyAction, "current_alert", new_callable=PropertyMock,
+            SiemplifyAction,
+            "current_alert",
+            new_callable=PropertyMock,
         )
         mock_property.return_value = test_alert
 
@@ -1616,10 +1769,14 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
 
         # act
@@ -1639,7 +1796,8 @@ class TestSiemplifyAction:
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/CreateEntity?format=snake",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/CreateEntity?format=snake",
             ),
             json=request_dict,
         )
@@ -1795,12 +1953,15 @@ class TestSiemplifyAction:
         }
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
         response = siemplify_action.update_alerts_additional_data(
-            case_id, alerts_additional_data,
+            case_id,
+            alerts_additional_data,
         )
 
         # assert the correct API address is called
@@ -1858,10 +2019,14 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.any_alert_entities_in_custom_list(
             category_name="test",
@@ -1887,10 +2052,14 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         response = siemplify_action.add_alert_entities_to_custom_list(
             category_name="test",
@@ -1916,10 +2085,14 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         response = siemplify_action.remove_alert_entities_from_custom_list(
             category_name="test",
@@ -1947,7 +2120,9 @@ class TestSiemplifyAction:
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch("SiemplifyAction.extract_script_param")
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
         siemplify_action.extract_action_param(param_name="test")
 
@@ -1970,7 +2145,9 @@ class TestSiemplifyAction:
         identifier = integration_instance if integration_instance else provider
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         mocker.patch.object(siemplify_action.session, "get", return_value=mock_response)
 
@@ -2010,7 +2187,9 @@ class TestSiemplifyAction:
         provider = "Siemplify"
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         mocker.patch.object(siemplify_action.session, "get", return_value=mock_response)
 
@@ -2037,7 +2216,8 @@ class TestSiemplifyAction:
         }
 
     def test_get_configuration_by_provider_is_remote_valid_response_success(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         mock_response = mocker.Mock()
@@ -2058,7 +2238,9 @@ class TestSiemplifyAction:
         mocker.patch.object(siemplify_action, "_load_current_alert")
         mocker.patch.object(siemplify_action, "_load_target_entities")
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         mocker.patch.object(siemplify_action.session, "get", return_value=mock_response)
 
@@ -2092,7 +2274,9 @@ class TestSiemplifyAction:
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
-            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict,
+            siemplify_action,
+            "_get_case_metadata_by_id",
+            return_value=lazy_case_dict,
         )
         response = siemplify_action._get_custom_list_items("test", [test_alert])
 
@@ -2130,7 +2314,9 @@ class TestSiemplifyAction:
         mock_response = mocker.Mock()
         mock_response.raise_for_status.return_value = 200
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act
@@ -2146,7 +2332,10 @@ class TestSiemplifyAction:
         assert response is None
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}/{2}/{3}?format=snake".format(
-                siemplify_action.API_ROOT, "external/v1/sdk/cases", case_id, "sla",
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/cases",
+                case_id,
+                "sla",
             ),
             json=request,
         )
@@ -2169,7 +2358,9 @@ class TestSiemplifyAction:
         mock_response = mocker.Mock()
         mock_response.raise_for_status.return_value = 200
         mocker.patch.object(
-            siemplify_action.session, "post", return_value=mock_response,
+            siemplify_action.session,
+            "post",
+            return_value=mock_response,
         )
 
         # act

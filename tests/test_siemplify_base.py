@@ -26,8 +26,7 @@ from soar_sdk.SiemplifyBase import HEADERS, SiemplifyBase
 class TestSiemplifyBase:
     @pytest.fixture(autouse=True)
     def restore_headers(self):
-        """Fixture to backup and restore the original HEADERS.
-        """
+        """Fixture to backup and restore the original HEADERS."""
         original_headers = copy.deepcopy(HEADERS)  # Create a deep copy
         yield  # This is where the test using the fixture runs
         HEADERS.clear()  # Remove all current headers. Important for complete
@@ -130,9 +129,12 @@ class TestSiemplifyBase:
         with pytest.raises(Exception) as excinfo:
             url = base.platform_url
 
-        assert str(
-            excinfo.value,
-        ) == "Environment SERVER_API_ROOT not found or malformed"
+        assert (
+            str(
+                excinfo.value,
+            )
+            == "Environment SERVER_API_ROOT not found or malformed"
+        )
 
     def test_get_script_context_python_37(self, mocker):
         value = "Success"
@@ -168,7 +170,9 @@ class TestSiemplifyBase:
 
         # act
         mocker.patch.object(
-            siemplify_base, "_create_remote_session", return_value=mock_response,
+            siemplify_base,
+            "_create_remote_session",
+            return_value=mock_response,
         )
         siemplify_base._init_remote_session(key)
 
@@ -208,7 +212,8 @@ class TestSiemplifyBase:
 
     def test_add_gcp_token_when_auth_needed(self, mocker):
         gcp_provider_mock = mocker.patch.object(
-            soar_sdk.GcpTokenProvider.GcpTokenProvider, "add_gcp_token",
+            soar_sdk.GcpTokenProvider.GcpTokenProvider,
+            "add_gcp_token",
         )
         mock_sdk_config = MagicMock()
         mock_sdk_config.gcp_auth_required = True
@@ -220,7 +225,8 @@ class TestSiemplifyBase:
 
     def test_does_not_add_gcp_token_when_auth_not_needed(self, mocker):
         gcp_provider_mock = mocker.patch.object(
-            soar_sdk.GcpTokenProvider.GcpTokenProvider, "add_gcp_token",
+            soar_sdk.GcpTokenProvider.GcpTokenProvider,
+            "add_gcp_token",
         )
         mock_sdk_config = MagicMock()
         mock_sdk_config.gcp_auth_required = False

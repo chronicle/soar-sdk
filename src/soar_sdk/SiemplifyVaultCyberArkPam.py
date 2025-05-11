@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import base64
+from typing import Any, AnyStr
 from urllib.parse import urljoin
 
 import requests
@@ -31,16 +32,16 @@ from requests_toolbelt.adapters.x509 import X509Adapter
 from SiemplifyVault import SiemplifyVault
 
 # CONSTS
-CA_CERT_PATH = "cacert.pem"
-URLS = {
+CA_CERT_PATH: str = "cacert.pem"
+URLS: dict[str, str] = {
     "get_access_token": "/PasswordVault/API/Auth/CyberArk/Logon",
     "get_password": "PasswordVault/API/Accounts/{account_id}/Password/Retrieve/",
 }
-MAX_RETRIES = 1
-GET_TOKEN_TIMEOUT = 60
+MAX_RETRIES: int = 1
+GET_TOKEN_TIMEOUT: int = 60
 
 
-# vault manager class, includes the logic that contact the remote vault provider
+# vault manager class, includes the logic that contacts the remote vault provider
 # supports python2.7 and python 3.7
 class CyberArkPamManagerError(Exception):
     """General Exception for CyberArk PAM manager."""
@@ -53,7 +54,7 @@ class CyberArkPamNotFoundError(CyberArkPamManagerError):
 class SiemplifyVaultCyberArkPam(SiemplifyVault):
     """CyberArk PAM Manager."""
 
-    def __init__(self, vault_settings: dict) -> None:
+    def __init__(self, vault_settings: dict[str, Any]) -> None:
         super(SiemplifyVaultCyberArkPam, self).__init__(vault_settings)
         self.__set_certificates(
             self.client_certificate_passphrase,
@@ -69,8 +70,8 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
 
     def __set_certificates(
         self,
-        client_certificate_passphrase=None,
-        client_certificate=None,
+        client_certificate_passphrase: str | None = None,
+        client_certificate: str | None = None,
     ):
         if not client_certificate:
             return
@@ -103,7 +104,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
         )
         self.session.mount("https://", adapter)
 
-    def __set_verify(self, verify_ssl, ca_certificate=None):
+    def __set_verify(self, verify_ssl: bool, ca_certificate: str | None = None) -> None:
         """Set verify ssl
         :param verify_ssl: {bool} True if verify ssl
         :param ca_certificate: {str} CA certificate
@@ -119,7 +120,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
         else:
             self.session.verify = False
 
-    def __build_full_uri(self, url_key, **kwargs):
+    def __build_full_uri(self, url_key: str, **kwargs: Any) -> AnyStr:
         """Build full uri from url key
         :param url_key: {str} The key
         :param kwargs: {dict} Variables passed for string formatting
@@ -127,7 +128,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
         """
         return urljoin(self.api_root, URLS[url_key].format(**kwargs))
 
-    def __get_access_token(self, username, password):
+    def __get_access_token(self, username: str, password: str) -> str:
         """Get token from CyberArk PAM
         :param username
         :param password
@@ -144,7 +145,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
         return response.text[1:-1]
 
     @staticmethod
-    def validate_response(response):
+    def validate_response(response: requests.Response) -> None:
         """Check for error"""
         try:
             response.raise_for_status()
@@ -153,7 +154,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
                 raise CyberArkPamNotFoundError(e)
             raise CyberArkPamManagerError(e)
 
-    def get_password(self, account):
+    def get_password(self, account: str) -> str:
         payload = {"reason": "Chronicle SOAR vault integration"}
         prepared_payload = {
             key: value for key, value in payload.items() if value is not None

@@ -15,18 +15,22 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from SiemplifyUtils import is_str_instance
 from VaultProviderFactory import VaultProviderFactory
 
 # CONSTS
-REGEX_CONFIGURATION = r"(?<=\[)[^[\]\:]*:::[^[\]]*(?=])"
-EXTERNAL_PROVIDER_SEPARATOR = ":::"
-SEPARATOR_AMOUNT = 3
-ACCOUNT_ID_POSITION = 3
+REGEX_CONFIGURATION: str = r"(?<=\[)[^[\]\:]*:::[^[\]]*(?=])"
+EXTERNAL_PROVIDER_SEPARATOR: str = ":::"
+SEPARATOR_AMOUNT: int = 3
+ACCOUNT_ID_POSITION: int = 3
 
 
-def extract_vault_param(configuration_item, vault_settings):
+def extract_vault_param(
+    configuration_item: str,
+    vault_settings: dict[str, Any],
+) -> str:
     """Extract vault param
     :param configuration_item: {string} connector parameter (or vault placeholder)
     :param vault_settings: {VaultSettings json}
@@ -50,7 +54,7 @@ def extract_vault_param(configuration_item, vault_settings):
     return configuration_item
 
 
-def get_vault_secret(account_id, vault_settings):
+def get_vault_secret(account_id: str, vault_settings: dict[str, Any]) -> str:
     """Get vault secret (password) using the id of the secret (account_id) and the
     vault_settings
     :param account_id: {string}

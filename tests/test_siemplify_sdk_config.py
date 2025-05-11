@@ -34,7 +34,8 @@ class TestSiemplifySdkConfig:
         assert result == "https://this-is-server.com/api"
 
     @pytest.mark.parametrize(
-        "publisher_api_root", ["https://this-is-server.com/api", "bad_url", None],
+        "publisher_api_root",
+        ["https://this-is-server.com/api", "bad_url", None],
     )
     def test_build_remote_api_server_uri_return_none(self, publisher_api_root, mocker):
         # arrange

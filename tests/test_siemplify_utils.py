@@ -76,8 +76,7 @@ class TestSiemplifyUtils:
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "test"
         expected_output = {
-            f"{prefix}_{key}": value
-            for key, value in list(target_dict.items())
+            f"{prefix}_{key}": value for key, value in list(target_dict.items())
         }
         assert (
             SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix)
@@ -88,8 +87,7 @@ class TestSiemplifyUtils:
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = None
         expected_output = {
-            f"{prefix}_{key}": value
-            for key, value in list(target_dict.items())
+            f"{prefix}_{key}": value for key, value in list(target_dict.items())
         }
         assert (
             SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix)
@@ -108,8 +106,7 @@ class TestSiemplifyUtils:
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "test"
         expected_output = {
-            f"{prefix}_{key}": value
-            for key, value in list(target_dict.items())
+            f"{prefix}_{key}": value for key, value in list(target_dict.items())
         }
         assert (
             SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix)
@@ -120,8 +117,7 @@ class TestSiemplifyUtils:
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = None
         expected_output = {
-            f"{prefix}_{key}": value
-            for key, value in list(target_dict.items())
+            f"{prefix}_{key}": value for key, value in list(target_dict.items())
         }
         assert (
             SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix)
@@ -367,8 +363,7 @@ class TestSiemplifyUtils:
         given_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "data"
         expected_output = {
-            f"{prefix}_{key}": value
-            for key, value in list(given_dict.items())
+            f"{prefix}_{key}": value for key, value in list(given_dict.items())
         }
         assert SiemplifyUtils.add_prefix_to_dict(given_dict, prefix) == expected_output
 
@@ -381,7 +376,14 @@ class TestSiemplifyUtils:
     def test_convert_datetime_to_unix_time(self, mocker):
         unix_time = 165018000
         expected_output = datetime.datetime(
-            1970, 1, 1, 0, 0, 0, 0, tzinfo=tz.gettz("UTC"),
+            1970,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            tzinfo=tz.gettz("UTC"),
         ) + datetime.timedelta(milliseconds=unix_time)
         result = SiemplifyUtils.convert_unixtime_to_datetime(unix_time)
         assert result == expected_output
@@ -389,7 +391,14 @@ class TestSiemplifyUtils:
         # Test a negative Unix timestamp
         unix_time = -1650180000
         expected_output = datetime.datetime(
-            1970, 1, 1, 0, 0, 0, 0, tzinfo=tz.gettz("UTC"),
+            1970,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            tzinfo=tz.gettz("UTC"),
         ) + datetime.timedelta(milliseconds=unix_time)
         result = SiemplifyUtils.convert_unixtime_to_datetime(unix_time)
         assert result == expected_output
@@ -397,14 +406,28 @@ class TestSiemplifyUtils:
         # Test a Unix timestamp that corresponds to a date after 2022
         unix_time = 1800000000
         expected_output = datetime.datetime(
-            1970, 1, 1, 0, 0, 0, 0, tzinfo=tz.gettz("UTC"),
+            1970,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            tzinfo=tz.gettz("UTC"),
         ) + datetime.timedelta(milliseconds=unix_time)
         result = SiemplifyUtils.convert_unixtime_to_datetime(unix_time)
         assert result == expected_output
 
         unix_time = 165018000
         expected_output = datetime.datetime(
-            1970, 1, 1, 0, 0, 0, 0, tzinfo=tz.gettz("UTC"),
+            1970,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            tzinfo=tz.gettz("UTC"),
         ) + datetime.timedelta(milliseconds=unix_time)
         result = SiemplifyUtils.convert_unixtime_to_datetime(unix_time)
         assert result == expected_output

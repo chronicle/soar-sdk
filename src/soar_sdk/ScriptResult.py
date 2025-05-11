@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import json
 import traceback
-from collections.abc import MutableMapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 EXECUTION_STATE_COMPLETED: int = 0
 EXECUTION_STATE_INPROGRESS: int = 1
@@ -31,9 +33,9 @@ class ScriptResult:
 
     def __init__(
         self,
-        entities: Sequence[MutableMapping[str, Any]],
+        entities: Sequence[dict[str, Any]],
         support_old_entities: bool = False,
-    ):
+    ) -> None:
         self._message = None
         self._result_value = None
         self._result_object = {}
@@ -43,30 +45,35 @@ class ScriptResult:
         self.support_old_entities = support_old_entities
 
     @property
-    def message(self):
+    def message(self) -> str:
         return self._message
 
     @message.setter
-    def message(self, value):
+    def message(self, value: str) -> None:
         self._message = value
 
     @property
-    def result_value(self):
+    def result_value(self) -> bool:
         return self._result_value
 
     @result_value.setter
-    def result_value(self, value):
+    def result_value(self, value: bool) -> None:
         self._result_value = value
 
     @property
-    def execution_state(self):
+    def execution_state(self) -> int:
         return self._execution_state
 
     @execution_state.setter
-    def execution_state(self, value):
+    def execution_state(self, value: int) -> None:
         self._execution_state = value
 
-    def add_entity_json(self, entity_identifier, json_data, entity_type=None):
+    def add_entity_json(
+        self,
+        entity_identifier: str,
+        json_data: dict[str, Any],
+        entity_type: str | None = None,
+    ) -> None:
         """Add json result with entity identifier as json title
         :param entity_identifier: {string} entity identifier
         :param json_data: {dict} json data
@@ -74,7 +81,7 @@ class ScriptResult:
         """
         self.add_json(entity_identifier, json_data, entity_type)
 
-    def add_result_json(self, json_data):
+    def add_result_json(self, json_data: dict[str, Any]) -> None:
         """Add json result
         :param json_data: {dict} json data
         """
@@ -84,7 +91,12 @@ class ScriptResult:
         # In the future, the names will come from the IDE Screen, like the "Output name", only dynamic
         self.add_json("JsonResult", json_data)
 
-    def add_json(self, entity_identifier, json_data, entity_type=None):
+    def add_json(
+        self,
+        entity_identifier: str,
+        json_data: dict[str, Any],
+        entity_type: str | None = None,
+    ) -> None:
         """Add json result
         :param entity_identifier: {string} entity identifier
         :param json_data: {string}/{dict}/{list} If input is json string object, it will be validated. If it's a dictionary or list, it will be json dumped
@@ -118,7 +130,12 @@ class ScriptResult:
                 )
         entity_data["RawJson"] = json_data
 
-    def add_entity_content(self, entity_identifier, content, entity_type=None):
+    def add_entity_content(
+        self,
+        entity_identifier: str,
+        content: Any,
+        entity_type: str | None = None,
+    ) -> None:
         """Add content
         :param entity_identifier: {string} entity identifier
         :param content:
@@ -126,7 +143,12 @@ class ScriptResult:
         """
         self.add_content(entity_identifier, content, entity_type)
 
-    def add_content(self, entity_identifier, content, entity_type=None):
+    def add_content(
+        self,
+        entity_identifier: str,
+        content: Any,
+        entity_type: str | None = None,
+    ) -> None:
         """Add content
         :param entity_identifier: {string} entity identifier
         :param content:
@@ -135,7 +157,12 @@ class ScriptResult:
         entity_data = self._get_entity_data(entity_identifier, entity_type)
         entity_data["Content"] = content
 
-    def add_entity_table(self, entity_identifier, data_table, entity_type=None):
+    def add_entity_table(
+        self,
+        entity_identifier: str,
+        data_table: list[str],
+        entity_type: str | None = None,
+    ) -> None:
         """Add data table with entity identifier as table title
         :param entity_identifier: {string} entity identifier
         :param data_table: {list} csv formatted list
@@ -143,7 +170,12 @@ class ScriptResult:
         """
         self.add_data_table(entity_identifier, data_table, entity_type)
 
-    def add_data_table(self, title, data_table, entity_type=None):
+    def add_data_table(
+        self,
+        title: str,
+        data_table: list[str],
+        entity_type: str | None = None,
+    ) -> None:
         """Add data table
         :param title: {string} table title
         :param data_table: {list} csv formatted list
@@ -154,12 +186,12 @@ class ScriptResult:
 
     def add_entity_attachment(
         self,
-        entity_identifier,
-        filename,
-        file_contents,
-        additional_data=None,
-        entity_type=None,
-    ):
+        entity_identifier: str,
+        filename: str,
+        file_contents: str | bytes,
+        additional_data: dict[str, Any] | None = None,
+        entity_type: str | None = None,
+    ) -> None:
         """Add attachment with entity identifier as title
         :param entity_identifier: {string} entity identifier
         :param filename: {string} file name
@@ -177,12 +209,12 @@ class ScriptResult:
 
     def add_attachment(
         self,
-        title,
-        filename,
-        file_contents,
-        additional_data=None,
-        entity_type=None,
-    ):
+        title: str,
+        filename: str,
+        file_contents: str | bytes,
+        additional_data: dict[str, Any] | None = None,
+        entity_type: str | None = None,
+    ) -> None:
         """Add attachment
         :param title: {string} attachment title
         :param filename: {string} file name
@@ -206,11 +238,11 @@ class ScriptResult:
 
     def add_entity_html_report(
         self,
-        entity_identifier,
-        report_name,
-        report_contents,
-        entity_type=None,
-    ):
+        entity_identifier: str,
+        report_name: str,
+        report_contents: str,
+        entity_type: str | None = None,
+    ) -> None:
         """Add html data with entity identifier as title
         :param entity_identifier: {string} entity identifier
         :param report_name:{string} html report name
@@ -220,7 +252,13 @@ class ScriptResult:
         """
         self.add_html(entity_identifier, report_name, report_contents, entity_type)
 
-    def add_html(self, title, report_name, report_contents, entity_type=None):
+    def add_html(
+        self,
+        title: str,
+        report_name: str,
+        report_contents: str,
+        entity_type: str | None = None,
+    ) -> None:
         """Add html data
         :param title: {string} title
         :param report_name: {string} html report name
@@ -232,7 +270,12 @@ class ScriptResult:
         entity_data = self._get_entity_data(title, entity_type)
         entity_data["Htmls"][report_name] = report_contents
 
-    def add_entity_link(self, entity_identifier, link, entity_type=None):
+    def add_entity_link(
+        self,
+        entity_identifier: str,
+        link: str,
+        entity_type: str | None = None,
+    ) -> None:
         """Add web link with entity identifier as title
         :param entity_identifier: {string} entity identifier
         :param link: {string} link
@@ -240,7 +283,7 @@ class ScriptResult:
         """
         self.add_link(entity_identifier, link, entity_type)
 
-    def add_link(self, title, link, entity_type=None):
+    def add_link(self, title: str, link: str, entity_type: str | None = None) -> None:
         """Add web link
         :param title: {string} link title
         :param link: {string} link
@@ -251,7 +294,11 @@ class ScriptResult:
             entity_data["Links"] = []
         entity_data["Links"].append(link)
 
-    def _get_entity_data(self, title, entity_type=None):
+    def _get_entity_data(
+        self,
+        title: str,
+        entity_type: str | None = None,
+    ) -> dict[str, Any]:
         """Get entity data
         :param title: {string} entity identifier
         :return: entity data
@@ -289,7 +336,7 @@ class ScriptResult:
             }
         return self._result_object[title]
 
-    def _validate_attachment_size(self, attachment_size):
+    def _validate_attachment_size(self, attachment_size: int) -> None:
         """Validate attachment size - limit to 50 MB.
         :param attachment_size: {int} attachment file size
         """

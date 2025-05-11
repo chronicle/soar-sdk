@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -19,6 +21,7 @@ import tempfile
 import time
 import uuid
 from datetime import timedelta
+from typing import TYPE_CHECKING
 from unittest.mock import mock_open, patch
 
 import pytest
@@ -47,6 +50,9 @@ from soar_sdk.SiemplifyDataModel import (
 )
 from soar_sdk.SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
 
+if TYPE_CHECKING:
+    import unittest.mock
+
 # Consts
 EXTERNAL_CONFIG_PROVIDER_FILE = r"external_providers.json"
 INSIGHT_DEFAULT_THREAT_SOURCE = "Siemplify System"
@@ -63,7 +69,7 @@ FORMAT_SNAKE = "?format=snake"
 
 
 class TestSiemplify:
-    def test_fix_parameters(self):
+    def test_fix_parameters(self) -> None:
         # arrange
         parameters = {"test": ""}
         siemplify = Siemplify()
@@ -72,7 +78,9 @@ class TestSiemplify:
         # assert
         assert response == parameters
 
-    def test_get_err_message(self, exception=Exception("Test exception")):
+    def test_get_err_message(
+        self, exception: Exception = Exception("Test exception")
+    ) -> None:
         # arrange
         siemplify = Siemplify()
         # act
@@ -80,7 +88,9 @@ class TestSiemplify:
         # assert
         assert response == "Test exception"
 
-    def test_get_case_by_id_when_source_is_false(self, mocker, case_id=1):
+    def test_get_case_by_id_when_source_is_false(
+        self, mocker: unittest.mock.Mock, case_id: int = 1
+    ) -> None:
         # arrange
         # create a mock response object
         mock_response = mocker.Mock()
@@ -108,8 +118,11 @@ class TestSiemplify:
         assert response == {}
 
     def test_get_case_by_id_when_source_is_true(
-        self, mocker, case_id=1, get_source_file=True,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+        case_id: int = 1,
+        get_source_file: bool = True,
+    ) -> None:
         # arrange
         # create a mock response object
         mock_response = mocker.Mock()
@@ -136,7 +149,7 @@ class TestSiemplify:
         # assert
         assert response == {}
 
-    def test_get_case_metadata_by_id(self, mocker):
+    def test_get_case_metadata_by_id(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         case_id = 1
         # create a mock response object
@@ -159,7 +172,7 @@ class TestSiemplify:
         # assert
         assert response == {}
 
-    def test_get_current_alert_by_id(self, mocker):
+    def test_get_current_alert_by_id(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         case_id = 1
         alert_id = 1
@@ -180,7 +193,9 @@ class TestSiemplify:
 
         # act
         response = siemplify._get_current_alert_by_id(
-            case_id=case_id, alert_id=alert_id, get_source_file=get_source_file,
+            case_id=case_id,
+            alert_id=alert_id,
+            get_source_file=get_source_file,
         )
 
         # assert the correct API address is called
@@ -192,7 +207,7 @@ class TestSiemplify:
         # assert
         assert response == [25]
 
-    def test_get_proxy_settings(self, mocker):
+    def test_get_proxy_settings(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         # create a mock response object
         mock_response = mocker.Mock()
@@ -209,7 +224,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.get.assert_called_once_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetProxySettings?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetProxySettings?format=snake",
             ),
         )
 
@@ -217,7 +233,7 @@ class TestSiemplify:
         # assert the correct system version is returned
         assert response == {}
 
-    def test_init_proxy_settings(self, mocker):
+    def test_init_proxy_settings(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify = Siemplify()
         mock_response = mocker.Mock()
@@ -465,7 +481,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCasesIdByFilter",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCasesIdByFilter",
             ),
             json=payload,
         )
@@ -541,7 +558,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCasesIdByFilter",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCasesIdByFilter",
             ),
             json=payload,
         )
@@ -583,7 +601,10 @@ class TestSiemplify:
         }
         siemplify = Siemplify()
         mocker.patch.object(
-            siemplify.session, "post", return_value=mock_response, json=payload,
+            siemplify.session,
+            "post",
+            return_value=mock_response,
+            json=payload,
         )
 
         # act
@@ -668,7 +689,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCasesIdByFilter",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCasesIdByFilter",
             ),
             json=payload,
         )
@@ -714,7 +736,10 @@ class TestSiemplify:
         }
         siemplify = Siemplify()
         mocker.patch.object(
-            siemplify.session, "post", return_value=mock_response, json=payload,
+            siemplify.session,
+            "post",
+            return_value=mock_response,
+            json=payload,
         )
 
         # act
@@ -759,7 +784,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, start_time_to_unix_time_in_ms="Error",
+                status=status,
+                start_time_to_unix_time_in_ms="Error",
             )
 
         # assert
@@ -773,7 +799,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, start_time_from_unix_time_in_ms="Error",
+                status=status,
+                start_time_from_unix_time_in_ms="Error",
             )
 
         # assert
@@ -805,7 +832,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, close_time_from_unix_time_in_ms="Error",
+                status=status,
+                close_time_from_unix_time_in_ms="Error",
             )
 
         # assert
@@ -821,7 +849,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, close_time_from_unix_time_in_ms=1,
+                status=status,
+                close_time_from_unix_time_in_ms=1,
             )
 
         # assert
@@ -835,7 +864,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, close_time_to_unix_time_in_ms="Error",
+                status=status,
+                close_time_to_unix_time_in_ms="Error",
             )
 
         # assert
@@ -885,14 +915,16 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, update_time_from_unix_time_in_ms="Error",
+                status=status,
+                update_time_from_unix_time_in_ms="Error",
             )
 
         # assert
         assert "update_time_from_unix_time_in_ms" in str(excinfo.value)
 
     def test_get_cases_ids_by_filter_invalid_update_time_to_unix_raise_exception(
-        self, status=1,
+        self,
+        status=1,
     ):
         # arrange
         siemplify = Siemplify()
@@ -900,7 +932,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_cases_ids_by_filter(
-                status=status, update_time_to_unix_time_in_ms="Error",
+                status=status,
+                update_time_to_unix_time_in_ms="Error",
             )
 
         # assert
@@ -918,7 +951,8 @@ class TestSiemplify:
         assert "status' must" in str(excinfo.value)
 
     def test_get_cases_ids_by_filter_invalid_operator_raise_exception(
-        self, status=CaseFilterStatusEnum.OPEN,
+        self,
+        status=CaseFilterStatusEnum.OPEN,
     ):
         # arrange
         siemplify = Siemplify()
@@ -931,7 +965,8 @@ class TestSiemplify:
         assert "'operator' must be either" in str(excinfo.value)
 
     def test_get_cases_ids_by_filter_invalid_sort_by_raise_exception(
-        self, status=CaseFilterStatusEnum.OPEN,
+        self,
+        status=CaseFilterStatusEnum.OPEN,
     ):
         # arrange
         siemplify = Siemplify()
@@ -944,7 +979,8 @@ class TestSiemplify:
         assert "'sort_by' must be either" in str(excinfo.value)
 
     def test_get_cases_ids_by_filter_invalid_sort_order_raise_exception(
-        self, status=CaseFilterStatusEnum.OPEN,
+        self,
+        status=CaseFilterStatusEnum.OPEN,
     ):
         # arrange
         siemplify = Siemplify()
@@ -957,7 +993,9 @@ class TestSiemplify:
         assert "'sort_order' must be either" in str(excinfo.value)
 
     def test_get_cases_ids_by_filter_invalid_status_and_sort_by_raise_exception(
-        self, status=CaseFilterStatusEnum.OPEN, sort_by=CaseFilterSortByEnum.CLOSE_TIME,
+        self,
+        status=CaseFilterStatusEnum.OPEN,
+        sort_by=CaseFilterSortByEnum.CLOSE_TIME,
     ):
         # arrange
         siemplify = Siemplify()
@@ -970,7 +1008,9 @@ class TestSiemplify:
         assert "cannot be provided" in str(excinfo.value)
 
     def test_create_connector_package_valid_response_success(
-        self, mocker, connector_package="Siemplify",
+        self,
+        mocker,
+        connector_package="Siemplify",
     ):
         # arrange
         # create a mock response object
@@ -990,13 +1030,16 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateConnectorPackage",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateConnectorPackage",
             ),
             json=connector_package,
         )
 
     def test_create_connector_package_invalid_response_raise_exception(
-        self, mocker, connector_package="Siemplify",
+        self,
+        mocker,
+        connector_package="Siemplify",
     ):
         # arrange
         # create a mock response object
@@ -1020,7 +1063,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_integration_version_valid_response_success(
-        self, mocker, integration_identifier="Siemplify",
+        self,
+        mocker,
+        integration_identifier="Siemplify",
     ):
         # arrange
         # create a mock response object
@@ -1051,7 +1096,9 @@ class TestSiemplify:
         assert response == "67.0"
 
     def test_get_integration_version_invalid_response_raise_exception(
-        self, mocker, integration_identifier="Siemplify",
+        self,
+        mocker,
+        integration_identifier="Siemplify",
     ):
         # arrange
         # create a mock response object
@@ -1075,7 +1122,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_agent_by_id_valid_response_success(
-        self, mocker, agent_id="f56d0d33-dbf7-4a97-ad9e-68690d3be697",
+        self,
+        mocker,
+        agent_id="f56d0d33-dbf7-4a97-ad9e-68690d3be697",
     ):
         # arrange
         # create a mock response object
@@ -1108,7 +1157,9 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.get.assert_called_with(
             "{0}/{1}?agentIdStr={2}&format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetAgentById", agent_id,
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetAgentById",
+                agent_id,
             ),
         )
 
@@ -1130,7 +1181,9 @@ class TestSiemplify:
         }
 
     def test_get_agent_by_id_invalid_response_raise_exception(
-        self, mocker, agent_id="1",
+        self,
+        mocker,
+        agent_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1181,7 +1234,9 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.get.assert_called_with(
             "{0}/{1}?publisherIdStr={2}&format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetPublisherById", publisher_id,
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetPublisherById",
+                publisher_id,
             ),
         )
 
@@ -1199,7 +1254,9 @@ class TestSiemplify:
         }
 
     def test_get_publisher_by_id_invalid_response_raise_exception(
-        self, mocker, publisher_id="1",
+        self,
+        mocker,
+        publisher_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1223,7 +1280,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_remote_connector_keys_map_valid_response_success(
-        self, mocker, publisher_id="1",
+        self,
+        mocker,
+        publisher_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1254,7 +1313,9 @@ class TestSiemplify:
         assert response == {}
 
     def test_get_remote_connector_keys_map_invalid_response_raise_exception(
-        self, mocker, publisher_id="1",
+        self,
+        mocker,
+        publisher_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1305,7 +1366,9 @@ class TestSiemplify:
         assert response == True
 
     def test_is_existing_category_invalid_response_raise_exception(
-        self, mocker, category="test",
+        self,
+        mocker,
+        category="test",
     ):
         # arrange
         # create a mock response object
@@ -1356,7 +1419,8 @@ class TestSiemplify:
         assert response == ["test", "test1", "test2", "test3"]
 
     def test_get_existing_custom_list_categories_invalid_response_raise_exception(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         # create a mock response object
@@ -1441,7 +1505,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.get.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CheckMarketplaceStatus",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CheckMarketplaceStatus",
             ),
         )
 
@@ -1472,7 +1537,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_case_comments_invalid_response_raise_exception(
-        self, mocker, case_id="1",
+        self,
+        mocker,
+        case_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1545,7 +1612,10 @@ class TestSiemplify:
         )
         obj = siemplify.generate_serialized_object(case_filter)
         mocker.patch.object(
-            siemplify.session, "post", return_value=mock_response, json=obj,
+            siemplify.session,
+            "post",
+            return_value=mock_response,
+            json=obj,
         )
 
         # act
@@ -1575,7 +1645,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_cases_by_ticket_id_invalid_response_raise_exception(
-        self, mocker, ticket_id="1",
+        self,
+        mocker,
+        ticket_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1599,7 +1671,10 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_send_system_notification_message_valid_response_success(
-        self, mocker, message="test", message_id="1",
+        self,
+        mocker,
+        message="test",
+        message_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1633,7 +1708,10 @@ class TestSiemplify:
         assert response == None
 
     def test_send_system_notification_message_invalid_response_raise_exception(
-        self, mocker, message="test", message_id="1",
+        self,
+        mocker,
+        message="test",
+        message_id="1",
     ):
         # arrange
         # create a mock response object
@@ -1657,7 +1735,10 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_send_system_notification_valid_response_success(
-        self, mocker, message="test", message_id=SYSTEM_NOTIFICATION_CUSTOM_MESSAGE_ID,
+        self,
+        mocker,
+        message="test",
+        message_id=SYSTEM_NOTIFICATION_CUSTOM_MESSAGE_ID,
     ):
         # arrange
         # create a mock response object
@@ -1691,7 +1772,9 @@ class TestSiemplify:
         assert response == None
 
     def test_send_system_notification_invalid_response_raise_exception(
-        self, mocker, message="test",
+        self,
+        mocker,
+        message="test",
     ):
         # arrange
         # create a mock response object
@@ -1715,7 +1798,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_attach_workflow_to_case_valid_response_success(
-        self, mocker, workflow_name="test", cyber_case_id="1", indicator_identifier="1",
+        self,
+        mocker,
+        workflow_name="test",
+        cyber_case_id="1",
+        indicator_identifier="1",
     ):
         # arrange
         # create a mock response object
@@ -1736,13 +1823,16 @@ class TestSiemplify:
         # act
         # call the get_system_version method
         response = siemplify.attach_workflow_to_case(
-            workflow_name, cyber_case_id, indicator_identifier,
+            workflow_name,
+            cyber_case_id,
+            indicator_identifier,
         )
 
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/AttacheWorkflowToCase?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/AttacheWorkflowToCase?format=snake",
             ),
             json=request_dict,
         )
@@ -1752,7 +1842,11 @@ class TestSiemplify:
         assert response == {}
 
     def test_attach_workflow_to_case_invalid_response_raise_exception(
-        self, mocker, workflow_name="test", cyber_case_id="1", indicator_identifier="1",
+        self,
+        mocker,
+        workflow_name="test",
+        cyber_case_id="1",
+        indicator_identifier="1",
     ):
         # arrange
         # create a mock response object
@@ -1771,7 +1865,9 @@ class TestSiemplify:
         # raised
         with pytest.raises(Exception) as excinfo:
             siemplify.attach_workflow_to_case(
-                workflow_name, cyber_case_id, indicator_identifier,
+                workflow_name,
+                cyber_case_id,
+                indicator_identifier,
             )
 
         # assert
@@ -1831,7 +1927,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateEntity?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateEntity?format=snake",
             ),
             json=request_dict,
         )
@@ -1914,7 +2011,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateCase?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateCase?format=snake",
             ),
             json=case_info,
         )
@@ -1956,7 +2054,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_system_info_invalid_response_raise_exception(
-        self, mocker, start_time_unixtime_ms=time.time(),
+        self,
+        mocker,
+        start_time_unixtime_ms=time.time(),
     ):
         # arrange
         # create a mock response object
@@ -1980,7 +2080,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_configuration_by_provider_valid_response_success(
-        self, mocker, identifier="Siemplify",
+        self,
+        mocker,
+        identifier="Siemplify",
     ):
         # arrange
         # create a mock response object
@@ -2017,7 +2119,9 @@ class TestSiemplify:
         }
 
     def test_get_configuration_by_provider_invalid_response_raise_exception(
-        self, mocker, identifier="VirusTotal",
+        self,
+        mocker,
+        identifier="VirusTotal",
     ):
         # arrange
         # create a mock response object
@@ -2041,7 +2145,10 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_raise_incident_valid_response_success(
-        self, mocker, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2061,7 +2168,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/RaiseIncident?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/RaiseIncident?format=snake",
             ),
             json=request_dict,
         )
@@ -2071,7 +2179,10 @@ class TestSiemplify:
         assert response == None
 
     def test_raise_incident_invalid_response_raise_exception(
-        self, mocker, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2180,7 +2291,10 @@ class TestSiemplify:
         assert response
 
     def test_mark_case_as_important_valid_response_success(
-        self, mocker, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2199,7 +2313,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/MarkAsImportant?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/MarkAsImportant?format=snake",
             ),
             json=request_dict,
         )
@@ -2208,7 +2323,10 @@ class TestSiemplify:
         assert not response
 
     def test_mark_case_as_important_invalid_response_raise_exception(
-        self, mocker, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2232,7 +2350,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_escalate_vase_valid_response_success(
-        self, mocker, comment="test", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        comment="test",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2255,7 +2377,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/Escalate?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/Escalate?format=snake",
             ),
             json=request_dict,
         )
@@ -2264,7 +2387,11 @@ class TestSiemplify:
         assert response == {}
 
     def test_escalate_case_invalid_response_raise_exception(
-        self, mocker, comment="test", case_id="1", alert_identifier="1",
+        self,
+        mocker,
+        comment="test",
+        case_id="1",
+        alert_identifier="1",
     ):
         # arrange
         # create a mock response object
@@ -2350,7 +2477,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateCaseInsight?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateCaseInsight?format=snake",
             ),
             json=request_dict,
         )
@@ -2444,7 +2572,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CloseAlert?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CloseAlert?format=snake",
             ),
             json=request_dict,
         )
@@ -2516,7 +2645,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/DismissAlert?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/DismissAlert?format=snake",
             ),
             json=request_dict,
         )
@@ -2558,7 +2688,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_case_closure_details_valid_response_success(
-        self, mocker, case_id_list=["1", "2", "3"],
+        self,
+        mocker,
+        case_id_list=["1", "2", "3"],
     ):
         # arrange
         # create a mock response object
@@ -2583,7 +2715,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCaseClosureDetails?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCaseClosureDetails?format=snake",
             ),
             json=case_id_list,
         )
@@ -2599,7 +2732,9 @@ class TestSiemplify:
         ]
 
     def test_get_case_closure_details_invalid_response_raise_exception(
-        self, mocker, case_id_list=["1", "2", "3"],
+        self,
+        mocker,
+        case_id_list=["1", "2", "3"],
     ):
         # arrange
         # create a mock response object
@@ -2644,7 +2779,11 @@ class TestSiemplify:
         # act
         # call the get_system_version method
         response = siemplify.close_case(
-            root_cause, comment, reason, case_id, alert_identifier,
+            root_cause,
+            comment,
+            reason,
+            case_id,
+            alert_identifier,
         )
 
         # assert the correct API address is called
@@ -2695,7 +2834,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_change_case_priority_valid_response_success(
-        self, mocker, priority=40, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        priority=40,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2719,7 +2862,8 @@ class TestSiemplify:
         }
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/ChangePriority?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/ChangePriority?format=snake",
             ),
             json=request_dict,
         )
@@ -2729,7 +2873,11 @@ class TestSiemplify:
         assert response == None
 
     def test_change_case_priority_invalid_response_raise_exception(
-        self, mocker, priority=40, case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        priority=40,
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2753,7 +2901,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_change_case_stage_valid_response_success(
-        self, mocker, stage="Incident", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        stage="Incident",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2777,7 +2929,8 @@ class TestSiemplify:
         }
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/ChangeCaseStage?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/ChangeCaseStage?format=snake",
             ),
             json=request_dict,
         )
@@ -2787,7 +2940,11 @@ class TestSiemplify:
         assert response == None
 
     def test_change_case_stage_invalid_response_raise_exception(
-        self, mocker, stage="Incident", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        stage="Incident",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -2811,7 +2968,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_ticket_ids_for_alerts_dismissed_since_timestamp_valid_response_success(
-        self, mocker, timestamp_unix_ms=time.time(),
+        self,
+        mocker,
+        timestamp_unix_ms=time.time(),
     ):
         # arrange
         # create a mock response object
@@ -2845,7 +3004,9 @@ class TestSiemplify:
         assert response == [1, 2, 4, 9]
 
     def test_get_ticket_ids_for_alerts_dismissed_since_timestamp_invalid_response_raise_exception(
-        self, mocker, timestamp_unix_ms=time.time(),
+        self,
+        mocker,
+        timestamp_unix_ms=time.time(),
     ):
         # arrange
         # create a mock response object
@@ -2892,7 +3053,8 @@ class TestSiemplify:
 
         # act
         response = siemplify.get_alerts_ticket_ids_from_cases_closed_since_timestamp(
-            timestamp_unix_ms, rule_generator,
+            timestamp_unix_ms,
+            rule_generator,
         )
 
         # assert the correct API address is called
@@ -2979,7 +3141,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetSimilarCasesIds?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetSimilarCasesIds?format=snake",
             ),
             json=request_dict,
         )
@@ -3029,7 +3192,10 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_update_alerts_additional_data_valid_response_success(
-        self, mocker, case_id=1, alerts_additional_data={"name": "test"},
+        self,
+        mocker,
+        case_id=1,
+        alerts_additional_data={"name": "test"},
     ):
         # arrange
         # create a mock response object
@@ -3048,7 +3214,8 @@ class TestSiemplify:
         # act
         # call the get_system_version method
         response = siemplify.update_alerts_additional_data(
-            case_id, alerts_additional_data,
+            case_id,
+            alerts_additional_data,
         )
 
         # assert the correct API address is called
@@ -3065,7 +3232,10 @@ class TestSiemplify:
         assert response == None
 
     def test_update_alerts_additional_data_invalid_response_raise_exception(
-        self, mocker, case_id=1, alerts_additional_data={"name": "test"},
+        self,
+        mocker,
+        case_id=1,
+        alerts_additional_data={"name": "test"},
     ):
         # arrange
         # create a mock response object
@@ -3089,7 +3259,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_add_tag_valid_response_success(
-        self, mocker, tag="test", case_id="1", alert_identifier="1",
+        self,
+        mocker,
+        tag="test",
+        case_id="1",
+        alert_identifier="1",
     ):
         # arrange
         # create a mock response object
@@ -3121,7 +3295,11 @@ class TestSiemplify:
         assert response == None
 
     def test_add_tag_invalid_response_raise_exception(
-        self, mocker, tag="test", case_id=4, alert_identifier=1,
+        self,
+        mocker,
+        tag="test",
+        case_id=4,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -3145,7 +3323,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_add_comment_valid_response_success(
-        self, mocker, comment="test", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        comment="test",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -3170,7 +3352,8 @@ class TestSiemplify:
         }
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/cases/comments?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/cases/comments?format=snake",
             ),
             json=request_dict,
         )
@@ -3180,7 +3363,11 @@ class TestSiemplify:
         assert response == None
 
     def test_add_comment_invalid_response_raise_exception(
-        self, mocker, comment="test", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        comment="test",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -3204,7 +3391,11 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_assign_case_valid_response_success(
-        self, mocker, user="@Administrator", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        user="@Administrator",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -3228,7 +3419,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/AssignUser?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/AssignUser?format=snake",
             ),
             json=request_dict,
         )
@@ -3238,7 +3430,11 @@ class TestSiemplify:
         assert response == None
 
     def test_assign_case_invalid_response_raise_exception(
-        self, mocker, user="@Administrator", case_id=1, alert_identifier=1,
+        self,
+        mocker,
+        user="@Administrator",
+        case_id=1,
+        alert_identifier=1,
     ):
         # arrange
         # create a mock response object
@@ -3262,7 +3458,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_attachment_invalid_response_raise_exception(
-        self, mocker, attachment_id=1,
+        self,
+        mocker,
+        attachment_id=1,
     ):
         # arrange
         # create a mock response object
@@ -3354,7 +3552,10 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_extract_configuration_param_valid_response_success(
-        self, mocker, provider="GoogleChronicle", param_name="API Root",
+        self,
+        mocker,
+        provider="GoogleChronicle",
+        param_name="API Root",
     ):
         # arrange
         # create a mock response object
@@ -3383,7 +3584,10 @@ class TestSiemplify:
         assert response.return_value == "https://backstory.googleapis.com"
 
     def test_extract_configuration_param_invalid_response_raise_exception(
-        self, mocker, provider=None, param_name="API Root",
+        self,
+        mocker,
+        provider=None,
+        param_name="API Root",
     ):
         # arrange
         # create a mock response object
@@ -3484,7 +3688,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_configuration_valid_response_success_remote_option(
-        self, mocker, provider="GoogleChronicle",
+        self,
+        mocker,
+        provider="GoogleChronicle",
     ):
         # arrange
         # create a mock response object
@@ -3589,7 +3795,8 @@ class TestSiemplify:
         }
 
     def test_get_configuration_by_provider_invalid_response_raise_exception(
-        self, mocker,
+        self,
+        mocker,
     ):
         # arrange
         # create a mock response object
@@ -3790,7 +3997,9 @@ class TestSiemplify:
         assert "404: Not Found" in str(excinfo.value)
 
     def test_get_external_configuration_invalid_config_provider_raise_exception(
-        self, config_provider="TEST", config_name="TEST",
+        self,
+        config_provider="TEST",
+        config_name="TEST",
     ):
         # arrange
         siemplify = Siemplify()
@@ -3805,14 +4014,18 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_external_configuration(
-                config_provider=config_provider, config_name=config_name,
+                config_provider=config_provider,
+                config_name=config_name,
             )
 
         # assert
         assert "external config provider" in str(excinfo.value)
 
     def test_get_external_configuration_invalid_manager_class_raise_exception(
-        self, mocker, config_provider="CyberarkVault", config_name="TEST",
+        self,
+        mocker,
+        config_provider="CyberarkVault",
+        config_name="TEST",
     ):
         # arrange
         mock_response = mocker.Mock()
@@ -3824,7 +4037,9 @@ class TestSiemplify:
                         }"""
         open_method = "__builtin__.open"
         mocker.patch.object(
-            SiemplifyUtils, "link_brother_envrionment", return_value=None,
+            SiemplifyUtils,
+            "link_brother_envrionment",
+            return_value=None,
         )
         mocker.patch.object(Siemplify, "get_integration_version", return_value=None)
         mocker.patch("imp.load_source", return_value=None)
@@ -3837,14 +4052,18 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_external_configuration(
-                config_provider=config_provider, config_name=config_name,
+                config_provider=config_provider,
+                config_name=config_name,
             )
 
         # assert
         assert "Incorrect manager class name for provider" in str(excinfo.value)
 
     def test_get_external_configuration_import_error_raise_exception(
-        self, mocker, config_provider="CyberarkVault", config_name="TEST",
+        self,
+        mocker,
+        config_provider="CyberarkVault",
+        config_name="TEST",
     ):
         # arrange
         siemplify = Siemplify()
@@ -3855,7 +4074,9 @@ class TestSiemplify:
                         }"""
         open_method = "__builtin__.open"
         mocker.patch.object(
-            SiemplifyUtils, "link_brother_envrionment", return_value=None,
+            SiemplifyUtils,
+            "link_brother_envrionment",
+            return_value=None,
         )
         mocker.patch.object(Siemplify, "get_integration_version", return_value=None)
         obj = mocker.patch("imp.load_source", return_value=None)
@@ -3869,14 +4090,18 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_external_configuration(
-                config_provider=config_provider, config_name=config_name,
+                config_provider=config_provider,
+                config_name=config_name,
             )
 
         # assert
         assert "Module not found." in str(excinfo.value)
 
     def test_get_external_configuration_response_raise_exception(
-        self, mocker, config_provider="CyberarkVault", config_name="TEST",
+        self,
+        mocker,
+        config_provider="CyberarkVault",
+        config_name="TEST",
     ):
         # arrange
         mock_response = mocker.Mock()
@@ -3893,7 +4118,9 @@ class TestSiemplify:
 
         instance = Test()
         mocker.patch.object(
-            SiemplifyUtils, "link_brother_envrionment", return_value=None,
+            SiemplifyUtils,
+            "link_brother_envrionment",
+            return_value=None,
         )
         mocker.patch.object(Siemplify, "get_integration_version", return_value=None)
         mocker.patch.object(siemplify.session, "get", return_value=mock_response)
@@ -3908,7 +4135,8 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as excinfo:
             siemplify.get_external_configuration(
-                config_provider=config_provider, config_name=config_name,
+                config_provider=config_provider,
+                config_name=config_name,
             )
 
         # assert
@@ -3934,7 +4162,11 @@ class TestSiemplify:
         f.write("first line")
         f.close()
         attachment = Attachment.fromfile(
-            file_path, case_id, alert_identifier, description, is_favorite,
+            file_path,
+            case_id,
+            alert_identifier,
+            description,
+            is_favorite,
         )
         attachment.case_identifier = case_id
         attachment.alert_identifier = alert_identifier
@@ -3951,7 +4183,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/AddAttachment?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/AddAttachment?format=snake",
             ),
             json=attachment.__dict__,
         )
@@ -3981,7 +4214,11 @@ class TestSiemplify:
         f.write("first line")
         f.close()
         attachment = Attachment.fromfile(
-            file_path, case_id, alert_identifier, description, is_favorite,
+            file_path,
+            case_id,
+            alert_identifier,
+            description,
+            is_favorite,
         )
         attachment.case_identifier = case_id
         attachment.alert_identifier = alert_identifier
@@ -3993,7 +4230,11 @@ class TestSiemplify:
         # raised
         with pytest.raises(Exception) as excinfo:
             siemplify.add_attachment(
-                file_path, case_id, alert_identifier, description, is_favorite,
+                file_path,
+                case_id,
+                alert_identifier,
+                description,
+                is_favorite,
             )
 
         # delete the created file
@@ -4023,19 +4264,29 @@ class TestSiemplify:
         f.write("first line")
         f.close()
         attachment = Attachment.fromfile(
-            file_path, case_id, alert_identifier, description, is_favorite,
+            file_path,
+            case_id,
+            alert_identifier,
+            description,
+            is_favorite,
         )
         attachment.case_identifier = case_id
         attachment.alert_identifier = alert_identifier
         siemplify = Siemplify()
         mocker.patch.object(siemplify.session, "post", return_value=mock_response)
         mocker.patch.object(
-            siemplify.LOGGER, "error", return_value="Could not add attachment",
+            siemplify.LOGGER,
+            "error",
+            return_value="Could not add attachment",
         )
 
         # act
         siemplify.add_attachment(
-            file_path, case_id, alert_identifier, description, is_favorite,
+            file_path,
+            case_id,
+            alert_identifier,
+            description,
+            is_favorite,
         )
 
         # delete the created file
@@ -4093,7 +4344,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/AddOrUpdateCaseTask?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/AddOrUpdateCaseTask?format=snake",
             ),
             json=task.__dict__,
         )
@@ -4158,7 +4410,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCasesByFilter?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCasesByFilter?format=snake",
             ),
             json=cases_filter.__dict__,
         )
@@ -4240,7 +4493,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/GetCasesByFilter?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCasesByFilter?format=snake",
             ),
             json=obj,
         )
@@ -4388,7 +4642,11 @@ class TestSiemplify:
         ]
 
     def test_fetch_case_comments_valid_response_success(
-        self, mocker, case_id="1", time_filter="2", time_stamp="2",
+        self,
+        mocker,
+        case_id="1",
+        time_filter="2",
+        time_stamp="2",
     ):
         # arrange
         # create a mock response object
@@ -4667,7 +4925,9 @@ class TestSiemplify:
         assert response[0].__dict__ == tasks[0].__dict__
 
     def test_any_entity_in_custom_list(
-        self, mocker, custom_list_items=[CustomList("test", "test", "test")],
+        self,
+        mocker,
+        custom_list_items=[CustomList("test", "test", "test")],
     ):
         # arrange
         request_dict = {
@@ -4692,14 +4952,17 @@ class TestSiemplify:
         # assert
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/AnyEntityInCustomList?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/AnyEntityInCustomList?format=snake",
             ),
             json=[request_dict],
         )
         assert response
 
     def test_add_entities_to_custom_list(
-        self, mocker, custom_list_items=[CustomList("test", "test", "test")],
+        self,
+        mocker,
+        custom_list_items=[CustomList("test", "test", "test")],
     ):
         # arrange
         request_dict = {"identifier": "test", "category": "test", "environment": "test"}
@@ -4733,7 +4996,9 @@ class TestSiemplify:
         assert isinstance(response[0], CustomList)
 
     def test_remove_entities_from_custom_list(
-        self, mocker, custom_list_items=[CustomList("test", "test", "test")],
+        self,
+        mocker,
+        custom_list_items=[CustomList("test", "test", "test")],
     ):
         # arrange
         request_dict = {"identifier": "test", "category": "test", "environment": "test"}
@@ -4855,7 +5120,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateCaseInsight?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateCaseInsight?format=snake",
             ),
             json=request_dict,
         )
@@ -4950,7 +5216,8 @@ class TestSiemplify:
         # assert the correct API address is called
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/CreateCaseInsight?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/CreateCaseInsight?format=snake",
             ),
             json=request_dict,
         )
@@ -5053,7 +5320,8 @@ class TestSiemplify:
         # Assert
         siemplify.session.get.assert_called_with(
             "{0}/{1}".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/new-alerts?format=snake",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/new-alerts?format=snake",
             ),
             json=request_dict,
         )
@@ -5134,7 +5402,9 @@ class TestSiemplify:
 
         # act
         response = siemplify.add_agent_connector_logs(
-            agent_id, connector_id, logs_package,
+            agent_id,
+            connector_id,
+            logs_package,
         )
 
         # assert
@@ -5255,13 +5525,17 @@ class TestSiemplify:
 
         # act
         cases_metadata = siemplify.get_updated_sync_cases_metadata(
-            start_timestamp_unix_ms, items_count, allowed_environments, vendor,
+            start_timestamp_unix_ms,
+            items_count,
+            allowed_environments,
+            vendor,
         )
 
         # assert
         siemplify.session.get.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/cases/metadata",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/cases/metadata",
             ),
             json=request,
         )
@@ -5291,7 +5565,10 @@ class TestSiemplify:
         # act
         with pytest.raises(Exception) as exception_info:
             siemplify.get_updated_sync_cases_metadata(
-                start_timestamp_unix_ms, items_count, allowed_environments, vendor,
+                start_timestamp_unix_ms,
+                items_count,
+                allowed_environments,
+                vendor,
             )
 
         # assert
@@ -5342,7 +5619,8 @@ class TestSiemplify:
         # assert
         siemplify.session.get.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/cases",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/cases",
             ),
             json=request,
         )
@@ -5402,7 +5680,8 @@ class TestSiemplify:
         # assert
         siemplify.session.post.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/cases/matches",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/cases/matches",
             ),
             json=request,
         )
@@ -5471,7 +5750,8 @@ class TestSiemplify:
         # assert
         siemplify.session.get.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/alerts/metadata",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/alerts/metadata",
             ),
             json=request,
         )
@@ -5569,7 +5849,8 @@ class TestSiemplify:
         # assert
         siemplify.session.get.assert_called_with(
             "{0}/{1}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/sync/alerts",
+                siemplify.API_ROOT,
+                "external/v1/sdk/sync/alerts",
             ),
             json=request,
         )
@@ -5699,7 +5980,10 @@ class TestSiemplify:
         # assert
         siemplify.session.post.assert_called_with(
             "{0}/{1}/{2}/{3}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/cases", case_id, "sla",
+                siemplify.API_ROOT,
+                "external/v1/sdk/cases",
+                case_id,
+                "sla",
             ),
             json=request,
         )
@@ -5741,7 +6025,10 @@ class TestSiemplify:
         # assert
         siemplify.session.post.assert_called_with(
             "{0}/{1}/{2}/{3}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/cases", case_id, "sla",
+                siemplify.API_ROOT,
+                "external/v1/sdk/cases",
+                case_id,
+                "sla",
             ),
             json=request,
         )
@@ -5786,7 +6073,10 @@ class TestSiemplify:
         # assert
         siemplify.session.post.assert_called_with(
             "{0}/{1}/{2}/{3}?format=snake".format(
-                siemplify.API_ROOT, "external/v1/sdk/cases", case_id, "sla",
+                siemplify.API_ROOT,
+                "external/v1/sdk/cases",
+                case_id,
+                "sla",
             ),
             json=request,
         )

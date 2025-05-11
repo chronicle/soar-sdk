@@ -22,6 +22,7 @@ import traceback
 from abc import ABCMeta, abstractmethod
 from os import path
 from sys import stderr
+from typing import Any, Never
 
 import arrow
 import SiemplifyUtils
@@ -42,18 +43,18 @@ class LogLevelEnum:
 
 
 class SiemplifyLogger:
-    DEFAULT_LOGGER_NAME = "siemplify_default_logger"
-    DEFAULT_FILE_HANDLER_NAME = "siempify_file_handler"
-    DEFAULT_LOG_FILE_NAME = "logdata.log"
-    DEFAULT_LOG_LOCATION = "SDK"
+    DEFAULT_LOGGER_NAME: str = "siemplify_default_logger"
+    DEFAULT_FILE_HANDLER_NAME: str = "siempify_file_handler"
+    DEFAULT_LOG_FILE_NAME: str = "logdata.log"
+    DEFAULT_LOG_LOCATION: str = "SDK"
 
     def __init__(
         self,
-        log_path,
-        log_location=DEFAULT_LOG_LOCATION,
-        module=None,
-        logs_collector=None,
-    ):
+        log_path: str,
+        log_location: str = DEFAULT_LOG_LOCATION,
+        module: str | None = None,
+        logs_collector: FileLogsCollector | None = None,
+    ) -> None:
         self.config_file_path = path.join(
             path.dirname(__file__),
             "ScriptingLogging.config",
@@ -71,7 +72,7 @@ class SiemplifyLogger:
             SiemplifyLogger.print_to_stderr("LOGGER: Error initializing")
             traceback.print_exc()
 
-    def loadConfigFromFile(self, log_path, log_location):
+    def loadConfigFromFile(self, log_path: str, log_location: Never) -> dict[str, Any]:
         """Load config file
         :param run_folder: {string} running folder path
         :param log_location: {string} elastic search log location
@@ -91,7 +92,7 @@ class SiemplifyLogger:
         except:
             SiemplifyLogger.print_to_stderr("LOGGER: loadConfigFromFile FAILED")
 
-    def exception(self, message, *args, **kwargs):
+    def exception(self, message: str | Exception, *args: Never, **kwargs: Any) -> None:
         """Configure log - type exception
         :param message: {string} exception message
         """
@@ -124,7 +125,7 @@ class SiemplifyLogger:
         except Exception:
             SiemplifyLogger.print_to_stderr("LOGGER.exception FAILED.")
 
-    def error(self, message, *args, **kwargs):
+    def error(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type error
         :param message: {string} exception message
         """
@@ -145,7 +146,7 @@ class SiemplifyLogger:
         except:
             SiemplifyLogger.print_to_stderr("LOGGER.error FAILED")
 
-    def warn(self, message, *args, **kwargs):
+    def warn(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type warn
         :param message: {string} exception message
         """
@@ -164,7 +165,7 @@ class SiemplifyLogger:
         except:
             SiemplifyLogger.print_to_stderr("LOGGER.warn FAILED")
 
-    def info(self, message, *args, **kwargs):
+    def info(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type info
         :param message: {string} exception message
         """
@@ -183,7 +184,7 @@ class SiemplifyLogger:
         except Exception:
             SiemplifyLogger.print_to_stderr("LOGGER.info FAILED")
 
-    def append_message(self, message, log_level):
+    def append_message(self, message: str, log_level: LogLevelEnum) -> None:
         try:
             log_row = LogRow(
                 message=SiemplifyLogger.encode(str(message)),
@@ -195,7 +196,7 @@ class SiemplifyLogger:
             print(f"Couldn't append log message, reason: {e}")
 
     @staticmethod
-    def encode(message):
+    def encode(message: str) -> bytes | str:
         try:
             if not is_python_37() and isinstance(message, unicode):
                 return message.encode("utf8")
@@ -204,27 +205,26 @@ class SiemplifyLogger:
             print(f"Couldn't encode message, reason: {e}")
 
     @staticmethod
-    def safe_print(message):
+    def safe_print(message: str) -> None:
         try:
             print(SiemplifyLogger.encode(message))
         except Exception:
             print("Couldn't print exception, check log")
 
     @property
-    def log_rows(self):
+    def log_rows(self) -> list[str]:
         return self._log_rows
 
     @staticmethod
-    def print_to_stderr(message):
+    def print_to_stderr(message: Never) -> None:
         stderr.write("LOGGER: loadConfigFromFile FAILED")
 
     @property
-    def error_logged(self):
+    def error_logged(self) -> bool:
         return self._error_logged
 
 
-def version_safe_print_exception(e):
-    # type: (Exception) -> None
+def version_safe_print_exception(e: Exception) -> None:
     if is_at_least_python_3_11():
         traceback.print_exception(e, file=sys.stdout)
 
@@ -235,17 +235,17 @@ def version_safe_print_exception(e):
 class SiempplifyConnectorsLogger:
     _log_items = []
 
-    def error(self, message):
+    def error(self, message: str) -> None:
         msg = "ERROR | " + str(message)
         print(msg)
         self._log_items.append(msg)
 
-    def warn(self, message):
+    def warn(self, message: str) -> None:
         msg = "WARN | " + str(message)
         print(msg)
         self._log_items.append(msg)
 
-    def info(self, message):
+    def info(self, message: str) -> None:
         msg = "INFO | " + str(message)
         print(msg)
         self._log_items.append(msg)
@@ -255,14 +255,18 @@ class SiempplifyConnectorsLogger:
 class FileLogsCollector:
     LOG_COLLECTOR_FILENAME = "logs_collector.json"
 
-    def __init__(self, file_dir):
+    def __init__(self, file_dir: str) -> None:
         self.log_collector_file_path = path.join(file_dir, self.LOG_COLLECTOR_FILENAME)
 
     @abstractmethod
-    def create_log_record(self, message, log_type):
+    def create_log_record(
+        self,
+        message: str,
+        log_type: LogLevelEnum,
+    ) -> ActionLogRecord | ConnectorLogRecord:
         raise NotImplementedError
 
-    def collect(self, message, log_type):
+    def collect(self, message: str, log_type: LogRecordTypeEnum) -> None:
         log_record = self.create_log_record(message, log_type)
         log_items = []
         try:
@@ -282,11 +286,19 @@ class FileLogsCollector:
 class ConnectorsFileLogsCollector(FileLogsCollector):
     """Collect connectors logs to a file"""
 
-    def __init__(self, file_dir, connector_context):
+    def __init__(
+        self,
+        file_dir: str,
+        connector_context: dict[str, Any],
+    ) -> None:
         super(ConnectorsFileLogsCollector, self).__init__(file_dir)
         self.connector_context = connector_context
 
-    def create_log_record(self, message, log_type):
+    def create_log_record(
+        self,
+        message: str,
+        log_type: LogLevelEnum,
+    ) -> ConnectorLogRecord:
         log_record = ConnectorLogRecord(
             record_type=log_type,
             message=message,
@@ -303,11 +315,15 @@ class ConnectorsFileLogsCollector(FileLogsCollector):
 class ActionsFileLogsCollector(FileLogsCollector):
     """Collect actions logs to a file"""
 
-    def __init__(self, file_dir, context_data):
+    def __init__(self, file_dir: str, context_data: dict[str, Any]) -> None:
         super(ActionsFileLogsCollector, self).__init__(file_dir)
         self.context_data = context_data
 
-    def create_log_record(self, message, log_type):
+    def create_log_record(
+        self,
+        message: str,
+        log_type: LogRecordTypeEnum,
+    ) -> ActionLogRecord:
         log_record = ActionLogRecord(
             record_type=log_type,
             message=message,

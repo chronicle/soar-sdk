@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import sys
+import unittest.mock
 from configparser import ConfigParser
 
 from soar_sdk.SiemplifyBase import SiemplifyBase
@@ -33,7 +34,10 @@ raw_context_data_run_connector_task = (
 
 
 class TestSiemplifyConnectors:
-    def test_siemplify_connectors_init_response_success(self, mocker):
+    def test_siemplify_connectors_init_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
@@ -52,7 +56,10 @@ class TestSiemplifyConnectors:
         assert "SiemplifyConnectorExecution" in siemplify_connectors.run_folder
         assert siemplify_connectors.parameters == {"TEST": "TEST"}
 
-    def test_siemplify_connectors_remote_init_response_success(self, mocker):
+    def test_siemplify_connectors_remote_init_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -61,11 +68,15 @@ class TestSiemplifyConnectors:
             return_value="{}",
         )
         init_session = mocker.patch.object(
-            SiemplifyBase, "_init_remote_session", return_value=None,
+            SiemplifyBase,
+            "_init_remote_session",
+            return_value=None,
         )
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
         mocker.patch.object(
-            SiemplifySdkConfig, "_build_remote_api_server_uri", return_value="TEST",
+            SiemplifySdkConfig,
+            "_build_remote_api_server_uri",
+            return_value="TEST",
         )
 
         # act
@@ -80,8 +91,9 @@ class TestSiemplifyConnectors:
         init_session.assert_called_once_with("123")
 
     def test_siemplify_connectors_init_lower_python_than_37_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
@@ -92,7 +104,8 @@ class TestSiemplifyConnectors:
         mocker.patch("SiemplifyConnectors.is_python_37", return_value=False)
         try:
             mocker.patch(
-                "sys.stdin.buffer.read", return_value=raw_context_data.encode(),
+                "sys.stdin.buffer.read",
+                return_value=raw_context_data.encode(),
             )
         except Exception:
             mocker.patch("sys.stdin.read", return_value=raw_context_data.encode())
@@ -107,7 +120,7 @@ class TestSiemplifyConnectors:
         assert "SiemplifyConnectorExecution" in siemplify_connectors.run_folder
         assert siemplify_connectors.parameters == {"TEST": "TEST"}
 
-    def test_run_folder_property(self, mocker):
+    def test_run_folder_property(self, mocker: unittest.mock.Mock) -> None:
         # assert
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -125,7 +138,7 @@ class TestSiemplifyConnectors:
         # assert
         os_makedirs_mock.assert_called_once()
 
-    def test_whitelist_property(self, mocker):
+    def test_whitelist_property(self, mocker: unittest.mock.Mock) -> None:
         # assert
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -142,7 +155,7 @@ class TestSiemplifyConnectors:
         # assert
         assert not siemplify_connectors.whitelist
 
-    def test_is_test_property(self, mocker):
+    def test_is_test_property(self, mocker: unittest.mock.Mock) -> None:
         # assert
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -160,7 +173,7 @@ class TestSiemplifyConnectors:
         # assert
         assert siemplify_connectors.is_test_run
 
-    def test_is_overflowed_alert(self, mocker):
+    def test_is_overflowed_alert(self, mocker: unittest.mock.Mock) -> None:
         # assert
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -181,7 +194,7 @@ class TestSiemplifyConnectors:
         # assert
         assert response
 
-    def test_return_package_response_success(self, mocker):
+    def test_return_package_response_success(self, mocker: unittest.mock.Mock) -> None:
         # assert
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -199,7 +212,10 @@ class TestSiemplifyConnectors:
         real_stdout_write_mock.assert_called_once()
         assert response is None
 
-    def test_return_test_result_response_success(self, mocker):
+    def test_return_test_result_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # assert
         mock_response = mocker.Mock()
         mock_response.raise_for_status.return_value = 200
@@ -221,8 +237,8 @@ class TestSiemplifyConnectors:
 
     def test_extract_action_param_both_options_response_success(
         self,
-        mocker,
-    ):
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         mock_response = mocker.Mock()
         mock_response.raise_for_status.return_value = 200
@@ -235,20 +251,23 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
 
         # act
-        response_dict = dict(
-            siemplify=siemplify_connectors,
-            input_dictionary=siemplify_connectors.parameters,
-            param_name="test",
-            default_value=None,
-            input_type=str,
-            is_mandatory=False,
-            print_value=False,
-        )
+        response_dict = {
+            "siemplify": siemplify_connectors,
+            "input_dictionary": siemplify_connectors.parameters,
+            "param_name": "test",
+            "default_value": None,
+            "input_type": str,
+            "is_mandatory": False,
+            "print_value": False,
+        }
         obj = mocker.patch(
-            "SiemplifyConnectors.extract_script_param", return_value=response_dict,
+            "SiemplifyConnectors.extract_script_param",
+            return_value=response_dict,
         )
         mocker.patch.object(
-            siemplify_connectors.session, "post", return_value=mock_response,
+            siemplify_connectors.session,
+            "post",
+            return_value=mock_response,
         )
         assert not siemplify_connectors.context.vault_settings
         siemplify_connectors.context.vault_settings = (
@@ -259,9 +278,12 @@ class TestSiemplifyConnectors:
         # assert
         assert siemplify_connectors.context.vault_settings
         assert response == response_dict
-        obj.call_count == 2
+        assert obj.call_count == 2
 
-    def test_get_case_context_property_response_success(self, mocker):
+    def test_get_case_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -274,13 +296,17 @@ class TestSiemplifyConnectors:
 
         # act
         response = siemplify_connectors.get_connector_context_property(
-            identifier=1, property_key=1,
+            identifier=1,
+            property_key=1,
         )
 
         # assert
         assert response == "{}"
 
-    def test_set_case_context_property_response_success(self, mocker):
+    def test_set_case_context_property_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -291,19 +317,26 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
         obj = mocker.patch.object(
-            SiemplifyConnectorExecution, "set_context_property", return_value="TEST",
+            SiemplifyConnectorExecution,
+            "set_context_property",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.set_connector_context_property(
-            identifier=1, property_key=1, property_value=1,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
         obj.assert_called_once_with(4, 1, 1, 1)
         assert response == "TEST"
 
-    def test_set_connector_context_property_remotely_response_success(self, mocker):
+    def test_set_connector_context_property_remotely_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -314,12 +347,16 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
         obj = mocker.patch.object(
-            SiemplifyBase, "set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "set_context_property",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.set_connector_context_property(
-            identifier=1, property_key=1, property_value=1,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -327,8 +364,9 @@ class TestSiemplifyConnectors:
         assert response == "TEST"
 
     def test_try_set_connector_context_property_locally_scheduled_local_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -339,12 +377,17 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.try_set_context_property(
-            context_type=2, identifier=1, property_key=1, property_value=1,
+            context_type=2,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -352,8 +395,9 @@ class TestSiemplifyConnectors:
         assert response == "TEST"
 
     def test_try_set_connector_context_property_locally_scheduled_remote_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -364,16 +408,23 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
         mocker.patch.object(
-            SiemplifySdkConfig, "_build_remote_api_server_uri", return_value="TEST",
+            SiemplifySdkConfig,
+            "_build_remote_api_server_uri",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.try_set_context_property(
-            context_type=2, identifier=1, property_key=1, property_value=1,
+            context_type=2,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -381,8 +432,9 @@ class TestSiemplifyConnectors:
         assert response == "TEST"
 
     def test_try_set_connector_context_property_remotely_scheduled_remote_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -393,20 +445,28 @@ class TestSiemplifyConnectors:
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = False
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
 
         # act
         response = siemplify_connectors.try_set_context_property(
-            context_type=2, identifier=1, property_key=1, property_value=1,
+            context_type=2,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
         obj.assert_called_once_with(2, 1, 1, 1)
         assert response == "TEST"
 
-    def test_set_connector_context_property_locally_response_success(self, mocker):
+    def test_set_connector_context_property_locally_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -416,19 +476,26 @@ class TestSiemplifyConnectors:
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         obj = mocker.patch.object(
-            SiemplifyBase, "set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "set_context_property",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.set_connector_context_property(
-            identifier=1, property_key=1, property_value=1,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
         obj.assert_called_once_with(4, 1, 1, 1)
         assert response == "TEST"
 
-    def test_try_set_connector_context_property_locally_response_success(self, mocker):
+    def test_try_set_connector_context_property_locally_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -438,12 +505,17 @@ class TestSiemplifyConnectors:
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         obj = mocker.patch.object(
-            SiemplifyBase, "try_set_context_property", return_value="TEST",
+            SiemplifyBase,
+            "try_set_context_property",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.try_set_context_property(
-            context_type=2, identifier=1, property_key=1, property_value=1,
+            context_type=2,
+            identifier=1,
+            property_key=1,
+            property_value=1,
         )
 
         # assert
@@ -451,23 +523,29 @@ class TestSiemplifyConnectors:
         assert response == "TEST"
 
     def test_get_connector_context_property_locally_scheduled_remote_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="{}",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
         mocker.patch.object(
-            SiemplifySdkConfig, "_build_remote_api_server_uri", return_value="TEST",
+            SiemplifySdkConfig,
+            "_build_remote_api_server_uri",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.get_connector_context_property(
-            identifier=1, property_key=1,
+            identifier=1,
+            property_key=1,
         )
 
         # assert
@@ -475,22 +553,28 @@ class TestSiemplifyConnectors:
         assert response == "{}"
 
     def test_get_connector_context_property_remotely_scheduled_remote_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="{}",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
         mocker.patch.object(
-            SiemplifySdkConfig, "_build_remote_api_server_uri", return_value="TEST",
+            SiemplifySdkConfig,
+            "_build_remote_api_server_uri",
+            return_value="TEST",
         )
 
         # act
         response = siemplify_connectors.get_connector_context_property(
-            identifier=1, property_key=1,
+            identifier=1,
+            property_key=1,
         )
 
         # assert
@@ -498,43 +582,56 @@ class TestSiemplifyConnectors:
         assert response == "{}"
 
     def test_get_connector_context_property_locally_scheduled_local_connector_response_success(
-        self, mocker,
-    ):
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="{}",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         siemplify_connectors.is_locally_scheduled_remote_connector = True
 
         # act
         response = siemplify_connectors.get_connector_context_property(
-            identifier=1, property_key=1,
+            identifier=1,
+            property_key=1,
         )
 
         # assert
         obj.assert_called_with(4, "TEST", 1)
         assert response == "{}"
 
-    def test_get_connector_context_property_locally_response_success(self, mocker):
+    def test_get_connector_context_property_locally_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         obj = mocker.patch.object(
-            SiemplifyBase, "get_context_property", return_value="{}",
+            SiemplifyBase,
+            "get_context_property",
+            return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
 
         # act
         response = siemplify_connectors.get_connector_context_property(
-            identifier=1, property_key=1,
+            identifier=1,
+            property_key=1,
         )
 
         # assert
         obj.assert_called_with(4, 1, 1)
         assert response == "{}"
 
-    def test_fetch_and_save_timestamp_response_success(self, mocker):
+    def test_fetch_and_save_timestamp_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         sys.argv.append(sys.argv[1])
         mocker.patch.object(
@@ -544,10 +641,14 @@ class TestSiemplifyConnectors:
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         fetch_timestamp = mocker.patch.object(
-            SiemplifyBase, "fetch_timestamp", return_value="TEST",
+            SiemplifyBase,
+            "fetch_timestamp",
+            return_value="TEST",
         )
         save_timestamp = mocker.patch.object(
-            SiemplifyBase, "save_timestamp", return_value="TEST",
+            SiemplifyBase,
+            "save_timestamp",
+            return_value="TEST",
         )
 
         # act
@@ -558,7 +659,10 @@ class TestSiemplifyConnectors:
         save_timestamp.assert_called_once()
         assert response == "TEST"
 
-    def test_get_case_status_by_id_response_success(self, mocker):
+    def test_get_case_status_by_id_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         case_id = 1
         mock_response = mocker.Mock()
@@ -572,7 +676,9 @@ class TestSiemplifyConnectors:
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
         mocker.patch.object(
-            siemplify_connectors.session, "get", return_value=mock_response,
+            siemplify_connectors.session,
+            "get",
+            return_value=mock_response,
         )
 
         # act
@@ -589,7 +695,7 @@ class TestSiemplifyConnectors:
         )
         assert response
 
-    def test_case_info(self):
+    def test_case_info(self) -> None:
         # arrange
         case_info = CaseInfo()
 
@@ -615,7 +721,7 @@ class TestSiemplifyConnectors:
         case_info.attachments = []
         case_info.siem_alert_id = None
 
-    def test_alert_info(self):
+    def test_alert_info(self) -> None:
         # arrange
         alert_info = AlertInfo()
 
