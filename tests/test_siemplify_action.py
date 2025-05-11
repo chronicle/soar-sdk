@@ -18,7 +18,7 @@ import json
 import os
 import signal
 import time
-import unittest.mock
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -34,6 +34,9 @@ from soar_sdk.SiemplifyDataModel import (
     CyberCaseLazy,
     DomainEntityInfo,
 )
+
+if TYPE_CHECKING:
+    import unittest.mock
 
 try:
     from unittest.mock import PropertyMock, mock_open, patch
@@ -366,7 +369,10 @@ class TestSiemplifyAction:
         assert siemplify_action.target_entities is None
         assert siemplify_action._target_entities is None
 
-    def test_siemplify_action_is_timeout_reached_raise_exception(self, mocker):
+    def test_siemplify_action_is_timeout_reached_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         mocker.patch("sys.stdin.read", return_value=DATA.encode())
 
@@ -379,7 +385,7 @@ class TestSiemplifyAction:
         # assert
         assert str(exception_info.value) == "execution_deadline_unix_time_ms is None"
 
-    def test_init_remote_file_storage_session_response_success(self):
+    def test_init_remote_file_storage_session_response_success(self) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
 
@@ -389,7 +395,7 @@ class TestSiemplifyAction:
         # assert
         assert response is None
 
-    def test_get_case_if_is_remote_response_success(self):
+    def test_get_case_if_is_remote_response_success(self) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         siemplify_action.is_remote = True
@@ -404,7 +410,10 @@ class TestSiemplifyAction:
         # assert
         assert response == {"first line": 1}
 
-    def test_get_case_if_metadata_is_true_response_success(self, mocker):
+    def test_get_case_if_metadata_is_true_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
@@ -420,7 +429,7 @@ class TestSiemplifyAction:
         obj.assert_called_once()
         assert response == 1
 
-    def test_get_case_response_success(self, mocker):
+    def test_get_case_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
@@ -436,7 +445,7 @@ class TestSiemplifyAction:
         obj.assert_called_once()
         assert response == test_cyber_case
 
-    def test_load_current_alert_response_success(self):
+    def test_load_current_alert_response_success(self) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
 
@@ -446,7 +455,10 @@ class TestSiemplifyAction:
         # assert
         assert response is None
 
-    def test_load_alert_if_alerts_already_loaded_raise_exception(self, mocker):
+    def test_load_alert_if_alerts_already_loaded_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(
@@ -462,7 +474,10 @@ class TestSiemplifyAction:
         assert response is None
         obj.assert_called_once()
 
-    def test_load_current_alert_if_alerts_already_loaded_response_success(self, mocker):
+    def test_load_current_alert_if_alerts_already_loaded_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mocker.patch.object(
@@ -479,7 +494,10 @@ class TestSiemplifyAction:
         assert not response
         obj.assert_called_once()
 
-    def test_load_target_entities_response_success(self, mocker):
+    def test_load_target_entities_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         test_data = json.loads(DATA.encode())
         test_data.update(
@@ -503,8 +521,8 @@ class TestSiemplifyAction:
 
     def test_load_target_entities_not_support_old_entities_response_success(
         self,
-        mocker,
-    ):
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_property = mocker.patch.object(
@@ -520,7 +538,10 @@ class TestSiemplifyAction:
         # assert
         assert not response
 
-    def test_find_alert_by_id_response_success(self, mocker):
+    def test_find_alert_by_id_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         mock_case_property = mocker.patch.object(
@@ -541,7 +562,10 @@ class TestSiemplifyAction:
         # assert
         assert isinstance(response, Alert)
 
-    def test_case_is_remote_option_response_success(self, mocker):
+    def test_case_is_remote_option_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         siemplify_action.is_remote = True
@@ -556,7 +580,10 @@ class TestSiemplifyAction:
         # assert
         assert isinstance(response, CyberCase)
 
-    def test_target_entities_is_remote_option_response_success(self, mocker):
+    def test_target_entities_is_remote_option_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         siemplify_action.is_remote = True
@@ -572,7 +599,10 @@ class TestSiemplifyAction:
         obj.assert_called_once()
         assert response is None
 
-    def test_alerts_is_remote_option_response_success(self, mocker):
+    def test_alerts_is_remote_option_response_success(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         siemplify_action.is_remote = True
@@ -588,7 +618,7 @@ class TestSiemplifyAction:
         obj.assert_called_once()
         assert response is None
 
-    def test_load_case_data_response_success(self, mocker):
+    def test_load_case_data_response_success(self, mocker: unittest.mock.Mock) -> None:
         # arrange
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
         obj = mocker.patch.object(

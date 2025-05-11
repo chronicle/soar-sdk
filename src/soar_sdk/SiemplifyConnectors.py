@@ -408,8 +408,7 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         self.validate_siemplify_error(response)
         return response.json().get("status")
 
-    def _get_connector_context(self, mock_stdin):
-        # type: (str | None) -> ConnectorContext
+    def _get_connector_context(self, mock_stdin: str | None) -> ConnectorContext:
         """Get the connector's context
 
         Args:

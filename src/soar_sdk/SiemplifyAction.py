@@ -292,7 +292,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.__current_alert
 
     @property
-    def _current_alert(self):
+    def _current_alert(self) -> dict[str, Any]:
         """This property prevents regression for customers who used the _current_alert
         attribute in their code and
         expected it to be populated after calling SiemplifyAction
@@ -507,9 +507,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
 
     def get_alerts_ticket_ids_from_cases_closed_since_timestamp(
         self,
-        timestamp_unix_ms,
-        rule_generator,
-    ):
+        timestamp_unix_ms: int,
+        rule_generator: str,
+    ) -> list[Any]:
         """Get alerts from cases that were closed since timestamp
         :param timestamp_unix_ms: {long} (e.g. 1550409785000L)
         :param rule_generator: {string} (e.g. 'Phishing email detector')
@@ -919,7 +919,11 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
 
         return super(SiemplifyAction, self).get_configuration_by_provider(identifier)
 
-    def _get_custom_list_items(self, category_name, entities):
+    def _get_custom_list_items(
+        self,
+        category_name: str,
+        entities: list[Any],
+    ) -> list[Any]:
         """Get a list of custom list items from category and entities list.
         :param category_name: the custom list category
         :param entities: a list of entities
@@ -936,7 +940,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             )
         return custom_list_items
 
-    def any_alert_entities_in_custom_list(self, category_name):
+    def any_alert_entities_in_custom_list(self, category_name: str) -> bool:
         """Check if any of the alert's entities has a custom list record
         with the given category.
         :param category_name: the custom list category
@@ -948,7 +952,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         )
         return self.any_entity_in_custom_list(custom_list_items)
 
-    def add_alert_entities_to_custom_list(self, category_name):
+    def add_alert_entities_to_custom_list(self, category_name: str) -> list[Any]:
         """Add the alert's entities to the custom list record
         with the given category.
         :param category_name: the custom list category
@@ -960,7 +964,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         )
         return self.add_entities_to_custom_list(custom_list_items)
 
-    def remove_alert_entities_from_custom_list(self, category_name):
+    def remove_alert_entities_from_custom_list(self, category_name: str) -> list[Any]:
         """Remove the alert's entities to the custom list record
         with the given category.
         :param category_name: the custom list category
@@ -974,12 +978,12 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
 
     def extract_action_param(
         self,
-        param_name,
-        default_value=None,
-        input_type=str,
-        is_mandatory=False,
-        print_value=False,
-    ):
+        param_name: str,
+        default_value: Any = None,
+        input_type: type = str,
+        is_mandatory: bool = False,
+        print_value: bool = False,
+    ) -> Any:
         return extract_script_param(
             siemplify=self,
             input_dictionary=self.parameters,
@@ -990,7 +994,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             print_value=print_value,
         )
 
-    def _build_output_object(self):
+    def _build_output_object(self) -> dict[str, Any]:
         """This method is override of _build_output_object in Siemplify.py which does
         not contain handling of max_json_result_size
         Kept for backwards compatibility with old scripts
@@ -1020,12 +1024,12 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
 
     def set_case_sla(
         self,
-        period_time,
-        period_type,
-        critical_period_time,
-        critical_period_type,
-        case_id=None,
-    ):
+        period_time: int | str,
+        period_type: str,
+        critical_period_time: int | str,
+        critical_period_type: str,
+        case_id: str | None = None,
+    ) -> Any:
         """Sets the SLA of the given @case_id if given, otherwise sets the SLA of the
         current case. SLA being set using
         this API should surpass all other case SLA types.
@@ -1052,13 +1056,13 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
 
     def set_alert_sla(
         self,
-        period_time,
-        period_type,
-        critical_period_time,
-        critical_period_type,
-        case_id=None,
-        alert_id=None,
-    ):
+        period_time: int | str,
+        period_type: str,
+        critical_period_time: int | str,
+        critical_period_type: str,
+        case_id: str | None = None,
+        alert_id: str | None = None,
+    ) -> Any:
         """Sets the SLA of the given @alert_identifier of @case_id. SLA being set using
         this API should surpass all other alert SLA types.
         :param period_time: {int/str} Represents the total SLA period. period_time > 0.
@@ -1083,7 +1087,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             alert_id or self.alert_id,
         )
 
-    def get_case_summary(self, is_first_request):
+    def get_case_summary(self, is_first_request: bool) -> dict[str, Any]:
         """Returns existing case summary that was generated by the AI case summary,
         IE the case summary that was generated
         by the AI case summary widget in the case wall. Show if it has been already
