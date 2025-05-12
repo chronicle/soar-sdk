@@ -27,6 +27,7 @@ from unittest.mock import mock_open, patch
 import pytest
 import requests
 
+from soar_sdk import SiemplifyUtils
 from soar_sdk.ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
 from soar_sdk.Siemplify import Siemplify
 from soar_sdk.SiemplifyDataModel import (
@@ -244,7 +245,7 @@ class TestSiemplify:
             "proxy_server_address": {"proxy_server_address": True},
         }
         mocker.patch.object(siemplify.session, "get", return_value=mock_response)
-        mocker.patch("SiemplifyUtils.set_proxy_state")
+        mocker.patch("soar_sdk.SiemplifyUtils.set_proxy_state")
 
         # act
         response = siemplify.init_proxy_settings()
@@ -2237,7 +2238,7 @@ class TestSiemplify:
         # arrange
         siemplify = Siemplify()
         mocker.patch.object(siemplify, "_build_output_object", return_value=None)
-        mocker.patch("SiemplifyUtils.real_stdout.write")
+        mocker.patch("soar_sdk.SiemplifyUtils.real_stdout.write")
         mocker.patch("sys.exit")
 
         # act
@@ -3738,13 +3739,14 @@ class TestSiemplify:
             "AgentIdentifier": "null",
         }
 
-    def test_load_vault_settings(self, mocker, configurations={"key": "value"}):
+    def test_load_vault_settings(self, mocker) -> None:
         # arrange
         siemplify = Siemplify()
         siemplify.is_remote = True
         siemplify.vault_settings = True
+        configurations = {"key": "value"}
         mocker.patch(
-            "SiemplifyVaultUtils.extract_vault_param",
+            "soar_sdk.SiemplifyVaultUtils.extract_vault_param",
             return_value=configurations["key"],
         )
 
@@ -4357,13 +4359,17 @@ class TestSiemplify:
         # assert the correct system version is returned
         assert response == 1
 
-    def test_get_attachment_valid_response_success(self, mocker, attachment_id=1):
+    def test_get_attachment_valid_response_success(self, mocker) -> None:
         # arrange
+        attachment_id = 1
         # create a mock response object
         mock_response = mocker.Mock()
-        mock_response.content = b"""{"FileContents": 
-        "iVBORw0KGgoAAAANSUhEUgAAAGMAAABoCAYAAADl
-        /E5WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAVQSURBVHhe7Zs/aBtXHMd/5ymaKhlSsCDY2BlsJ5QEZcgQDCl1F5PFtENpCTaYbqZQAhm6GEyGgmkJXQ0xJiVLMAXjpYaICA8dIhJKY2exqEhRhoClTurk63v276TT6U4nnfSefi/v9wHj35NDBn3u931/7s6p/vObCwwJRvA3QwCWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQjCDz6XYa24D7s4CmcUvptdhLspHBoOLRm1POSOj3HQK+aLoSGjLwnt3JlagbU0DgxiyDK6iaKEZOahODmOAzMY3gQuu0GVCEl1H3KHr4RucxhOZ3QbS7FXd3xnmRRZ+mXEikg4EddfwTeHL+AIhx4z2S/g8ZgZNjTHlLiSO4iQX1wxl3BFlLoGj3MrUJy9ATP4kWlolVEoRUeKjJOBXMEoZSc7eja8nDJnWaUvpjrEk6lL0UGjqTNqsF0JFyGjiUWco0dG7SU8rGPtJ3UDHhgyuepAi4zCSUQ8Za+BWdsytWiQUYZnVSz9iK5Y5qZoQb2MWil0BTWTmeCuCKBcRrke1haj8Hma2yKIYhk1eF49wdpPBiY+kHsQg0SxjH+hFLqKynBEhaBhAg/hAssIQ+0OfCCHd33c8xArtp1Zc5bPw+mMXohYjXVF/QU8qmFtAPRlWAR9GelJuIPlh85Q5gw196drsH34tO0MzKQTYbWdIZawl7Fk4lEcUx/BZNjm7r+qUQ8K6EKxjDRMXMDST70Ez8M2g5ajfAIfT53f/mzlBH6vGbTm1IQGGRmsWjmq/s1RFUC5jMilqWEbMh2olwHjsIxPagTZrZj1xJ9qNMgQOkR3hD7LJLrjh3fcHh5aZMhnmb4NnzrgqPIMtnlldYYeGYK5sagn/U7g4eEOCxFokyG740HE3HEuZBPWLE8sfTIE42OL8HNEXEl2jzchV8xDAce9UCi1n0uZxhBeCQg/0Asl7kCxi1cL+JWAWHoQ0id8ahtLGu7ONp8UV8cUfGrQE0FD6gw/at7rM+klGQ8CMjwGEV2KXz9+m4fTL/dw4GP1Pox8fREHySEko5Xyux1YrIQ9ANeKlg44eAKn94o4iCIHzh9fgYOjJJCVQYf34C79CO4bWQe/8Nfg3nwEjS9wegFGtm7joHeGNIGbh7OxASNtV/4VIWe5+dmbPXAPsE4Ay4jlIjhbG+DcwmEbVwAWsBS45fdY9Y4dMn79CU5v3jv7ibty3fXzf3e6lMdP4nEms1j1hx0y5q5jIb7s/GuswhB/8xZLUx9joQ87ZFy6Cs401nt/NifcIAfNvzm3Rfx0hZjg9ytYZ8GZS77EtWTOELk/70WJWKJGRJWb95avOYDIOSLA279wpSWYvg7OJawTYM8EHhtVvoha/azr/YK75dsEzl/FIhn2yIiLqkZE9RA1YjPoei7kHqPPXbg9MmRUrYj4OSMYVSL3NzGiuo4aseFr7MqFwPXkmz0Pi2QIbn3SiJ+WqPLnfldR07rzdja+72uu8LBLhn+D5o+qwkssuokoeTziOwJZvd9hQ9gblsmQS9ZgVPmWprER5T+nEgzotNbDOhltUeWLKGelU+6rFSGxT0YwqhoR1Xlv4a6rFSGxUIbogCXPRhHcXzCiFpodE0SeVzWWsAvLSkRILL2fEYgcgTwiD52Io+7udSDy/4rBys5oPR6R9HD8oRC+00cISzuDJiyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDDAD/A+CNxriJKoq1AAAAAElFTkSuQmCC","ContentType": "application/octet-stream","FileDownloadName": "",  "LastModified": None,  "EntityTag": None,  "EnableRangeProcessing": False}"""
+        content: bytes = (
+            b'{"FileContents": \n'
+            b'        "iVBORw0KGgoAAAANSUhEUgAAAGMAAABoCAYAAADl\n'
+            b'        /E5WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAVQSURBVHhe7Zs/aBtXHMd/5ymaKhlSsCDY2BlsJ5QEZcgQDCl1F5PFtENpCTaYbqZQAhm6GEyGgmkJXQ0xJiVLMAXjpYaICA8dIhJKY2exqEhRhoClTurk63v276TT6U4nnfSefi/v9wHj35NDBn3u931/7s6p/vObCwwJRvA3QwCWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQjCDz6XYa24D7s4CmcUvptdhLspHBoOLRm1POSOj3HQK+aLoSGjLwnt3JlagbU0DgxiyDK6iaKEZOahODmOAzMY3gQuu0GVCEl1H3KHr4RucxhOZ3QbS7FXd3xnmRRZ+mXEikg4EddfwTeHL+AIhx4z2S/g8ZgZNjTHlLiSO4iQX1wxl3BFlLoGj3MrUJy9ATP4kWlolVEoRUeKjJOBXMEoZSc7eja8nDJnWaUvpjrEk6lL0UGjqTNqsF0JFyGjiUWco0dG7SU8rGPtJ3UDHhgyuepAi4zCSUQ8Za+BWdsytWiQUYZnVSz9iK5Y5qZoQb2MWil0BTWTmeCuCKBcRrke1haj8Hma2yKIYhk1eF49wdpPBiY+kHsQg0SxjH+hFLqKynBEhaBhAg/hAssIQ+0OfCCHd33c8xArtp1Zc5bPw+mMXohYjXVF/QU8qmFtAPRlWAR9GelJuIPlh85Q5gw196drsH34tO0MzKQTYbWdIZawl7Fk4lEcUx/BZNjm7r+qUQ8K6EKxjDRMXMDST70Ez8M2g5ajfAIfT53f/mzlBH6vGbTm1IQGGRmsWjmq/s1RFUC5jMilqWEbMh2olwHjsIxPagTZrZj1xJ9qNMgQOkR3hD7LJLrjh3fcHh5aZMhnmb4NnzrgqPIMtnlldYYeGYK5sagn/U7g4eEOCxFokyG740HE3HEuZBPWLE8sfTIE42OL8HNEXEl2jzchV8xDAce9UCi1n0uZxhBeCQg/0Asl7kCxi1cL+JWAWHoQ0id8ahtLGu7ONp8UV8cUfGrQE0FD6gw/at7rM+klGQ8CMjwGEV2KXz9+m4fTL/dw4GP1Pox8fREHySEko5Xyux1YrIQ9ANeKlg44eAKn94o4iCIHzh9fgYOjJJCVQYf34C79CO4bWQe/8Nfg3nwEjS9wegFGtm7joHeGNIGbh7OxASNtV/4VIWe5+dmbPXAPsE4Ay4jlIjhbG+DcwmEbVwAWsBS45fdY9Y4dMn79CU5v3jv7ibty3fXzf3e6lMdP4nEms1j1hx0y5q5jIb7s/GuswhB/8xZLUx9joQ87ZFy6Cs401nt/NifcIAfNvzm3Rfx0hZjg9ytYZ8GZS77EtWTOELk/70WJWKJGRJWb95avOYDIOSLA279wpSWYvg7OJawTYM8EHhtVvoha/azr/YK75dsEzl/FIhn2yIiLqkZE9RA1YjPoei7kHqPPXbg9MmRUrYj4OSMYVSL3NzGiuo4aseFr7MqFwPXkmz0Pi2QIbn3SiJ+WqPLnfldR07rzdja+72uu8LBLhn+D5o+qwkssuokoeTziOwJZvd9hQ9gblsmQS9ZgVPmWprER5T+nEgzotNbDOhltUeWLKGelU+6rFSGxT0YwqhoR1Xlv4a6rFSGxUIbogCXPRhHcXzCiFpodE0SeVzWWsAvLSkRILL2fEYgcgTwiD52Io+7udSDy/4rBys5oPR6R9HD8oRC+00cISzuDJiyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDDAD/A+CNxriJKoq1AAAAAElFTkSuQmCC","ContentType": "application/octet-stream","FileDownloadName": "",  "LastModified": None,  "EntityTag": None,  "EnableRangeProcessing": False}'
+        )
+        mock_response.content = content
         mock_response.raise_for_status.return_value = None
 
         # set the mock response to be returned by the session.get method
@@ -4387,12 +4393,7 @@ class TestSiemplify:
 
         # assert
         # assert the correct system version is returned
-        assert (
-            response
-            == b"""{"FileContents": 
-            "iVBORw0KGgoAAAANSUhEUgAAAGMAAABoCAYAAADl
-            /E5WAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAVQSURBVHhe7Zs/aBtXHMd/5ymaKhlSsCDY2BlsJ5QEZcgQDCl1F5PFtENpCTaYbqZQAhm6GEyGgmkJXQ0xJiVLMAXjpYaICA8dIhJKY2exqEhRhoClTurk63v276TT6U4nnfSefi/v9wHj35NDBn3u931/7s6p/vObCwwJRvA3QwCWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQiWQQjCDz6XYa24D7s4CmcUvptdhLspHBoOLRm1POSOj3HQK+aLoSGjLwnt3JlagbU0DgxiyDK6iaKEZOahODmOAzMY3gQuu0GVCEl1H3KHr4RucxhOZ3QbS7FXd3xnmRRZ+mXEikg4EddfwTeHL+AIhx4z2S/g8ZgZNjTHlLiSO4iQX1wxl3BFlLoGj3MrUJy9ATP4kWlolVEoRUeKjJOBXMEoZSc7eja8nDJnWaUvpjrEk6lL0UGjqTNqsF0JFyGjiUWco0dG7SU8rGPtJ3UDHhgyuepAi4zCSUQ8Za+BWdsytWiQUYZnVSz9iK5Y5qZoQb2MWil0BTWTmeCuCKBcRrke1haj8Hma2yKIYhk1eF49wdpPBiY+kHsQg0SxjH+hFLqKynBEhaBhAg/hAssIQ+0OfCCHd33c8xArtp1Zc5bPw+mMXohYjXVF/QU8qmFtAPRlWAR9GelJuIPlh85Q5gw196drsH34tO0MzKQTYbWdIZawl7Fk4lEcUx/BZNjm7r+qUQ8K6EKxjDRMXMDST70Ez8M2g5ajfAIfT53f/mzlBH6vGbTm1IQGGRmsWjmq/s1RFUC5jMilqWEbMh2olwHjsIxPagTZrZj1xJ9qNMgQOkR3hD7LJLrjh3fcHh5aZMhnmb4NnzrgqPIMtnlldYYeGYK5sagn/U7g4eEOCxFokyG740HE3HEuZBPWLE8sfTIE42OL8HNEXEl2jzchV8xDAce9UCi1n0uZxhBeCQg/0Asl7kCxi1cL+JWAWHoQ0id8ahtLGu7ONp8UV8cUfGrQE0FD6gw/at7rM+klGQ8CMjwGEV2KXz9+m4fTL/dw4GP1Pox8fREHySEko5Xyux1YrIQ9ANeKlg44eAKn94o4iCIHzh9fgYOjJJCVQYf34C79CO4bWQe/8Nfg3nwEjS9wegFGtm7joHeGNIGbh7OxASNtV/4VIWe5+dmbPXAPsE4Ay4jlIjhbG+DcwmEbVwAWsBS45fdY9Y4dMn79CU5v3jv7ibty3fXzf3e6lMdP4nEms1j1hx0y5q5jIb7s/GuswhB/8xZLUx9joQ87ZFy6Cs401nt/NifcIAfNvzm3Rfx0hZjg9ytYZ8GZS77EtWTOELk/70WJWKJGRJWb95avOYDIOSLA279wpSWYvg7OJawTYM8EHhtVvoha/azr/YK75dsEzl/FIhn2yIiLqkZE9RA1YjPoei7kHqPPXbg9MmRUrYj4OSMYVSL3NzGiuo4aseFr7MqFwPXkmz0Pi2QIbn3SiJ+WqPLnfldR07rzdja+72uu8LBLhn+D5o+qwkssuokoeTziOwJZvd9hQ9gblsmQS9ZgVPmWprER5T+nEgzotNbDOhltUeWLKGelU+6rFSGxT0YwqhoR1Xlv4a6rFSGxUIbogCXPRhHcXzCiFpodE0SeVzWWsAvLSkRILL2fEYgcgTwiD52Io+7udSDy/4rBys5oPR6R9HD8oRC+00cISzuDJiyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDECyDDAD/A+CNxriJKoq1AAAAAElFTkSuQmCC","ContentType": "application/octet-stream","FileDownloadName": "",  "LastModified": None,  "EntityTag": None,  "EnableRangeProcessing": False}"""
-        )
+        assert response == content
 
     def test_get_cases_by_ticket_id_valid_response_success(self, mocker, ticket_id="1"):
         # arrange

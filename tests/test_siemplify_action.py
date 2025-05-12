@@ -2151,7 +2151,7 @@ class TestSiemplifyAction:
 
         # act
         siemplify_action = SiemplifyAction(mock_stdin=DATA)
-        obj = mocker.patch("SiemplifyAction.extract_script_param")
+        obj = mocker.patch("soar_sdk.SiemplifyAction.extract_script_param")
         mocker.patch.object(
             siemplify_action.session,
             "post",

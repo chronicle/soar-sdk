@@ -22,7 +22,8 @@ from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
-from SiemplifyUtils import ENCODING_UTF_8
+
+from .SiemplifyUtils import ENCODING_UTF_8
 
 if TYPE_CHECKING:
     from collections.abc import Buffer, Sized

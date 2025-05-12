@@ -101,7 +101,7 @@ class TestSiemplifyConnectors:
             "get_connector_context_property",
             return_value="{}",
         )
-        mocker.patch("SiemplifyConnectors.is_python_37", return_value=False)
+        mocker.patch("soar_sdk.SiemplifyConnectors.is_python_37", return_value=False)
         try:
             mocker.patch(
                 "sys.stdin.buffer.read",
@@ -203,7 +203,9 @@ class TestSiemplifyConnectors:
             return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
-        real_stdout_write_mock = mocker.patch("SiemplifyUtils.real_stdout.write")
+        real_stdout_write_mock = mocker.patch(
+            "soar_sdk.SiemplifyUtils.real_stdout.write",
+        )
 
         # act
         response = siemplify_connectors.return_package("TEST")
@@ -226,7 +228,9 @@ class TestSiemplifyConnectors:
             return_value="{}",
         )
         siemplify_connectors = SiemplifyConnectorExecution(mock_stdin=raw_context_data)
-        real_stdout_write_mock = mocker.patch("SiemplifyUtils.real_stdout.write")
+        real_stdout_write_mock = mocker.patch(
+            "soar_sdk.SiemplifyUtils.real_stdout.write",
+        )
 
         # act
         response = siemplify_connectors.return_test_result(True, {})

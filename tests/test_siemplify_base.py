@@ -139,7 +139,7 @@ class TestSiemplifyBase:
     def test_get_script_context_python_37(self, mocker):
         value = "Success"
         mocker.patch("sys.stdin.read", return_value=value)
-        mocker.patch("SiemplifyUtils.is_python_37", return_value=False)
+        mocker.patch("soar_sdk.SiemplifyUtils.is_python_37", return_value=False)
 
         context = SiemplifyBase.get_script_context()
 
@@ -151,7 +151,7 @@ class TestSiemplifyBase:
             different_value = "Not Success"
             mocker.patch("sys.stdin.read", return_value=different_value)
             mocker.patch("sys.stdin.buffer.read", return_value=expected_value)
-            mocker.patch("SiemplifyUtils.is_python_37", return_value=True)
+            mocker.patch("soar_sdk.SiemplifyUtils.is_python_37", return_value=True)
 
             context = SiemplifyBase.get_script_context()
 
@@ -218,7 +218,10 @@ class TestSiemplifyBase:
         mock_sdk_config = MagicMock()
         mock_sdk_config.gcp_auth_required = True
         mock_sdk_config.run_folder_path = ""
-        mocker.patch("SiemplifyBase.SiemplifySdkConfig", return_value=mock_sdk_config)
+        mocker.patch(
+            "soar_sdk.SiemplifyBase.SiemplifySdkConfig",
+            return_value=mock_sdk_config,
+        )
         siemplify_base = SiemplifyBase()
 
         gcp_provider_mock.assert_called_once_with(siemplify_base)
@@ -231,7 +234,10 @@ class TestSiemplifyBase:
         mock_sdk_config = MagicMock()
         mock_sdk_config.gcp_auth_required = False
         mock_sdk_config.run_folder_path = ""
-        mocker.patch("SiemplifyBase.SiemplifySdkConfig", return_value=mock_sdk_config)
+        mocker.patch(
+            "soar_sdk.SiemplifyBase.SiemplifySdkConfig",
+            return_value=mock_sdk_config,
+        )
         SiemplifyBase()
 
         gcp_provider_mock.assert_not_called()

@@ -18,12 +18,12 @@ import json
 import os
 import sys
 
-import SiemplifyUtils
-from OverflowManager import OverflowAlertDetails, OverflowManager
-from SiemplifyBase import SiemplifyBase
-from SiemplifyConnectorsDataModel import ConnectorContext
-from SiemplifyLogger import ConnectorsFileLogsCollector
-from SiemplifyUtils import extract_script_param, is_python_37, my_stdout, real_stdout
+from . import SiemplifyUtils
+from .OverflowManager import OverflowAlertDetails, OverflowManager
+from .SiemplifyBase import SiemplifyBase
+from .SiemplifyConnectorsDataModel import ConnectorContext
+from .SiemplifyLogger import ConnectorsFileLogsCollector
+from .SiemplifyUtils import extract_script_param, is_python_37, my_stdout, real_stdout
 
 SiemplifyUtils.override_stdout()
 

@@ -25,12 +25,12 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
-import SiemplifyLogger
-import SiemplifyUtils
-from GcpTokenProvider import GcpTokenProvider
-from SiemplifyAddressProvider import SiemplifyAddressProvider
-from SiemplifyPublisherUtils import SiemplifySession
-from SiemplifySdkConfig import SiemplifySdkConfig
+
+from . import SiemplifyLogger, SiemplifyUtils
+from .GcpTokenProvider import GcpTokenProvider
+from .SiemplifyAddressProvider import SiemplifyAddressProvider
+from .SiemplifyPublisherUtils import SiemplifySession
+from .SiemplifySdkConfig import SiemplifySdkConfig
 
 HEADERS: dict[str, str] = {
     "Content-Type": "application/json",

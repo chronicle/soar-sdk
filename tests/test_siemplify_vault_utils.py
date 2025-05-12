@@ -40,7 +40,10 @@ class TestSiemplifyVaultUtils:
             "[Default Environment:::CyberArkPAM:::CyberArkPAM_1:::33_3]"
         )
         mock_secret = "mocked secret value"
-        mocker.patch("SiemplifyVaultUtils.get_vault_secret", return_value=mock_secret)
+        mocker.patch(
+            "soar_sdk.SiemplifyVaultUtils.get_vault_secret",
+            return_value=mock_secret,
+        )
 
         # act
         result = soar_sdk.SiemplifyVaultUtils.extract_vault_param(

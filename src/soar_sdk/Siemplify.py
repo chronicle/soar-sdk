@@ -30,10 +30,11 @@ from typing import (
 )
 
 import requests
-import SiemplifyUtils
-from ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
-from SiemplifyBase import SiemplifyBase
-from SiemplifyDataModel import (
+
+from . import SiemplifyUtils
+from .ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
+from .SiemplifyBase import SiemplifyBase
+from .SiemplifyDataModel import (
     ApiPeriodTypeEnum,
     Attachment,
     CaseFilterOperatorEnum,
@@ -51,7 +52,7 @@ from SiemplifyDataModel import (
     SyncCaseMetadata,
     Task,
 )
-from SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
+from .SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
 
 if TYPE_CHECKING:
     from soar_sdk.SiemplifyDataModel import DomainEntityInfo

@@ -19,8 +19,8 @@ import os
 import uuid
 from typing import Any
 
-import SiemplifyUtils
-from SiemplifyConnectorsDataModel import CaseInfo
+from . import SiemplifyUtils
+from .SiemplifyConnectorsDataModel import CaseInfo
 
 
 class SimulatedCasesCreator:

@@ -17,10 +17,10 @@ from __future__ import annotations
 import json
 from typing import Any, TypeVar
 
-import SiemplifyUtils
-from Siemplify import Siemplify
-from SiemplifyBase import MaximumContextLengthException
-from SiemplifyUtils import extract_script_param
+from . import SiemplifyUtils
+from .Siemplify import Siemplify
+from .SiemplifyBase import MaximumContextLengthException
+from .SiemplifyUtils import extract_script_param
 
 T = TypeVar("T")
 

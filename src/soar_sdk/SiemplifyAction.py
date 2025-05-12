@@ -19,12 +19,13 @@ import os
 from typing import Any
 
 import requests
-import SiemplifyUtils
-from CaseAlertsProvider import CaseAlertsProvider
-from PersistentFileStorageMixin import PersistentFileStorageMixin
-from ScriptResult import EXECUTION_STATE_FAILED, ScriptResult
-from Siemplify import INSIGHT_DEFAULT_THREAT_SOURCE, Siemplify
-from SiemplifyDataModel import (
+
+from . import SiemplifyUtils
+from .CaseAlertsProvider import CaseAlertsProvider
+from .PersistentFileStorageMixin import PersistentFileStorageMixin
+from .ScriptResult import EXECUTION_STATE_FAILED, ScriptResult
+from .Siemplify import INSIGHT_DEFAULT_THREAT_SOURCE, Siemplify
+from .SiemplifyDataModel import (
     Alert,
     CustomList,
     CyberCase,
@@ -32,8 +33,8 @@ from SiemplifyDataModel import (
     InsightSeverity,
     InsightType,
 )
-from SiemplifyLogger import ActionsFileLogsCollector
-from SiemplifyUtils import (
+from .SiemplifyLogger import ActionsFileLogsCollector
+from .SiemplifyUtils import (
     extract_script_param,
     is_json_result_size_valid,
     is_old_entities_format,
