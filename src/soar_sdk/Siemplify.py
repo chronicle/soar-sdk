@@ -55,7 +55,7 @@ from .SiemplifyDataModel import (
 from .SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
 
 if TYPE_CHECKING:
-    from soar_sdk.SiemplifyDataModel import DomainEntityInfo
+    from .SiemplifyDataModel import DomainEntityInfo
 
 SiemplifyUtils.override_stdout()
 
