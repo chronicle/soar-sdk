@@ -265,7 +265,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self._environment
 
     @property
-    def case(self) -> dict[str, Any]:
+    def case(self) -> CyberCase | CyberCaseLazy:
         if not self.__case:
             if self.is_remote:
                 self.load_case_data()
@@ -284,7 +284,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.case
 
     @property
-    def current_alert(self) -> dict[str, Any]:
+    def current_alert(self) -> Alert:
         if not self.__current_alert:
             if self.is_remote:
                 self.load_case_data()
