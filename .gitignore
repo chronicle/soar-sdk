@@ -172,6 +172,7 @@ pip-selfcheck.json
 
 # AWS User-specific
 .idea/**/aws.xml
+.idea/**/aws
 
 # Generated files
 .idea/**/contentModel.xml
