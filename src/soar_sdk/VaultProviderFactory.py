@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .SiemplifyVaultCyberArkPam import SiemplifyVaultCyberArkPam
+from SiemplifyVaultCyberArkPam import SiemplifyVaultCyberArkPam
 
 # vault providers enums
 CYBERARK_VAULT_PROVIDER: int = 0

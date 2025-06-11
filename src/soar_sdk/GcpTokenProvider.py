@@ -23,7 +23,7 @@ import google.auth.transport.requests
 from google.auth import impersonated_credentials
 
 if TYPE_CHECKING:
-    from .SiemplifyBase import SiemplifyBase
+    from SiemplifyBase import SiemplifyBase
 
 DEFAULT_SCOPES: list[str] = ["https://www.googleapis.com/auth/cloud-platform"]
 CHRONICLE_SERVICE_ACCOUNT_EMAIL: str = "CHRONICLE_SERVICE_ACCOUNT_EMAIL"

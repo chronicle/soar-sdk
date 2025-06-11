@@ -19,7 +19,7 @@ import logging
 import os
 from typing import TYPE_CHECKING, Any
 
-from . import SiemplifyUtils
+import SiemplifyUtils
 
 if TYPE_CHECKING:
     import datetime

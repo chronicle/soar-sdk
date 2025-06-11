@@ -31,10 +31,10 @@ from typing import (
 
 import requests
 
-from . import SiemplifyUtils
-from .ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
-from .SiemplifyBase import SiemplifyBase
-from .SiemplifyDataModel import (
+import SiemplifyUtils
+from ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
+from SiemplifyBase import SiemplifyBase
+from SiemplifyDataModel import (
     ApiPeriodTypeEnum,
     Attachment,
     CaseFilterOperatorEnum,
@@ -52,10 +52,10 @@ from .SiemplifyDataModel import (
     SyncCaseMetadata,
     Task,
 )
-from .SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
+from SiemplifyUtils import convert_datetime_to_unix_time, unix_now, utc_now
 
 if TYPE_CHECKING:
-    from .SiemplifyDataModel import DomainEntityInfo
+    from SiemplifyDataModel import DomainEntityInfo
 
 SiemplifyUtils.override_stdout()
 

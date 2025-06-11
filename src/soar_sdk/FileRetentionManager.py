@@ -21,10 +21,10 @@ import shutil
 import traceback
 from typing import TYPE_CHECKING
 
-from . import SiemplifyUtils
+import SiemplifyUtils
 
 if TYPE_CHECKING:
-    from .SiemplifyLogger import SiemplifyLogger
+    from SiemplifyLogger import SiemplifyLogger
 
 
 class FolderTimeFormat:
