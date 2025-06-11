@@ -16,13 +16,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .SiemplifyBase import SiemplifyBase
+from SiemplifyBase import SiemplifyBase
 
 if TYPE_CHECKING:
     import requests
 
-    from .SiemplifyAddressProvider import SiemplifyAddressProvider
-    from .SiemplifyLogger import SiemplifyLogger
+    from SiemplifyAddressProvider import SiemplifyAddressProvider
+    from SiemplifyLogger import SiemplifyLogger
 
 
 class CaseAlertsProvider:

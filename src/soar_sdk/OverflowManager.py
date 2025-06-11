@@ -19,11 +19,11 @@ import traceback
 from os import path
 from typing import TYPE_CHECKING, Any
 
-from . import SiemplifyUtils
+import SiemplifyUtils
 
 if TYPE_CHECKING:
-    from .SiemplifyConnectors import SiemplifyConnectorExecution
-    from .SiemplifyLogger import SiemplifyLogger
+    from SiemplifyConnectors import SiemplifyConnectorExecution
+    from SiemplifyLogger import SiemplifyLogger
 
 
 class OverflowManager:

@@ -17,8 +17,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from .SiemplifyUtils import is_str_instance
-from .VaultProviderFactory import VaultProviderFactory
+from SiemplifyUtils import is_str_instance
+from VaultProviderFactory import VaultProviderFactory
 
 # CONSTS
 REGEX_CONFIGURATION: str = r"(?<=\[)[^[\]\:]*:::[^[\]]*(?=])"

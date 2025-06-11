@@ -23,12 +23,12 @@ from typing import TYPE_CHECKING
 import requests
 from requests import HTTPError
 
-from .SiemplifyUtils import ENCODING_UTF_8
+from SiemplifyUtils import ENCODING_UTF_8
 
 if TYPE_CHECKING:
     from collections.abc import Buffer, Sized
 
-    from .SiemplifyLogger import SiemplifyLogger
+    from SiemplifyLogger import SiemplifyLogger
 
 DEFAULT_DIRECTORY_NAME: str = "Default"
 MAX_FILE_SIZE: int = 20 * 1024 * 1024  # 20MB file size limitation

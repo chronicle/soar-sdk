@@ -27,14 +27,14 @@ from typing import Any, Never
 import arrow
 import six
 
-from . import SiemplifyUtils
-from .SiemplifyDataModel import (
+import SiemplifyUtils
+from SiemplifyDataModel import (
     ActionLogRecord,
     ConnectorLogRecord,
     LogRecordTypeEnum,
     LogRow,
 )
-from .SiemplifyUtils import is_at_least_python_3_11, is_python_37
+from SiemplifyUtils import is_at_least_python_3_11, is_python_37
 
 
 class LogLevelEnum:

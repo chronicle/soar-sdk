@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import SiemplifyUtils
+import SiemplifyUtils
 
 """
 Base vault class. All vault provider managers should inherit from it.
