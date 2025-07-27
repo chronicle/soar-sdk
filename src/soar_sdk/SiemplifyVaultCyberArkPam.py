@@ -157,9 +157,7 @@ class SiemplifyVaultCyberArkPam(SiemplifyVault):
 
     def get_password(self, account: str) -> str:
         payload = {"reason": "Chronicle SOAR vault integration"}
-        prepared_payload = {
-            key: value for key, value in payload.items() if value is not None
-        }
+        prepared_payload = {key: value for key, value in payload.items() if value is not None}
 
         response = self.session.post(
             url=self.__build_full_uri("get_password", account_id=account),

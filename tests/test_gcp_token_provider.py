@@ -37,9 +37,7 @@ class TestGcpTokenProvider:
         # Define the side effect for the refresh method
         def refresh_side_effect(*args, **kwargs):
             if len(args) > 0 and args[0] == mock_auth_request_obj:
-                mock_impersonated_credentials_obj.token = (
-                    token  # Assign the token property
-                )
+                mock_impersonated_credentials_obj.token = token  # Assign the token property
 
         mock_impersonated_credentials_obj.refresh.side_effect = refresh_side_effect
 
@@ -66,9 +64,7 @@ class TestGcpTokenProvider:
             target_principal=service_account_email,
             target_scopes=DEFAULT_SCOPES,
         )
-        assert (
-            mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
-        )
+        assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
 
     def test_add_gcp_token_local_with_impersonation_no_impersonation_credentials_failed(
         self,
@@ -185,6 +181,4 @@ class TestGcpTokenProvider:
         # assert
         mock_auth_default.assert_called_once_with(DEFAULT_SCOPES)
 
-        assert (
-            mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
-        )
+        assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"

@@ -200,8 +200,12 @@ class FileRetentionManager:
         current_level_metadata = folder_names_tree_format.pop(
             current_level_format_index,
         )  # remove the current sub-folders format before passing the tree-format to a deeper recusrion level
-        current_level_time_format = current_level_metadata.date_time_format  # retrieve the datetime string format used to parse the folder name into Datetime object
-        current_level_attribute = current_level_metadata.datetime_attribute_name  # retreive the datetime attribute name, corresponding to the current level & format.
+        current_level_time_format = (
+            current_level_metadata.date_time_format
+        )  # retrieve the datetime string format used to parse the folder name into Datetime object
+        current_level_attribute = (
+            current_level_metadata.datetime_attribute_name
+        )  # retreive the datetime attribute name, corresponding to the current level & format.
         # * About the .pop: Teorethicly, tree_format is passed bewteen recurrsion as a reference, and that may lead to over-popping, resulting in a higher branch that will work with an over-popped list (that was popped by a deeper level).
         # But - it wont happen - because there can be only 1 dwelve Equal Match per level.
         # Clarification: There can be multiple older folders (which will be deleted), or multiple newer folders, which will be ignored. But only one matching folder.

@@ -22,9 +22,7 @@ def test_version_safe_exception_prints_traceback():
     # type: () -> None
     error_message = "__ExceptionMessage__"
 
-    if (
-        not soar_sdk.SiemplifyUtils.is_python_37()
-    ):  # Assert python 2 doesn't fail unexpectedly
+    if not soar_sdk.SiemplifyUtils.is_python_37():  # Assert python 2 doesn't fail unexpectedly
         raise_error_and_log_exception_tb(error_message)
         return
 

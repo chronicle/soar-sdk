@@ -151,9 +151,7 @@ class SiemplifyBase:
                 "http": self.remote_agent_proxy,
                 "https": self.remote_agent_proxy,
             }
-        session.verify = (
-            str(os.environ.get("VERIFY_SSL", True)).lower() == str(True).lower()
-        )
+        session.verify = str(os.environ.get("VERIFY_SSL", True)).lower() == str(True).lower()
         self.LOGGER.info(f"SDK session verify ssl is {self.session.verify}")
         headers.update({"AppKey": key})
         session.headers.update(headers)
@@ -546,8 +544,7 @@ class SiemplifyBase:
 
     def cancellation_signal_handler(self, sig: int, _: Any) -> None:
         self.LOGGER.warning(
-            f"Cancellation signal [{sig}] received, ignoring to finish execution "
-            "gracefully.",
+            f"Cancellation signal [{sig}] received, ignoring to finish execution gracefully.",
         )
 
 

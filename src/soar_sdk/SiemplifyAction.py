@@ -32,6 +32,7 @@ from SiemplifyDataModel import (
     CyberCaseLazy,
     InsightSeverity,
     InsightType,
+    DomainEntityInfo,
 )
 from SiemplifyLogger import ActionsFileLogsCollector
 from SiemplifyUtils import (
@@ -57,9 +58,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
     ) -> None:
         Siemplify.__init__(self)
 
-        self.__case = None
-        self.__current_alert = None
-        self.__target_entities = None
+        self.__case: CyberCase | None = None
+        self.__current_alert: Alert | None = None
+        self.__target_entities: list[DomainEntityInfo] | None = None
         self.get_source_file = get_source_file
 
         if mock_stdin:
@@ -207,9 +208,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
                 self.alert_id,
                 self.get_source_file,
             )
-            self.__current_alert = (
-                Alert(**current_alert_data) if current_alert_data else None
-            )
+            self.__current_alert = Alert(**current_alert_data) if current_alert_data else None
         except Exception as e:
             self.LOGGER.error(f"Error getting current alert. Exception: {e}")
             self.__current_alert = None
@@ -224,15 +223,13 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         if in alert context - run only on alert entities. if not - run on all case
         entities.
         """
-        target_entities = {}
+        target_entities: dict[str | tuple[str, str], DomainEntityInfo] = {}
 
         current_alert = self.current_alert
         all_entities = []
         if current_alert == None:
             # no current alert context
-            all_entities = [
-                entity for alert in self.case.alerts for entity in alert.entities
-            ]
+            all_entities = [entity for alert in self.case.alerts for entity in alert.entities]
         else:
             # current alert context
             all_entities = current_alert.entities
@@ -293,7 +290,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.__current_alert
 
     @property
-    def _current_alert(self) -> dict[str, Any]:
+    def _current_alert(self) -> Alert:
         """This property prevents regression for customers who used the _current_alert
         attribute in their code and
         expected it to be populated after calling SiemplifyAction
@@ -303,7 +300,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.current_alert
 
     @property
-    def target_entities(self) -> list[dict[str, Any]]:
+    def target_entities(self) -> list[DomainEntityInfo]:
         if not self.__target_entities:
             if self.is_remote:
                 self.load_case_data()
@@ -312,7 +309,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.__target_entities
 
     @property
-    def _target_entities(self) -> list[dict[str, Any]]:
+    def _target_entities(self) -> list[DomainEntityInfo]:
         """This property prevents regression for customers who used the _target_entities
         attribute in their code and
         expected it to be populated after calling SiemplifyAction
@@ -475,13 +472,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
                     entity_identifiers_filter.append(entity.identifier)
 
         end_time_unix_ms = (
-            self.case.end_time
-            if self.case.end_time != 0
-            else current_alert.detected_time
+            self.case.end_time if self.case.end_time != 0 else current_alert.detected_time
         )
-        start_time_unix_ms = (
-            end_time_unix_ms - int(days_to_look_back) * 24 * 60 * 60 * 1000
-        )
+        start_time_unix_ms = end_time_unix_ms - int(days_to_look_back) * 24 * 60 * 60 * 1000
         return super(SiemplifyAction, self).get_similar_cases(
             self.case_id,
             ports_filter,
@@ -1005,7 +998,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         else:
             result = self._remap_keys(self.result._result_object)
         if not is_json_result_size_valid(json.dumps(result), self.max_json_result_size):
-            error_output = f"Action failed as JSON result exceeded maximum size {self.max_json_result_size}MB"
+            error_output = (
+                f"Action failed as JSON result exceeded maximum size {self.max_json_result_size}MB"
+            )
             output_object = {
                 "Message": error_output,
                 "ResultObjectJson": None,
@@ -1121,8 +1116,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             return response.json()
         except requests.exceptions.JSONDecodeError as e:
             message = (
-                "Could not generate case summary, unexpected json response: {"
-                "0}. Error: {1}"
+                "Could not generate case summary, unexpected json response: {0}. Error: {1}"
             ).format(response.content, e)
             self.LOGGER.error(message)
             raise Exception(message)

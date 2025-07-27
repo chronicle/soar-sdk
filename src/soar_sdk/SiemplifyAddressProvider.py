@@ -110,8 +110,7 @@ SDK_ENDPOINT_URLS = {
     SdkEndpoint.SET_CONNECTOR_PARAMETER: "connectors/{}/parameters/{}",
     SdkEndpoint.GET_FAILED_CONNECTORS: "GetFailedConnectors",
     SdkEndpoint.CREATE_CONNECTOR_PACKAGE: "CreateConnectorPackage",
-    SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY: "configuration/{"
-    "}/properties/{}",
+    SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY: "configuration/{}/properties/{}",
     SdkEndpoint.GET_INTEGRATION_CONFIGURATION: "configuration/{}",
     SdkEndpoint.GET_INTEGRATION_VERSION: "GetIntegrationVersion/{}",
     SdkEndpoint.SEND_EMAIL_WITH_ATTACHMENT: "SendEmailWithAttachment",
@@ -182,8 +181,7 @@ SDK_1P_ENDPOINT_URLS = {
     SdkEndpoint.GET_FAILED_JOBS: "GetFailedJobs?numberOfHours={}",
     SdkEndpoint.GET_FAILED_ETL_OPERATIONS: "GetFailedETLOperations?numberOfHours={}",
     SdkEndpoint.GET_CONNECTOR_PARAMETERS: "GetConnectorParameters?identifier={}",
-    SdkEndpoint.SET_CONNECTOR_PARAMETER: "UpdateConnectorParameter?identifier={"
-    "}&parameterName={}",
+    SdkEndpoint.SET_CONNECTOR_PARAMETER: "UpdateConnectorParameter?identifier={}&parameterName={}",
     SdkEndpoint.GET_FAILED_CONNECTORS: "GetFailedConnectors",
     SdkEndpoint.CREATE_CONNECTOR_PACKAGE: "CreateConnectorPackage",
     SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY: "UpdateConfigurationProperty?identifier={}&propertyName={}",
@@ -207,8 +205,7 @@ SDK_1P_ENDPOINT_URLS = {
     "}&connectorIdentifier={}",
     # Case
     SdkEndpoint.GET_CASE_METADATA: "CaseMetadata?caseId={}",
-    SdkEndpoint.GET_CASE_FULL_DETAILS: "CaseFullDetails?caseId={"
-    "}&populateOriginalFile={}",
+    SdkEndpoint.GET_CASE_FULL_DETAILS: "CaseFullDetails?caseId={}&populateOriginalFile={}",
     SdkEndpoint.GET_CASE_ATTACHMENTS: "Attachments?caseId={}",
     SdkEndpoint.GET_ATTACHMENT_DATA: "AttachmentData?attachmentId={}",
     SdkEndpoint.ASSIGN_USER: "AssignUser",
@@ -247,8 +244,7 @@ SDK_1P_ENDPOINT_URLS = {
     SdkEndpoint.SET_ALERT_SLA: "SetAlertSla?caseId={}&alertIdentifier={}",
     SdkEndpoint.GET_NEW_ALERTS_TO_SYNC: "GetAlertsToSync",
     SdkEndpoint.UPDATE_NEW_ALERTS_SYNC_STATUS: "UpdateNewAlertsSyncStatus",
-    SdkEndpoint.GET_ALERTS_FULL_DETAILS: "AlertsFullDetails?caseId={"
-    "}&populateOriginalFile={}",
+    SdkEndpoint.GET_ALERTS_FULL_DETAILS: "AlertsFullDetails?caseId={}&populateOriginalFile={}",
 }
 
 
@@ -263,9 +259,7 @@ class SiemplifyAddressProvider:
             )
             self.endpoint_mapper = SDK_1P_ENDPOINT_URLS
         else:
-            self.API_BASE_ROOT = (
-                f"{sdk_config.api_root_uri}/{BASE_SDK_CONTROLLER_URL_FORMAT}"
-            )
+            self.API_BASE_ROOT = f"{sdk_config.api_root_uri}/{BASE_SDK_CONTROLLER_URL_FORMAT}"
             self.endpoint_mapper = SDK_ENDPOINT_URLS
 
     def provide_set_context_property_address(self) -> str:

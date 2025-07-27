@@ -81,10 +81,7 @@ class TestSiemplifySdkConfig:
         result = sdk_config._build_api_server_uri()
 
         # assert
-        assert (
-            result == "https://127.0.0.1:8443/api"
-            or result == "https://localhost:8443/api"
-        )
+        assert result == "https://127.0.0.1:8443/api" or result == "https://localhost:8443/api"
 
     def test_build_api_server_uri_1p_success(self, mocker):
         # arrange
@@ -127,8 +124,7 @@ class TestSiemplifySdkConfig:
 
         # assert
         assert (
-            result
-            == "https://myDomain/{}/projects/myProject/locations/myLocation/instances"
+            result == "https://myDomain/{}/projects/myProject/locations/myLocation/instances"
             "/myInstance"
         )
 

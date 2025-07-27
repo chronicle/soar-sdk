@@ -44,9 +44,7 @@ class SimulatedCasesCreator:
             case_info.environment = case["Environment"]
             # case_info. = ["SourceSystemName": "Splunk",
 
-            case_info.start_time = (
-                SiemplifyUtils.unix_now()
-            )  # newly generated every time
+            case_info.start_time = SiemplifyUtils.unix_now()  # newly generated every time
             case_info.end_time = SiemplifyUtils.unix_now()  # newly generated every time
 
             case_info.description = case["Description"]

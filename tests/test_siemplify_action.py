@@ -945,8 +945,7 @@ class TestSiemplifyAction:
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
                 siemplify_action.API_ROOT,
-                "external/v1/sdk/GetTicketIdsForAlertsDismissedSinceTimestamp?format"
-                "=snake",
+                "external/v1/sdk/GetTicketIdsForAlertsDismissedSinceTimestamp?format=snake",
             ),
             json=request_dict,
         )
@@ -977,19 +976,16 @@ class TestSiemplifyAction:
         )
 
         # act
-        response = (
-            siemplify_action.get_alerts_ticket_ids_from_cases_closed_since_timestamp(
-                timestamp_unix_ms,
-                rule_generator,
-            )
+        response = siemplify_action.get_alerts_ticket_ids_from_cases_closed_since_timestamp(
+            timestamp_unix_ms,
+            rule_generator,
         )
 
         # assert the correct API address is called
         siemplify_action.session.post.assert_called_with(
             "{0}/{1}".format(
                 siemplify_action.API_ROOT,
-                "external/v1/sdk/GetAlertsTicketIdsFromCasesClosedSinceTimestamp"
-                "?format=snake",
+                "external/v1/sdk/GetAlertsTicketIdsFromCasesClosedSinceTimestamp?format=snake",
             ),
             json=request_dict,
         )
@@ -2039,9 +2035,7 @@ class TestSiemplifyAction:
         response = siemplify_action._build_output_object()
 
         # assert
-        assert (
-            "Action failed as JSON result exceeded maximum size" in response["Message"]
-        )
+        assert "Action failed as JSON result exceeded maximum size" in response["Message"]
 
     def test_any_entity_in_custom_list_response_success(self, mocker):
         # arrange

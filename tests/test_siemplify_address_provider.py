@@ -19,8 +19,7 @@ from soar_sdk.SiemplifySdkConfig import SiemplifySdkConfig
 
 LOCAL_HOST_ADDRESS = "https://localhost:8443"
 EXPECTED_1P_ADDRESS = (
-    LOCAL_HOST_ADDRESS
-    + "/v1alpha/projects/project/locations/location/instances/instance/legacySdk"
+    LOCAL_HOST_ADDRESS + "/v1alpha/projects/project/locations/location/instances/instance/legacySdk"
     ":legacy{}"
 )
 EXPECTED_ADDRESS = LOCAL_HOST_ADDRESS + "/api/external/v1/sdk/{}"
@@ -67,9 +66,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_try_set_context_property_address()
-            )
+            address = siemplify_address_provider.provide_try_set_context_property_address()
             # assert
             assert address == expected_address.format("TrySetContextProperty")
 
@@ -168,10 +165,8 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_failed_etl_operations_address(
-                    number_of_hours,
-                )
+            address = siemplify_address_provider.provide_get_failed_etl_operations_address(
+                number_of_hours,
             )
             # assert
             if support_one_platform:
@@ -198,10 +193,8 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_connector_parameters_address(
-                    connector_identifier,
-                )
+            address = siemplify_address_provider.provide_get_connector_parameters_address(
+                connector_identifier,
             )
             # assert
             if support_one_platform:
@@ -228,11 +221,9 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_set_connector_parameter_address(
-                    connector_identifier,
-                    param_name,
-                )
+            address = siemplify_address_provider.provide_set_connector_parameter_address(
+                connector_identifier,
+                param_name,
             )
             # assert
             if support_one_platform:
@@ -263,11 +254,9 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_set_configuration_property_address(
-                    integration_instance_identifier,
-                    property_name,
-                )
+            address = siemplify_address_provider.provide_set_configuration_property_address(
+                integration_instance_identifier,
+                property_name,
             )
             # assert
             if support_one_platform:
@@ -326,10 +315,8 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_integration_version_address(
-                    integration_instance_identifier,
-                )
+            address = siemplify_address_provider.provide_get_integration_version_address(
+                integration_instance_identifier,
             )
             # assert
             if support_one_platform:
@@ -355,9 +342,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_send_email_with_attachment_address()
-            )
+            address = siemplify_address_provider.provide_send_email_with_attachment_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
@@ -571,9 +556,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_alert_full_details_address()
-            )
+            address = siemplify_address_provider.provide_get_alert_full_details_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("AlertFullDetails"),
@@ -653,9 +636,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_dismissed_alerts_ticket_ids_address()
-            )
+            address = siemplify_address_provider.provide_dismissed_alerts_ticket_ids_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("GetTicketIdsForAlertsDismissedSinceTimestamp"),
@@ -861,9 +842,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_case_closure_details_address()
-            )
+            address = siemplify_address_provider.provide_get_case_closure_details_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("GetCaseClosureDetails"),
@@ -927,9 +906,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_mark_case_as_important_address()
-            )
+            address = siemplify_address_provider.provide_mark_case_as_important_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("MarkAsImportant"),
@@ -1009,9 +986,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_attach_workflow_to_case_address()
-            )
+            address = siemplify_address_provider.provide_attach_workflow_to_case_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("AttacheWorkflowToCase"),
@@ -1027,9 +1002,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_send_system_notification_address()
-            )
+            address = siemplify_address_provider.provide_send_system_notification_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("SendSystemNotification"),
@@ -1061,9 +1034,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_cases_ids_by_filter_address()
-            )
+            address = siemplify_address_provider.provide_get_cases_ids_by_filter_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("GetCasesIdByFilter"),
@@ -1079,9 +1050,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_check_marketplace_status_address()
-            )
+            address = siemplify_address_provider.provide_check_marketplace_status_address()
             # assert
             assert address == expected_address.format("CheckMarketplaceStatus")
 
@@ -1094,9 +1063,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_add_or_update_case_task_address()
-            )
+            address = siemplify_address_provider.provide_add_or_update_case_task_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("AddOrUpdateCaseTask"),
@@ -1170,9 +1137,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_remove_entities_from_list_address()
-            )
+            address = siemplify_address_provider.provide_remove_entities_from_list_address()
             # assert
             assert address == "{0}?{1}".format(
                 expected_address.format("RemoveEntitiesFromCustomList"),
@@ -1288,9 +1253,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_create_connector_package_address()
-            )
+            address = siemplify_address_provider.provide_create_connector_package_address()
             # assert
             assert address == expected_address.format("CreateConnectorPackage")
 
@@ -1306,21 +1269,16 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_add_agent_connector_logs_address(
-                    agent_id,
-                    connector_identifier,
-                )
+            address = siemplify_address_provider.provide_add_agent_connector_logs_address(
+                agent_id,
+                connector_identifier,
             )
             # assert
             if support_one_platform:
-                assert (
-                    address
-                    == "{0}?agentIdentifier={1}&connectorIdentifier={2}".format(
-                        expected_address.format("AddAgentConnectorLogs"),
-                        agent_id,
-                        connector_identifier,
-                    )
+                assert address == "{0}?agentIdentifier={1}&connectorIdentifier={2}".format(
+                    expected_address.format("AddAgentConnectorLogs"),
+                    agent_id,
+                    connector_identifier,
                 )
 
             else:
@@ -1339,9 +1297,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_sync_cases_metadata_address()
-            )
+            address = siemplify_address_provider.provide_get_sync_cases_metadata_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
@@ -1387,9 +1343,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_sync_alerts_metadata_address()
-            )
+            address = siemplify_address_provider.provide_get_sync_alerts_metadata_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(
@@ -1517,9 +1471,7 @@ class TestSiemplify:
                 support_one_platform,
             )
             # act
-            address = (
-                siemplify_address_provider.provide_get_new_alerts_to_sync_address()
-            )
+            address = siemplify_address_provider.provide_get_new_alerts_to_sync_address()
             # assert
             if support_one_platform:
                 assert address == "{0}?{1}".format(

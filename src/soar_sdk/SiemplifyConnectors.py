@@ -119,11 +119,7 @@ class SiemplifyConnectorExecution(SiemplifyBase):
     def parameters(self) -> dict[str, str]:
         connector_parameters = dict()
 
-        if (
-            self.context
-            and self.context.connector_info
-            and self.context.connector_info.params
-        ):
+        if self.context and self.context.connector_info and self.context.connector_info.params:
             for param in self.context.connector_info.params:
                 if param["param_name"] not in connector_parameters:
                     connector_parameters[param["param_name"]] = param["param_value"]

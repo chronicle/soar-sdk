@@ -196,9 +196,7 @@ class CaseWallData:
         self.case_action_wall_activities: list[CaseActionWallActivity] = []
         self.case_comment_wall_activities: list[CaseCommentWallActivity] = []
         self.case_evidence_walla_ctivities: list[CaseEvidenceWallActivity] = []
-        self.case_status_changed_wall_activities: list[
-            CaseStatusChangedWallActivity
-        ] = []
+        self.case_status_changed_wall_activities: list[CaseStatusChangedWallActivity] = []
         self.case_task_changed_wall_activities: list[CaseTaskChangedWallActivity] = []
         for case_action_wall_activitie in case_action_wall_activities:
             self.case_action_wall_activities.append(

@@ -2997,8 +2997,7 @@ class TestSiemplify:
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
                 siemplify.API_ROOT,
-                "external/v1/sdk/GetTicketIdsForAlertsDismissedSinceTimestamp?format"
-                "=snake",
+                "external/v1/sdk/GetTicketIdsForAlertsDismissedSinceTimestamp?format=snake",
             ),
             json=request_dict,
         )
@@ -3065,8 +3064,7 @@ class TestSiemplify:
         siemplify.session.post.assert_called_with(
             "{0}/{1}".format(
                 siemplify.API_ROOT,
-                "external/v1/sdk/GetAlertsTicketIdsFromCasesClosedSinceTimestamp"
-                "?format=snake",
+                "external/v1/sdk/GetAlertsTicketIdsFromCasesClosedSinceTimestamp?format=snake",
             ),
             json=request_dict,
         )
@@ -5868,10 +5866,7 @@ class TestSiemplify:
             assert sync_alerts[i].priority == json_result[i]["priority"]
             assert sync_alerts[i].status == json_result[i]["status"]
             assert sync_alerts[i].ticket_id == json_result[i]["ticket_id"]
-            assert (
-                sync_alerts[i].creation_time
-                == json_result[i]["creation_time_unix_time_in_ms"]
-            )
+            assert sync_alerts[i].creation_time == json_result[i]["creation_time_unix_time_in_ms"]
             assert sync_alerts[i].close_comment == json_result[i]["close_comment"]
             assert sync_alerts[i].close_reason == json_result[i]["close_reason"]
             assert sync_alerts[i].close_root_cause == json_result[i]["close_root_cause"]

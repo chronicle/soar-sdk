@@ -231,8 +231,7 @@ def convert_string_to_datetime(
                 dt = aware_dt.datetime
             else:
                 raise Exception(
-                    "no timezone info was supplied (either in input string or "
-                    "optional parameter",
+                    "no timezone info was supplied (either in input string or optional parameter",
                 )
 
         return dt
@@ -380,9 +379,7 @@ def add_prefix_to_dict_encoded_keys(
     """
     result_dict = {}
     for key, val in target_dict.items():
-        if (
-            is_python_37()
-        ):  # str represents unicode in python3 and thus we decode any bytes array
+        if is_python_37():  # str represents unicode in python3 and thus we decode any bytes array
             if isinstance(key, bytes):
                 key = key.decode(encoding, errors=error_handling)
             new_key = f"{prefix}_{key}"
@@ -392,9 +389,7 @@ def add_prefix_to_dict_encoded_keys(
                     encoding=ENCODING_UTF_8,
                     errors=error_handling,
                 )  # Key is now unicode
-            new_key = (
-                f"{prefix}_{key}"  # Implicitly converting prefix to unicode as well
-            )
+            new_key = f"{prefix}_{key}"  # Implicitly converting prefix to unicode as well
 
         result_dict[new_key] = val
 
@@ -715,7 +710,9 @@ def link_brother_envrionment(siemplify: Any, integration_identifier: str) -> Non
     :param integration_identifier: {str} Integration identifier
     :return: None
     """
-    integration_name = f"{integration_identifier}_V{siemplify.get_integration_version(integration_identifier)!s}"
+    integration_name = (
+        f"{integration_identifier}_V{siemplify.get_integration_version(integration_identifier)!s}"
+    )
     brother_directory = get_brother_virtualenv_directory(integration_name)
 
     # fix paths

@@ -75,24 +75,14 @@ class TestSiemplifyUtils:
         # With email in additional properties
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "test"
-        expected_output = {
-            f"{prefix}_{key}": value for key, value in list(target_dict.items())
-        }
-        assert (
-            SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix)
-            == expected_output
-        )
+        expected_output = {f"{prefix}_{key}": value for key, value in list(target_dict.items())}
+        assert SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix) == expected_output
 
         # None prefix
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = None
-        expected_output = {
-            f"{prefix}_{key}": value for key, value in list(target_dict.items())
-        }
-        assert (
-            SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix)
-            == expected_output
-        )
+        expected_output = {f"{prefix}_{key}": value for key, value in list(target_dict.items())}
+        assert SiemplifyUtils.add_prefix_to_dict_keys(target_dict, prefix) == expected_output
 
         # Invalid input
         target_dict = None
@@ -105,23 +95,17 @@ class TestSiemplifyUtils:
         # With email in additional properties
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "test"
-        expected_output = {
-            f"{prefix}_{key}": value for key, value in list(target_dict.items())
-        }
+        expected_output = {f"{prefix}_{key}": value for key, value in list(target_dict.items())}
         assert (
-            SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix)
-            == expected_output
+            SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix) == expected_output
         )
 
         # None prefix
         target_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = None
-        expected_output = {
-            f"{prefix}_{key}": value for key, value in list(target_dict.items())
-        }
+        expected_output = {f"{prefix}_{key}": value for key, value in list(target_dict.items())}
         assert (
-            SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix)
-            == expected_output
+            SiemplifyUtils.add_prefix_to_dict_encoded_keys(target_dict, prefix) == expected_output
         )
 
         # Invalid input
@@ -362,9 +346,7 @@ class TestSiemplifyUtils:
     def test_add_prefix_to_dict(self, mocker):
         given_dict = {"a": "1", "b": "2", "c": "3"}
         prefix = "data"
-        expected_output = {
-            f"{prefix}_{key}": value for key, value in list(given_dict.items())
-        }
+        expected_output = {f"{prefix}_{key}": value for key, value in list(given_dict.items())}
         assert SiemplifyUtils.add_prefix_to_dict(given_dict, prefix) == expected_output
 
         given_dict = None
@@ -492,8 +474,7 @@ class TestSiemplifyUtils:
                 dt = aware_dt.datetime
             else:
                 expected_output = Exception(
-                    "no timezone info was supplied (either in input string or "
-                    "optional parameter",
+                    "no timezone info was supplied (either in input string or optional parameter",
                 )
         else:
             expected_output = dt

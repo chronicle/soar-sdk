@@ -88,9 +88,7 @@ class PersistentFileStorageMixin:
             else DEFAULT_DIRECTORY_NAME
         )
         hashed_id = self._apply_hash(identifier)
-        destination_blob_name = (
-            f"{hashed_environment_name}/{hashed_playbook_instance}/{hashed_id}"
-        )
+        destination_blob_name = f"{hashed_environment_name}/{hashed_playbook_instance}/{hashed_id}"
         return destination_blob_name
 
     def _read_from_local_file(self, path: str) -> str:

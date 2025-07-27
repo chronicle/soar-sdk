@@ -345,10 +345,7 @@ class ScriptResult:
                 "Attachment cannot be larger than %d MB"
                 % int(self.MAX_ATTACHMENT_SIZE / 1024 / 1024),
             )
-        if (
-            attachment_size + self._total_attachment_size
-            > self.MAX_TOTAL_ATTACHMENT_SIZE
-        ):
+        if attachment_size + self._total_attachment_size > self.MAX_TOTAL_ATTACHMENT_SIZE:
             raise OSError(
                 "Total entity attachments cannot be larger than %d MB"
                 % int(self.MAX_TOTAL_ATTACHMENT_SIZE / 1024 / 1024),

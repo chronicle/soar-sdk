@@ -149,11 +149,7 @@ class OverflowManager:
         oad = overflow_alert_details
 
         if not self._settings.is_overflow_enabled:
-            alert_id = (
-                oad.alert_identifier
-                if oad
-                else "<given overflow_alert_details is empty>"
-            )
+            alert_id = oad.alert_identifier if oad else "<given overflow_alert_details is empty>"
             self.LOGGER.info(
                 f"Skipping overflow check for alert_id: {alert_id} as it is not enabled",
             )
@@ -193,10 +189,7 @@ class OverflowManager:
             # until we can unsure no customer code is calling it anymore
             # current_alert_last_notification_time = overflow_cache[alert_identifier][self.NOTIFICATION_TIME_KEY]
 
-            if (
-                len(current_alert_digestion_times)
-                < self._settings.max_alerts_in_time_period
-            ):
+            if len(current_alert_digestion_times) < self._settings.max_alerts_in_time_period:
                 result = False
 
             current_alert_digestion_times.append(SiemplifyUtils.unix_now())

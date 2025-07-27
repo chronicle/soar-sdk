@@ -171,7 +171,7 @@ class Siemplify(SiemplifyBase):
         proxy_settings = self._get_proxy_settings()
         SiemplifyUtils.set_proxy_state(proxy_settings)
 
-    def update_entities(self, updated_entities: dict[Any]) -> None:
+    def update_entities(self, updated_entities: list[DomainEntityInfo]) -> None:
         """Update entities
         :param updated_entities: {list of entities}
         """
@@ -1121,9 +1121,7 @@ class Siemplify(SiemplifyBase):
         custom_list_dicts = response.json()
 
         # Create CustomList objects from the custom list dicts
-        custom_lists = [
-            CustomList(**custom_list_dict) for custom_list_dict in custom_list_dicts
-        ]
+        custom_lists = [CustomList(**custom_list_dict) for custom_list_dict in custom_list_dicts]
         return custom_lists
 
     def remove_entities_from_custom_list(self, custom_list_items):
@@ -1142,9 +1140,7 @@ class Siemplify(SiemplifyBase):
         custom_list_dicts = response.json()
 
         # Create CustomList objects from the custom list dicts
-        custom_lists = [
-            CustomList(**custom_list_dict) for custom_list_dict in custom_list_dicts
-        ]
+        custom_lists = [CustomList(**custom_list_dict) for custom_list_dict in custom_list_dicts]
         return custom_lists
 
     def get_existing_custom_list_categories(self):
@@ -1347,11 +1343,8 @@ class Siemplify(SiemplifyBase):
         ):
             raise Exception("'update_time_from_unix_time_in_ms' timestamp is invalid")
 
-        if (
-            update_time_to_unix_time_in_ms is not None
-            and not SiemplifyUtils.is_unixtimestamp_valid(
-                update_time_to_unix_time_in_ms,
-            )
+        if update_time_to_unix_time_in_ms is not None and not SiemplifyUtils.is_unixtimestamp_valid(
+            update_time_to_unix_time_in_ms,
         ):
             raise Exception("'update_time_to_unix_time_in_ms' timestamp is invalid")
 
@@ -1414,10 +1407,7 @@ class Siemplify(SiemplifyBase):
         if sort_order is None:
             sort_order = CaseFilterSortOrderEnum.DESC
 
-        if (
-            status == CaseFilterStatusEnum.OPEN
-            and sort_by == CaseFilterSortByEnum.CLOSE_TIME
-        ):
+        if status == CaseFilterStatusEnum.OPEN and sort_by == CaseFilterSortByEnum.CLOSE_TIME:
             raise Exception(
                 "Case status 'OPEN' cannot be provided with 'CLOSE_TIME' sort by filter type",
             )
@@ -1528,9 +1518,7 @@ class Siemplify(SiemplifyBase):
         address = self.address_provider.provide_update_cases_address()
 
         request = {
-            "case_ids_matches": [
-                case_id_match.__dict__ for case_id_match in case_id_matches
-            ],
+            "case_ids_matches": [case_id_match.__dict__ for case_id_match in case_id_matches],
         }
         response = self.session.post(address, json=request)
         self.validate_siemplify_error(response)
@@ -1599,21 +1587,15 @@ class Siemplify(SiemplifyBase):
                 int(raw_alert["status"]),
                 str(raw_alert["ticket_id"]),
                 int(raw_alert["creation_time_unix_time_in_ms"]),
-                None
-                if raw_alert["close_comment"] is None
-                else str(raw_alert["close_comment"]),
-                None
-                if raw_alert["close_reason"] is None
-                else int(raw_alert["close_reason"]),
+                None if raw_alert["close_comment"] is None else str(raw_alert["close_comment"]),
+                None if raw_alert["close_reason"] is None else int(raw_alert["close_reason"]),
                 None
                 if raw_alert["close_root_cause"] is None
                 else str(raw_alert["close_root_cause"]),
                 None
                 if raw_alert["close_usefulness"] is None
                 else int(raw_alert["close_usefulness"]),
-                None
-                if raw_alert.get("siem_alert_id") is None
-                else str(raw_alert["siem_alert_id"]),
+                None if raw_alert.get("siem_alert_id") is None else str(raw_alert["siem_alert_id"]),
             )
             for raw_alert in raw_alerts
         ]

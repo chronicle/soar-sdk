@@ -161,9 +161,7 @@ class CyberCaseInfo(Base):
     @property
     def end_time(self) -> int:
         return (
-            int(self.additional_properties.get("EndTime", 0))
-            if self.additional_properties
-            else 0
+            int(self.additional_properties.get("EndTime", 0)) if self.additional_properties else 0
         )
 
 
@@ -576,9 +574,9 @@ class Alert(AlertInfo):
             additional_data,
         )
 
-        self.security_events = []
-        self.relations = []
-        self.entities = []
+        self.security_events: list[SecurityEventInfo] = []
+        self.relations: list[DomainRelationInfo] = []
+        self.entities: list[DomainEntityInfo] = []
         self.tags = tags
 
         for security_event in security_events:
