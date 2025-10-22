@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 import pytest
 
 from soar_sdk.SiemplifyAddressProvider import SiemplifyAddressProvider
@@ -155,7 +157,7 @@ class TestSiemplify:
                     FORMAT_QUERY_PARAM,
                 )
 
-    def test_get_failed_jobs_address(self):
+    def test_get_failed_etl_operations_address(self):
         # arrange
         sdk_config = SiemplifySdkConfig()
         number_of_hours = 4
@@ -440,28 +442,37 @@ class TestSiemplify:
         sdk_config = SiemplifySdkConfig()
         case_id = 4
         for support_one_platform, expected_address in test_cases:
-            siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config,
-                support_one_platform,
-            )
+            siemplify_address_provider = SiemplifyAddressProvider(sdk_config, support_one_platform)
             # act
-            address = siemplify_address_provider.provide_get_case_comments_address(
-                case_id,
+            address_false = siemplify_address_provider.provide_get_case_comments_address(
+                case_id, fetch_updates=False,
             )
+            address_true = siemplify_address_provider.provide_get_case_comments_address(
+                case_id, fetch_updates=True,
+            )
+
             # assert
             if support_one_platform:
-                assert address == "{0}?caseId={1}&{2}".format(
-                    expected_address.format("GetCaseComments"),
-                    case_id,
-                    FORMAT_QUERY_PARAM,
+                expected_url_false = "{0}?caseId={1}&fetchUpdates={2}&{3}".format(
+                    expected_address.format("GetCaseComments"), case_id, False, FORMAT_QUERY_PARAM,
+                )
+                expected_url_true = "{0}?caseId={1}&fetchUpdates={2}&{3}".format(
+                    expected_address.format("GetCaseComments"), case_id, True, FORMAT_QUERY_PARAM,
                 )
 
+                assert address_false == expected_url_false
+                assert address_true == expected_url_true
+
             else:
-                assert address == "{0}/{1}?{2}".format(
-                    expected_address.format("GetCaseComments"),
-                    case_id,
-                    FORMAT_QUERY_PARAM,
+                expected_url_false = "{0}/{1}?fetchUpdates={2}&{3}".format(
+                    expected_address.format("GetCaseComments"), case_id, False, FORMAT_QUERY_PARAM,
                 )
+                expected_url_true = "{0}/{1}?fetchUpdates={2}&{3}".format(
+                    expected_address.format("GetCaseComments"), case_id, True, FORMAT_QUERY_PARAM,
+                )
+
+                assert address_false == expected_url_false
+                assert address_true == expected_url_true
 
     def test_get_attachment_data_address(self):
         # arrange
@@ -488,34 +499,6 @@ class TestSiemplify:
                 assert address == "{0}/{1}?{2}".format(
                     expected_address.format("AttachmentData"),
                     attachment_id,
-                    FORMAT_QUERY_PARAM,
-                )
-
-    def test_get_system_info_address(self):
-        # arrange
-        sdk_config = SiemplifySdkConfig()
-        start_time_unixtime_ms = "10"
-        for support_one_platform, expected_address in test_cases:
-            siemplify_address_provider = SiemplifyAddressProvider(
-                sdk_config,
-                support_one_platform,
-            )
-            # act
-            address = siemplify_address_provider.provide_get_system_info_address(
-                start_time_unixtime_ms,
-            )
-            # assert
-            if support_one_platform:
-                assert address == "{0}?lastRunEpochMs={1}&{2}".format(
-                    expected_address.format("SystemInfo"),
-                    start_time_unixtime_ms,
-                    FORMAT_QUERY_PARAM,
-                )
-
-            else:
-                assert address == "{0}/{1}?{2}".format(
-                    expected_address.format("SystemInfo"),
-                    start_time_unixtime_ms,
                     FORMAT_QUERY_PARAM,
                 )
 
@@ -794,7 +777,7 @@ class TestSiemplify:
                 FORMAT_QUERY_PARAM,
             )
 
-    def test_change_case_stage_address(self):
+    def test_change_case_priority_address(self):
         # arrange
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
@@ -865,7 +848,7 @@ class TestSiemplify:
                 FORMAT_QUERY_PARAM,
             )
 
-    def test_dismiss_alert_address(self):
+    def test_close_alert_address(self):
         # arrange
         sdk_config = SiemplifySdkConfig()
         for support_one_platform, expected_address in test_cases:
