@@ -25,9 +25,9 @@ from sys import stderr
 from typing import Any, Never
 
 import arrow
-import six
-
 import SiemplifyUtils
+import six
+from SiemplifyConnectorsDataModel import ConnectorContext
 from SiemplifyDataModel import (
     ActionLogRecord,
     ConnectorLogRecord,
@@ -38,6 +38,7 @@ from SiemplifyUtils import is_at_least_python_3_11, is_python_37
 
 
 class LogLevelEnum:
+    DEBUG = 0
     INFO = 1
     WARN = 2
     ERROR = 3
@@ -55,6 +56,7 @@ class SiemplifyLogger:
         log_location: str = DEFAULT_LOG_LOCATION,
         module: str | None = None,
         logs_collector: FileLogsCollector | None = None,
+        debug_mode: bool | None = None,
     ) -> None:
         self.config_file_path = path.join(
             path.dirname(__file__),
@@ -64,11 +66,15 @@ class SiemplifyLogger:
         self._log = None
         self._logs_collector = logs_collector
         self._log_rows = []
+        self._debug_mode = debug_mode
+
         try:
             config = self.loadConfigFromFile(log_path, log_location)
             logging.config.dictConfig(config)
             self._log = logging.getLogger(self.DEFAULT_LOGGER_NAME)
             self.module = module
+            if self._debug_mode:
+                self.set_log_level(logging.DEBUG)
         except:
             SiemplifyLogger.print_to_stderr("LOGGER: Error initializing")
             traceback.print_exc()
@@ -95,7 +101,7 @@ class SiemplifyLogger:
 
     def exception(self, message: str | Exception, *args: Never, **kwargs: Any) -> None:
         """Configure log - type exception
-        :param message: {string} exception message
+        :param message: {string} message
         """
         self._error_logged = True
 
@@ -126,9 +132,15 @@ class SiemplifyLogger:
         except Exception:
             SiemplifyLogger.print_to_stderr("LOGGER.exception FAILED.")
 
+    def set_log_level(self, level: str | int) -> None:
+        if self._log:
+            self._log.setLevel(level)
+            for handler in self._log.handlers:
+                handler.setLevel(level)
+
     def error(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type error
-        :param message: {string} exception message
+        :param message: {string} message
         """
         self._error_logged = True
 
@@ -149,7 +161,7 @@ class SiemplifyLogger:
 
     def warn(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type warn
-        :param message: {string} exception message
+        :param message: {string} message
         """
         try:
             self.append_message(message, LogLevelEnum.WARN)
@@ -162,13 +174,35 @@ class SiemplifyLogger:
                 else:
                     self._log.warn(message)
             if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.ERROR)
+                self._logs_collector.collect(message, LogRecordTypeEnum.WARN)
         except:
             SiemplifyLogger.print_to_stderr("LOGGER.warn FAILED")
 
+    def debug(self, message: str, *args: Never, **kwargs: Any) -> None:
+        """Configure log - type debug
+        :param message: {string} message
+        """
+        if not self._debug_mode:
+            return
+
+        try:
+            self.append_message(message, LogLevelEnum.DEBUG)
+            self.safe_print(message)
+            if self._log:
+                if self.module:
+                    kwargs.update({"module": self.module})
+                if kwargs:
+                    self._log.debug(message.replace("%", "%%"), kwargs)
+                else:
+                    self._log.debug(message)
+            if self._logs_collector:
+                self._logs_collector.collect(message, LogRecordTypeEnum.KEEP_ALIVE)
+        except:
+            SiemplifyLogger.print_to_stderr("LOGGER.debug FAILED")
+
     def info(self, message: str, *args: Never, **kwargs: Any) -> None:
         """Configure log - type info
-        :param message: {string} exception message
+        :param message: {string} message
         """
         try:
             self.append_message(message, LogLevelEnum.INFO)
@@ -185,7 +219,7 @@ class SiemplifyLogger:
         except Exception:
             SiemplifyLogger.print_to_stderr("LOGGER.info FAILED")
 
-    def append_message(self, message: str, log_level: LogLevelEnum) -> None:
+    def append_message(self, message: str | Exception, log_level: LogLevelEnum) -> None:
         try:
             log_row = LogRow(
                 message=SiemplifyLogger.encode(str(message)),
@@ -246,6 +280,11 @@ class SiempplifyConnectorsLogger:
         print(msg)
         self._log_items.append(msg)
 
+    def debug(self, message: str) -> None:
+        msg = "DEBUG | " + str(message)
+        print(msg)
+        self._log_items.append(msg)
+
     def info(self, message: str) -> None:
         msg = "INFO | " + str(message)
         print(msg)
@@ -262,12 +301,12 @@ class FileLogsCollector:
     @abstractmethod
     def create_log_record(
         self,
-        message: str,
+        message: str | Exception,
         log_type: LogLevelEnum,
     ) -> ActionLogRecord | ConnectorLogRecord:
         raise NotImplementedError
 
-    def collect(self, message: str, log_type: LogRecordTypeEnum) -> None:
+    def collect(self, message: str | Exception, log_type: LogRecordTypeEnum) -> None:
         log_record = self.create_log_record(message, log_type)
         log_items = []
         try:
@@ -290,14 +329,14 @@ class ConnectorsFileLogsCollector(FileLogsCollector):
     def __init__(
         self,
         file_dir: str,
-        connector_context: dict[str, Any],
+        connector_context: ConnectorContext,
     ) -> None:
         super(ConnectorsFileLogsCollector, self).__init__(file_dir)
         self.connector_context = connector_context
 
     def create_log_record(
         self,
-        message: str,
+        message: str | Exception,
         log_type: LogLevelEnum,
     ) -> ConnectorLogRecord:
         log_record = ConnectorLogRecord(
@@ -322,7 +361,7 @@ class ActionsFileLogsCollector(FileLogsCollector):
 
     def create_log_record(
         self,
-        message: str,
+        message: str | Exception,
         log_type: LogRecordTypeEnum,
     ) -> ActionLogRecord:
         log_record = ActionLogRecord(

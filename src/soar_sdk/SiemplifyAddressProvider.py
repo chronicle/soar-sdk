@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from SiemplifySdkConfig import SiemplifySdkConfig
+
 BASE_SDK_CONTROLLER_URL_FORMAT = "external/v1/sdk/{}"
 BASE_1P_SDK_CONTROLLER_VERSION = "v1alpha"
 BASE_1P_SDK_CONTROLLER_URL_FORMAT = "legacySdk:legacy{}"
@@ -147,7 +149,7 @@ SDK_ENDPOINT_URLS = {
     SdkEndpoint.ATTACH_WORKFLOW_TO_CASE: "AttacheWorkflowToCase",
     SdkEndpoint.GET_CASES_BY_FILTER: "GetCasesByFilter",
     SdkEndpoint.GET_CASES_IDS_BY_FILTER: "GetCasesIdByFilter",
-    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments/{}",
+    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments/{}?fetchUpdates={}",
     SdkEndpoint.ADD_OR_UPDATE_CASE_TASK: "AddOrUpdateCaseTask",
     SdkEndpoint.GET_CASE_TASKS: "GetCaseTasks/{}",
     SdkEndpoint.GET_SYNC_CASES_METADATA: "sync/cases/metadata",
@@ -222,7 +224,7 @@ SDK_1P_ENDPOINT_URLS = {
     SdkEndpoint.ATTACH_WORKFLOW_TO_CASE: "AttacheWorkflowToCase",
     SdkEndpoint.GET_CASES_BY_FILTER: "GetCasesByFilter",
     SdkEndpoint.GET_CASES_IDS_BY_FILTER: "GetCasesIdByFilter",
-    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments?caseId={}",
+    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments/{}?fetchUpdates={}",
     SdkEndpoint.ADD_OR_UPDATE_CASE_TASK: "AddOrUpdateCaseTask",
     SdkEndpoint.GET_CASE_TASKS: "GetCaseTasks?caseId={}",
     SdkEndpoint.GET_SYNC_CASES_METADATA: "GetUpdatedSyncCasesMetadata",
@@ -249,14 +251,10 @@ SDK_1P_ENDPOINT_URLS = {
 
 
 class SiemplifyAddressProvider:
-    def __init__(self, sdk_config: object, support_one_platform: bool) -> None:
+    def __init__(self, sdk_config: SiemplifySdkConfig, support_one_platform: bool) -> None:
         if support_one_platform:
-            self.API_BASE_ROOT = "{0}/{1}".format(
-                sdk_config.one_platform_api_root_uri_format.format(
-                    BASE_1P_SDK_CONTROLLER_VERSION,
-                ),
-                BASE_1P_SDK_CONTROLLER_URL_FORMAT,
-            )
+            uri = sdk_config.one_platform_api_root_uri_format.format(BASE_1P_SDK_CONTROLLER_VERSION)
+            self.API_BASE_ROOT = f"{uri}/{BASE_1P_SDK_CONTROLLER_URL_FORMAT}"
             self.endpoint_mapper = SDK_1P_ENDPOINT_URLS
         else:
             self.API_BASE_ROOT = f"{sdk_config.api_root_uri}/{BASE_SDK_CONTROLLER_URL_FORMAT}"
@@ -277,15 +275,11 @@ class SiemplifyAddressProvider:
         )
 
     def provide_get_failed_actions_address(self, number_of_hours: int) -> str:
-        address = self._create_address(SdkEndpoint.GET_FAILED_ACTIONS).format(
-            number_of_hours,
-        )
+        address = self._create_address(SdkEndpoint.GET_FAILED_ACTIONS).format(number_of_hours)
         return _build_address_with_format_query_param(address)
 
     def provide_get_failed_jobs_address(self, number_of_hours: int) -> str:
-        address = self._create_address(SdkEndpoint.GET_FAILED_JOBS).format(
-            number_of_hours,
-        )
+        address = self._create_address(SdkEndpoint.GET_FAILED_JOBS).format(number_of_hours)
         return _build_address_with_format_query_param(address)
 
     def provide_get_failed_etl_operations_address(self, number_of_hours: int) -> str:
@@ -294,10 +288,7 @@ class SiemplifyAddressProvider:
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_connector_parameters_address(
-        self,
-        connector_identifier: str,
-    ) -> str:
+    def provide_get_connector_parameters_address(self, connector_identifier: str) -> str:
         return self._create_address(SdkEndpoint.GET_CONNECTOR_PARAMETERS).format(
             connector_identifier,
         )
@@ -325,18 +316,19 @@ class SiemplifyAddressProvider:
         integration_instance_identifier: str,
         property_name: str,
     ) -> str:
-        address = self._create_address(
-            SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY,
-        ).format(integration_instance_identifier, property_name)
+        address = self._create_address(SdkEndpoint.SET_INTEGRATION_CONFIGURATION_PROPERTY).format(
+            integration_instance_identifier,
+            property_name,
+        )
         return _build_address_with_format_query_param(address)
 
     def provide_get_integration_configuration_address(
         self,
         integration_instance_identifier: str,
     ) -> str:
-        address = self._create_address(
-            SdkEndpoint.GET_INTEGRATION_CONFIGURATION,
-        ).format(integration_instance_identifier)
+        address = self._create_address(SdkEndpoint.GET_INTEGRATION_CONFIGURATION).format(
+            integration_instance_identifier,
+        )
         return _build_address_with_format_query_param(address)
 
     def provide_get_integration_version_address(
@@ -352,271 +344,265 @@ class SiemplifyAddressProvider:
         address = self._create_address(SdkEndpoint.SEND_EMAIL_WITH_ATTACHMENT)
         return _build_address_with_format_query_param(address)
 
-    def provide_add_attachment_address(self):
+    def provide_add_attachment_address(self) -> str:
         address = self._create_address(SdkEndpoint.ADD_ATTACHMENT)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_proxy_settings_address(self):
+    def provide_get_proxy_settings_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_PROXY_SETTINGS),
         )
 
-    def provide_update_entities_address(self):
+    def provide_update_entities_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.UPDATE_ENTITIES),
         )
 
-    def provide_get_system_info_address(self, start_time_unixtime_ms):
+    def provide_get_system_info_address(self, start_time_unixtime_ms: int) -> str:
         address = self._create_address(SdkEndpoint.GET_SYSTEM_INFO).format(
             start_time_unixtime_ms,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_system_version_address(self):
+    def provide_get_system_version_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SYSTEM_VERSION),
         )
 
-    def provide_send_system_notification_address(self):
+    def provide_send_system_notification_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.SEND_SYSTEM_NOTIFICATION),
         )
 
-    def provide_get_case_metadata_address(self, case_id):
+    def provide_get_case_metadata_address(self, case_id: int | str) -> str:
         address = self._create_address(SdkEndpoint.GET_CASE_METADATA).format(case_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_set_case_sla_address(self, case_id):
+    def provide_set_case_sla_address(self, case_id: int | str) -> str:
         address = self._create_address(SdkEndpoint.SET_CASE_SLA).format(case_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_set_alert_sla_address(self, case_id, alert_identifier):
+    def provide_set_alert_sla_address(self, case_id: int | str, alert_identifier: str) -> str:
         address = self._create_address(SdkEndpoint.SET_ALERT_SLA).format(
             case_id,
             alert_identifier,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_case_attachments_address(self, case_id):
+    def provide_get_case_attachments_address(self, case_id: int | str) -> str:
         address = self._create_address(SdkEndpoint.GET_CASE_ATTACHMENTS).format(case_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_case_comments_address(self, case_id):
-        address = self._create_address(SdkEndpoint.GET_CASE_COMMENTS).format(case_id)
+    def provide_get_case_comments_address(
+        self,
+        case_id: str | int,
+        fetch_updates: bool = False,
+    ) -> str:
+        address = self._create_address(SdkEndpoint.GET_CASE_COMMENTS).format(case_id, fetch_updates)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_attachment_data_address(self, attachment_id):
-        address = self._create_address(SdkEndpoint.GET_ATTACHMENT_DATA).format(
-            attachment_id,
-        )
+    def provide_get_attachment_data_address(self, attachment_id: str) -> str:
+        address = self._create_address(SdkEndpoint.GET_ATTACHMENT_DATA).format(attachment_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_alert_full_details_address(self):
+    def provide_get_alert_full_details_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_ALERT_FULL_DETAILS),
         )
 
-    def provide_update_alert_additional_data_address(self):
+    def provide_update_alert_additional_data_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.UPDATE_ALERT_ADDITIONAL_DATA),
         )
 
-    def provide_dismissed_alerts_ticket_ids_address(self):
+    def provide_dismissed_alerts_ticket_ids_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_DISMISSED_ALERTS_TICKET_IDS),
         )
 
-    def provide_close_case_alerts_ticket_ids_address(self):
+    def provide_close_case_alerts_ticket_ids_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_CLOSE_CASE_ALERTS_TICKET_IDS),
         )
 
-    def provide_case_alerts_ticket_ids_address(self, case_id):
-        address = self._create_address(SdkEndpoint.GET_CASE_ALERTS_TICKET_IDS).format(
-            case_id,
-        )
+    def provide_case_alerts_ticket_ids_address(self, case_id: int | str) -> str:
+        address = self._create_address(SdkEndpoint.GET_CASE_ALERTS_TICKET_IDS).format(case_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_assign_user_address(self):
+    def provide_assign_user_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ASSIGN_USER),
         )
 
-    def provide_add_tag_address(self):
+    def provide_add_tag_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ADD_TAG),
         )
 
-    def provide_get_similar_cases_ids_address(self):
+    def provide_get_similar_cases_ids_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SIMILAR_CASES_IDS),
         )
 
-    def provide_change_case_stage_address(self):
+    def provide_change_case_stage_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.CHANGE_CASE_STAGE),
         )
 
-    def provide_change_case_priority_address(self):
+    def provide_change_case_priority_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.CHANGE_CASE_PRIORITY),
         )
 
-    def provide_close_case_address(self):
-        return _build_address_with_format_query_param(
-            self._create_address(SdkEndpoint.CLOSE_CASE),
-        )
+    def provide_close_case_address(self) -> str:
+        return _build_address_with_format_query_param(self._create_address(SdkEndpoint.CLOSE_CASE))
 
-    def provide_get_case_closure_details_address(self):
+    def provide_get_case_closure_details_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_CASE_CLOSURE_DETAILS),
         )
 
-    def provide_mark_case_as_important_address(self):
+    def provide_mark_case_as_important_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.MARK_CASE_AS_IMPORTANT),
         )
 
-    def provide_create_case_insight_address(self):
+    def provide_create_case_insight_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.CREATE_CASE_INSIGHT),
         )
 
-    def provide_create_case_address(self):
-        return _build_address_with_format_query_param(
-            self._create_address(SdkEndpoint.CREATE_CASE),
-        )
+    def provide_create_case_address(self) -> str:
+        return _build_address_with_format_query_param(self._create_address(SdkEndpoint.CREATE_CASE))
 
-    def provide_create_entity_address(self):
+    def provide_create_entity_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.CREATE_ENTITY),
         )
 
     def provide_get_case_full_details_address(
         self,
-        case_id,
-        populate_original_file=False,
-    ):
+        case_id: int | str,
+        populate_original_file: bool = False,
+    ) -> str:
         address = self._create_address(SdkEndpoint.GET_CASE_FULL_DETAILS).format(
             case_id,
             populate_original_file,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_dismiss_alert_address(self):
+    def provide_dismiss_alert_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.DISMISSED_ALERT),
         )
 
-    def provide_close_alert_address(self):
-        return _build_address_with_format_query_param(
-            self._create_address(SdkEndpoint.CLOSE_ALERT),
-        )
+    def provide_close_alert_address(self) -> str:
+        return _build_address_with_format_query_param(self._create_address(SdkEndpoint.CLOSE_ALERT))
 
-    def provide_raise_incident_address(self):
+    def provide_raise_incident_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.RAISE_INCIDENT),
         )
 
-    def provide_attach_workflow_to_case_address(self):
+    def provide_attach_workflow_to_case_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ATTACH_WORKFLOW_TO_CASE),
         )
 
-    def provide_get_cases_by_filter_address(self):
+    def provide_get_cases_by_filter_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_CASES_BY_FILTER),
         )
 
-    def provide_get_cases_ids_by_filter_address(self):
+    def provide_get_cases_ids_by_filter_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_CASES_IDS_BY_FILTER),
         )
 
-    def provide_check_marketplace_status_address(self):
+    def provide_check_marketplace_status_address(self) -> str:
         return self._create_address(SdkEndpoint.CHECK_MARKETPLACE_STATUS)
 
-    def provide_add_or_update_case_task_address(self):
+    def provide_add_or_update_case_task_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ADD_OR_UPDATE_CASE_TASK),
         )
 
-    def provide_get_case_tasks_address(self, case_id):
+    def provide_get_case_tasks_address(self, case_id: int | str) -> str:
         address = self._create_address(SdkEndpoint.GET_CASE_TASKS).format(case_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_sync_cases_metadata_address(self):
+    def provide_get_sync_cases_metadata_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SYNC_CASES_METADATA),
         )
 
-    def provide_get_sync_alerts_metadata_address(self):
+    def provide_get_sync_alerts_metadata_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SYNC_ALERTS_METADATA),
         )
 
-    def provide_get_sync_alerts_address(self):
+    def provide_get_sync_alerts_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SYNC_ALERTS),
         )
 
-    def provide_get_new_alerts_to_sync_address(self):
+    def provide_get_new_alerts_to_sync_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_NEW_ALERTS_TO_SYNC),
         )
 
-    def provide_update_new_alerts_sync_status_address(self):
+    def provide_update_new_alerts_sync_status_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.UPDATE_NEW_ALERTS_SYNC_STATUS),
         )
 
-    def provide_get_sync_cases_address(self):
+    def provide_get_sync_cases_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_SYNC_CASES),
         )
 
-    def provide_update_cases_address(self):
+    def provide_update_cases_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.UPDATE_CASES),
         )
 
-    def provide_any_entity_in_list_address(self):
+    def provide_any_entity_in_list_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ANY_ENTITY_IN_LIST),
         )
 
-    def provide_add_entities_to_list_address(self):
+    def provide_add_entities_to_list_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.ADD_ENTITIES_TO_LIST),
         )
 
-    def provide_remove_entities_from_list_address(self):
+    def provide_remove_entities_from_list_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.REMOVE_ENTITIES_FROM_LIST),
         )
 
-    def provide_get_custom_categories_address(self):
+    def provide_get_custom_categories_address(self) -> str:
         return _build_address_with_format_query_param(
             self._create_address(SdkEndpoint.GET_CUSTOM_CATEGORIES),
         )
 
-    def provide_get_remote_connectors_keys_map_address(self, publisher_id):
+    def provide_get_remote_connectors_keys_map_address(self, publisher_id: str) -> str:
         address = self._create_address(
             SdkEndpoint.GET_REMOTE_CONNECTORS_KEYS_MAP,
         ).format(publisher_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_get_publisher_by_id_address(self, publisher_id):
+    def provide_get_publisher_by_id_address(self, publisher_id: str) -> str:
         address = self._create_address(SdkEndpoint.GET_PUBLISHER_BY_ID).format(
             publisher_id,
         )
         return _build_address_with_format_query_param(address)
 
-    def provide_get_agent_by_id_address(self, agent_id):
+    def provide_get_agent_by_id_address(self, agent_id) -> str:
         address = self._create_address(SdkEndpoint.GET_AGENT_BY_ID).format(agent_id)
         return _build_address_with_format_query_param(address)
 
-    def provide_add_agent_connector_logs_address(self, agent_id, connector_id):
+    def provide_add_agent_connector_logs_address(self, agent_id, connector_id) -> str:
         return self._create_address(SdkEndpoint.ADD_AGENT_CONNECTOR_LOGS).format(
             agent_id,
             connector_id,
@@ -624,9 +610,9 @@ class SiemplifyAddressProvider:
 
     def provide_get_alerts_full_details_address(
         self,
-        case_id,
-        populate_original_file=False,
-    ):
+        case_id: int | str,
+        populate_original_file: bool = False,
+    ) -> str:
         address = self._create_address(SdkEndpoint.GET_ALERTS_FULL_DETAILS).format(
             case_id,
             populate_original_file,

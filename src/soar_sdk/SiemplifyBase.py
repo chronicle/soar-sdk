@@ -25,8 +25,8 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
-
-import SiemplifyLogger, SiemplifyUtils
+import SiemplifyLogger
+import SiemplifyUtils
 from GcpTokenProvider import GcpTokenProvider
 from SiemplifyAddressProvider import SiemplifyAddressProvider
 from SiemplifyPublisherUtils import SiemplifySession
@@ -60,6 +60,7 @@ class SiemplifyBase:
         )
         self.is_locally_scheduled_remote_connector: bool = False
         self._one_platform_support: bool = False
+        self.debug_mode: bool = False
 
         options, _ = getopt.gnu_getopt(
             sys.argv[1:],
@@ -107,7 +108,7 @@ class SiemplifyBase:
                 if self.sdk_config.ignore_ca_bundle:
                     del os.environ[REQUEST_CA_BUNDLE]
                 else:
-                    self.LOGGER.warning(
+                    self.LOGGER.warn(
                         f"Environment Variables cannot contain key {REQUEST_CA_BUNDLE}, please remove "
                         "it.",
                     )
@@ -208,7 +209,10 @@ class SiemplifyBase:
                 self._log_path,
                 log_location=self.log_location,
                 logs_collector=self._logs_collector,
+                debug_mode=self.debug_mode,
             )
+
+            _GlobalLoggerContext.logger = self._logger
 
         return self._logger
 
@@ -539,14 +543,25 @@ class SiemplifyBase:
         return sys.stdin.read()
 
     def termination_signal_handler(self, sig: int, _: Any) -> None:
-        self.LOGGER.warning(f"Termination signal [{sig}] received, exiting...")
+        self.LOGGER.warn(f"Termination signal [{sig}] received, exiting...")
         sys.exit(-self.SIGNAL_CODES[sig])
 
     def cancellation_signal_handler(self, sig: int, _: Any) -> None:
-        self.LOGGER.warning(
+        self.LOGGER.warn(
             f"Cancellation signal [{sig}] received, ignoring to finish execution gracefully.",
         )
 
 
 class MaximumContextLengthException(Exception):
     """Custom exception for the set context method"""
+
+
+class _GlobalLoggerContext:
+    logger: SiemplifyLogger.SiemplifyLogger | None = None
+
+
+def get_logger() -> SiemplifyLogger.SiemplifyLogger | None:
+    """Static way to get the logger
+    :return: the siemplify logger instance
+    """
+    return _GlobalLoggerContext.logger

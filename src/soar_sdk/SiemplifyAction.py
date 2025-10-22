@@ -19,7 +19,6 @@ import os
 from typing import Any
 
 import requests
-
 import SiemplifyUtils
 from CaseAlertsProvider import CaseAlertsProvider
 from PersistentFileStorageMixin import PersistentFileStorageMixin
@@ -30,9 +29,9 @@ from SiemplifyDataModel import (
     CustomList,
     CyberCase,
     CyberCaseLazy,
+    DomainEntityInfo,
     InsightSeverity,
     InsightType,
-    DomainEntityInfo,
 )
 from SiemplifyLogger import ActionsFileLogsCollector
 from SiemplifyUtils import (
@@ -198,7 +197,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         for alert in self.case.alerts:
             if alert.identifier == self.alert_id:
                 return alert
-        self.LOGGER.warning(f"Could not find alert {self.alert_id}")
+        self.LOGGER.warn(f"Could not find alert {self.alert_id}")
         return None
 
     def _load_alert(self) -> None:
@@ -1116,8 +1115,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             return response.json()
         except requests.exceptions.JSONDecodeError as e:
             message = (
-                "Could not generate case summary, unexpected json response: {0}. Error: {1}"
-            ).format(response.content, e)
+                f"Could not generate case summary, unexpected json response: {response.content}."
+                f" Error: {e}"
+            )
             self.LOGGER.error(message)
             raise Exception(message)
         except requests.HTTPError as e:
