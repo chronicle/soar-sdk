@@ -30,7 +30,6 @@ from typing import (
 )
 
 import requests
-
 import SiemplifyUtils
 from ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
 from SiemplifyBase import SiemplifyBase
@@ -1443,7 +1442,7 @@ class Siemplify(SiemplifyBase):
             shutil.rmtree(self.temp_folder_path)
 
     def termination_signal_handler(self, sig, _):
-        self.LOGGER.warning(f"Termination signal [{sig}] received, exiting...")
+        self.LOGGER.warn(f"Termination signal [{sig}] received, exiting...")
         self.remove_temp_folder()
         sys.exit(-self.SIGNAL_CODES[sig])
 

@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING
 
 import requests
 from requests import HTTPError
-
 from SiemplifyUtils import ENCODING_UTF_8
 
 if TYPE_CHECKING:
@@ -92,13 +91,13 @@ class PersistentFileStorageMixin:
         return destination_blob_name
 
     def _read_from_local_file(self, path: str) -> str:
-        self.logger.warning("The data is going to be fetched from a local file.")
+        self.logger.warn("The data is going to be fetched from a local file.")
         with open(path, "rb") as f:
             data = f.read()
         return data
 
-    def _write_to_local_file(self, path: str, data: str) -> None:
-        self.logger.warning("The data is going to be saved locally.")
+    def _write_to_local_file(self, path: str, data: bytes) -> None:
+        self.logger.warn("The data is going to be saved locally.")
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "wb") as f:
             f.write(data)

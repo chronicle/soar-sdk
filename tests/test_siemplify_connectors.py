@@ -275,7 +275,7 @@ class TestSiemplifyConnectors:
         )
         assert not siemplify_connectors.context.vault_settings
         siemplify_connectors.context.vault_settings = siemplify_connectors.extract_connector_param(
-            param_name="test"
+            param_name="test",
         )
         response = siemplify_connectors.extract_connector_param(param_name="test")
 

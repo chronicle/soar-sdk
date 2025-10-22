@@ -20,7 +20,6 @@ from SiemplifyBase import SiemplifyBase
 
 if TYPE_CHECKING:
     import requests
-
     from SiemplifyAddressProvider import SiemplifyAddressProvider
     from SiemplifyLogger import SiemplifyLogger
 
