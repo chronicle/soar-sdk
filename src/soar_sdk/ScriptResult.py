@@ -270,6 +270,33 @@ class ScriptResult:
         entity_data = self._get_entity_data(title, entity_type)
         entity_data["Htmls"][report_name] = report_contents
 
+    def add_entity_markdown(self, entity_identifier, markdown_name,
+        markdown_content, entity_type=None):
+        """
+        add markdown data with entity identifier as title
+        :param entity_identifier: {string} entity identifier
+        :param markdown_name:{string} markdown name
+        :param markdown_content:{string} markdown content
+        :param entity_type: {string} entity type
+        :return:
+        """
+        self.add_markdown(entity_identifier, markdown_name, markdown_content,
+                          entity_type)
+
+    def add_markdown(self, title, markdown_name, markdown_content,
+        entity_type=None):
+        """
+        add markdown data
+        :param title: {string} title
+        :param markdown_name: {string} markdown name
+        :param markdown_content: markdown content
+        :param entity_type: {string} entity type
+        """
+        self._validate_attachment_size(len(markdown_content))
+
+        entity_data = self._get_entity_data(title, entity_type)
+        entity_data["Markdowns"][markdown_name] = markdown_content
+
     def add_entity_link(
         self,
         entity_identifier: str,
@@ -318,6 +345,7 @@ class ScriptResult:
                     "CSVLines": "",
                     "Attachments": {},
                     "Htmls": {},
+                    "Markdowns": {},
                 }
             return self._result_object[(title, entity_type)]
 
@@ -333,6 +361,7 @@ class ScriptResult:
                 "CSVLines": "",
                 "Attachments": {},
                 "Htmls": {},
+                "Markdowns": {},
             }
         return self._result_object[title]
 
