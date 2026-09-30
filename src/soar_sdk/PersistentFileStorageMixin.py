@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import io
+import json
 import os
 from base64 import b64decode, b64encode
 from hashlib import sha512
@@ -32,6 +33,10 @@ if TYPE_CHECKING:
 DEFAULT_DIRECTORY_NAME: str = "Default"
 MAX_FILE_SIZE: int = 20 * 1024 * 1024  # 20MB file size limitation
 AGENT_LOCAL_FILES_PATH: str = "/opt/SiemplifyAgent/LocalFiles"
+ONE_PLATFORM_UPLOAD_PATH: str = "legacySdk:legacyUploadBlob"
+ONE_PLATFORM_DOWNLOAD_PATH: str = "legacySdk:legacyDownloadBlob"
+UPLOAD: str = "upload"
+DOWNLOAD: str = "download"
 
 
 class PersistentFileStorageMixin:
@@ -43,6 +48,8 @@ class PersistentFileStorageMixin:
         is_remote: bool,
         file_storage_session: requests.Session,
         api_root: str,
+        one_platform_api_root: str | None = None,
+        files_dataplane_support: bool = False,
     ):
         self.environment_name = environment
         self.workflow_instance_id = workflow_instance_id
@@ -54,6 +61,8 @@ class PersistentFileStorageMixin:
                 self.api_root = api_root.rstrip("api/")
             else:
                 self.api_root = api_root
+        self.one_platform_api_root = one_platform_api_root
+        self.files_dataplane_support = files_dataplane_support
 
     @staticmethod
     def _apply_hash(name: str) -> str:
@@ -149,12 +158,22 @@ class PersistentFileStorageMixin:
         environment_name: str,
         destination_blob_name: str,
     ) -> str:
-        params = {
-            "EnvironmentName": environment_name,
-            "DestinationPath": destination_blob_name,
-        }
-        address = "{0}/{1}".format(self.api_root, "webhooks/blob")
-        response = self.file_storage_session.get(address, params=params)
+        if self.files_dataplane_support and self.one_platform_api_root:
+            base_address = self.one_platform_api_root.format(DOWNLOAD)
+            address = f"{base_address}/{ONE_PLATFORM_DOWNLOAD_PATH}"
+            params = {
+                "alt": "media",
+                "environment_name": environment_name,
+                "destination_path": destination_blob_name,
+            }
+            response = self.file_storage_session.get(address, params=params)
+        else:
+            params = {
+                "EnvironmentName": environment_name,
+                "DestinationPath": destination_blob_name,
+            }
+            address = "{0}/{1}".format(self.api_root, "webhooks/blob")
+            response = self.file_storage_session.get(address, params=params)
         self._validate_response_error(response)
         return response.content.decode()
 
@@ -164,14 +183,28 @@ class PersistentFileStorageMixin:
         destination_blob_name: str,
         data: Buffer,
     ) -> None:
-        payload = {
-            "EnvironmentName": environment_name,
-            "DestinationPath": destination_blob_name,
-        }
         data_file = io.BytesIO(data)
-        files = {"Data": ("file", data_file, "application/octet-stream")}
-        address = "{0}/{1}".format(self.api_root, "webhooks/blob")
-        response = self.file_storage_session.post(address, data=payload, files=files)
+
+        if self.files_dataplane_support and self.one_platform_api_root:
+            base_address = self.one_platform_api_root.format(UPLOAD)
+            address = f"{base_address}/{ONE_PLATFORM_UPLOAD_PATH}"
+            payload = {
+                "environment_name": environment_name,
+                "destination_path": destination_blob_name,
+            }
+            multipart_files = {
+                "metadata": (None, json.dumps(payload), "application/json"),
+                "file": ("file", data_file, "application/octet-stream"),
+            }
+            response = self.file_storage_session.post(address, files=multipart_files)
+        else:
+            payload = {
+                "EnvironmentName": environment_name,
+                "DestinationPath": destination_blob_name,
+            }
+            files = {"Data": ("file", data_file, "application/octet-stream")}
+            address = "{0}/{1}".format(self.api_root, "webhooks/blob")
+            response = self.file_storage_session.post(address, data=payload, files=files)
         self._validate_response_error(response)
 
     #################### get saved data ###################

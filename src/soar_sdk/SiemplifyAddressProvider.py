@@ -98,6 +98,7 @@ class SdkEndpoint(Enum):
     GET_NEW_ALERTS_TO_SYNC = "GET_NEW_ALERTS_TO_SYNC"
     UPDATE_NEW_ALERTS_SYNC_STATUS = "UPDATE_NEW_ALERTS_SYNC_STATUS"
     GET_ALERTS_FULL_DETAILS = "GET_ALERTS_FULL_DETAILS"
+    GET_ALERTS_METADATA = "GET_ALERTS_METADATA"
 
 
 SDK_ENDPOINT_URLS = {
@@ -224,7 +225,7 @@ SDK_1P_ENDPOINT_URLS = {
     SdkEndpoint.ATTACH_WORKFLOW_TO_CASE: "AttacheWorkflowToCase",
     SdkEndpoint.GET_CASES_BY_FILTER: "GetCasesByFilter",
     SdkEndpoint.GET_CASES_IDS_BY_FILTER: "GetCasesIdByFilter",
-    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments/{}?fetchUpdates={}",
+    SdkEndpoint.GET_CASE_COMMENTS: "GetCaseComments?caseId={}&fetchUpdates={}",
     SdkEndpoint.ADD_OR_UPDATE_CASE_TASK: "AddOrUpdateCaseTask",
     SdkEndpoint.GET_CASE_TASKS: "GetCaseTasks?caseId={}",
     SdkEndpoint.GET_SYNC_CASES_METADATA: "GetUpdatedSyncCasesMetadata",
@@ -247,18 +248,33 @@ SDK_1P_ENDPOINT_URLS = {
     SdkEndpoint.GET_NEW_ALERTS_TO_SYNC: "GetAlertsToSync",
     SdkEndpoint.UPDATE_NEW_ALERTS_SYNC_STATUS: "UpdateNewAlertsSyncStatus",
     SdkEndpoint.GET_ALERTS_FULL_DETAILS: "AlertsFullDetails?caseId={}&populateOriginalFile={}",
+    SdkEndpoint.GET_ALERTS_METADATA: "AlertsMetadata?caseId={}&populateOriginalFile={}",
 }
+
+
+class CustomEndpoints:
+    # Custom One Platform Endpoints
+    ADD_COMMENT_ONE_PLATFORM = "/cases/{}/caseComments"
+    ADD_ALERT_TAG = "/cases/{}/caseAlerts/{}:addTag"
+    REMOVE_ALERT_TAG = "/cases/{}/caseAlerts/{}:removeTag"
+    GET_ALERT = "/cases/{}/caseAlerts"
+    # Custom Endpoints
+    ADD_COMMENT = "/external/v1/cases/comments?format=snake"
 
 
 class SiemplifyAddressProvider:
     def __init__(self, sdk_config: SiemplifySdkConfig, support_one_platform: bool) -> None:
         if support_one_platform:
-            uri = sdk_config.one_platform_api_root_uri_format.format(BASE_1P_SDK_CONTROLLER_VERSION)
-            self.API_BASE_ROOT = f"{uri}/{BASE_1P_SDK_CONTROLLER_URL_FORMAT}"
+            self.base_root = sdk_config.one_platform_api_root_uri_format.format(
+                BASE_1P_SDK_CONTROLLER_VERSION,
+            )
+            self.API_BASE_ROOT = f"{self.base_root}/{BASE_1P_SDK_CONTROLLER_URL_FORMAT}"
             self.endpoint_mapper = SDK_1P_ENDPOINT_URLS
         else:
-            self.API_BASE_ROOT = f"{sdk_config.api_root_uri}/{BASE_SDK_CONTROLLER_URL_FORMAT}"
+            self.base_root = sdk_config.api_root_uri
+            self.API_BASE_ROOT = f"{self.base_root}/{BASE_SDK_CONTROLLER_URL_FORMAT}"
             self.endpoint_mapper = SDK_ENDPOINT_URLS
+        self._support_one_platform = support_one_platform
 
     def provide_set_context_property_address(self) -> str:
         return self._create_address(SdkEndpoint.SET_CONTEXT_PROPERTY)
@@ -618,6 +634,44 @@ class SiemplifyAddressProvider:
             populate_original_file,
         )
         return _build_address_with_format_query_param(address)
+
+    def provide_get_alerts_metadata_address(
+        self,
+        case_id: int | str,
+        populate_original_file: bool = False,
+    ) -> str:
+        if not self._support_one_platform:
+            raise NotImplementedError(
+                "GetAlertsMetadata is only supported for OnePlatform endpoints."
+            )
+        address = self._create_address(SdkEndpoint.GET_ALERTS_METADATA).format(
+            case_id,
+            populate_original_file,
+        )
+        return _build_address_with_format_query_param(address)
+
+    def provide_add_comment_address(self) -> str:
+        return self.base_root + CustomEndpoints.ADD_COMMENT
+
+    def provide_one_platform_add_comment_address(self, case_id: int | str) -> str:
+        return self.base_root + CustomEndpoints.ADD_COMMENT_ONE_PLATFORM.format(case_id)
+
+    def provide_one_platform_add_alert_tag_address(
+        self,
+        case_id: int | str,
+        alert_id: int | str,
+    ) -> str:
+        return self.base_root + CustomEndpoints.ADD_ALERT_TAG.format(case_id, alert_id)
+
+    def provide_one_platform_remove_alert_tag_address(
+        self,
+        case_id: int | str,
+        alert_id: int | str,
+    ) -> str:
+        return self.base_root + CustomEndpoints.REMOVE_ALERT_TAG.format(case_id, alert_id)
+
+    def provide_one_platform_get_alert_address(self, case_id: int | str) -> str:
+        return self.base_root + CustomEndpoints.GET_ALERT.format(case_id)
 
     def _create_address(self, endpoint_type: SdkEndpoint) -> str:
         return self.API_BASE_ROOT.format(self.endpoint_mapper.get(endpoint_type))

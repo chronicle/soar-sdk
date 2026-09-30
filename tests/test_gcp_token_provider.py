@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
+
 from soar_sdk.GcpTokenProvider import GcpTokenProvider
 
 CHRONICLE_SERVICE_ACCOUNT_EMAIL = "CHRONICLE_SERVICE_ACCOUNT_EMAIL"
@@ -29,6 +31,7 @@ class TestGcpTokenProvider:
         mock_siempliy_base_obj = mocker.Mock()
         mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = False
         mock_siempliy_base_obj.session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = None
 
         mock_credentials_obj = mocker.Mock()
         mock_impersonated_credentials_obj = mocker.Mock()
@@ -67,8 +70,7 @@ class TestGcpTokenProvider:
         assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
 
     def test_add_gcp_token_local_with_impersonation_no_impersonation_credentials_failed(
-        self,
-        mocker,
+        self, mocker
     ):
         # arrange
         service_account_email = "mockEmail"
@@ -78,16 +80,15 @@ class TestGcpTokenProvider:
         mock_siempliy_base_obj = mocker.Mock()
         mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = False
         mock_siempliy_base_obj.session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = None
 
         mock_credentials_obj = mocker.Mock()
-
-        # Define the side effect for the refresh method
 
         mock_auth_default = mocker.patch(
             "google.auth.default",
             return_value=(mock_credentials_obj, "mocked_project_id"),
         )
-        mocker.patch(
+        mock_impersonated_credentials = mocker.patch(
             "google.auth.impersonated_credentials.Credentials",
             return_value=None,
         )
@@ -106,6 +107,7 @@ class TestGcpTokenProvider:
         mock_siempliy_base_obj = mocker.Mock()
         mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = False
         mock_siempliy_base_obj.session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = None
 
         mock_credentials_obj = mocker.Mock()
         mock_impersonated_credentials_obj = mocker.Mock()
@@ -133,8 +135,7 @@ class TestGcpTokenProvider:
         mock_siempliy_base_obj = mocker.Mock()
         mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = False
         mock_siempliy_base_obj.session.headers = {}
-
-        # Define the side effect for the refresh method
+        mock_siempliy_base_obj.file_storage_session = None
 
         mock_auth_default = mocker.patch(
             "google.auth.default",
@@ -155,6 +156,7 @@ class TestGcpTokenProvider:
         mock_siempliy_base_obj = mocker.Mock()
         mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = True
         mock_siempliy_base_obj.session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = None
 
         mock_credentials_obj = mocker.Mock()
         mock_auth_request_obj = mocker.Mock()
@@ -170,10 +172,7 @@ class TestGcpTokenProvider:
             "google.auth.default",
             return_value=(mock_credentials_obj, "mocked_project_id"),
         )
-        mocker.patch(
-            "google.auth.transport.requests.Request",
-            return_value=mock_auth_request_obj,
-        )
+        mocker.patch("google.auth.transport.requests.Request", return_value=mock_auth_request_obj)
 
         # act
         GcpTokenProvider.add_gcp_token(mock_siempliy_base_obj)
@@ -182,3 +181,87 @@ class TestGcpTokenProvider:
         mock_auth_default.assert_called_once_with(DEFAULT_SCOPES)
 
         assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
+
+    def test_add_gcp_token_local_with_impersonation_with_file_storage_session_success(self, mocker):
+        # arrange
+        service_account_email = "mockEmail"
+        token = "expected_token"
+
+        mocker.patch("os.environ.get", return_value=service_account_email)
+
+        mock_siempliy_base_obj = mocker.Mock()
+        mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = False
+        mock_siempliy_base_obj.session.headers = {}
+        mock_file_storage_session = mocker.Mock()
+        mock_file_storage_session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = mock_file_storage_session
+
+        mock_credentials_obj = mocker.Mock()
+        mock_impersonated_credentials_obj = mocker.Mock()
+        mock_auth_request_obj = mocker.Mock()
+
+        # Define the side effect for the refresh method
+        def refresh_side_effect(*args, **kwargs):
+            if len(args) > 0 and args[0] == mock_auth_request_obj:
+                mock_impersonated_credentials_obj.token = token  # Assign the token property
+
+        mock_impersonated_credentials_obj.refresh.side_effect = refresh_side_effect
+
+        mock_auth_default = mocker.patch(
+            "google.auth.default",
+            return_value=(mock_credentials_obj, "mocked_project_id"),
+        )
+        mock_impersonated_credentials = mocker.patch(
+            "google.auth.impersonated_credentials.Credentials",
+            return_value=mock_impersonated_credentials_obj,
+        )
+        mocker.patch("google.auth.transport.requests.Request", return_value=mock_auth_request_obj)
+
+        # act
+        GcpTokenProvider.add_gcp_token(mock_siempliy_base_obj)
+
+        # assert
+        mock_auth_default.assert_called_once_with(DEFAULT_SCOPES)
+        mock_impersonated_credentials.assert_called_once_with(
+            source_credentials=mock_credentials_obj,
+            target_principal=service_account_email,
+            target_scopes=DEFAULT_SCOPES,
+        )
+        assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
+        assert mock_file_storage_session.headers["Authorization"] == f"Bearer {token}"
+
+    def test_add_gcp_token_remote_with_file_storage_session_success(self, mocker):
+        # arrange
+        token = "expected_token"
+
+        mock_siempliy_base_obj = mocker.Mock()
+        mock_siempliy_base_obj.sdk_config.is_remote_publisher_sdk = True
+        mock_siempliy_base_obj.session.headers = {}
+        mock_file_storage_session = mocker.Mock()
+        mock_file_storage_session.headers = {}
+        mock_siempliy_base_obj.file_storage_session = mock_file_storage_session
+
+        mock_credentials_obj = mocker.Mock()
+        mock_auth_request_obj = mocker.Mock()
+
+        # Define the side effect for the refresh method
+        def refresh_side_effect(*args, **kwargs):
+            if len(args) > 0 and args[0] == mock_auth_request_obj:
+                mock_credentials_obj.token = token  # Assign the token property
+
+        mock_credentials_obj.refresh.side_effect = refresh_side_effect
+
+        mock_auth_default = mocker.patch(
+            "google.auth.default",
+            return_value=(mock_credentials_obj, "mocked_project_id"),
+        )
+        mocker.patch("google.auth.transport.requests.Request", return_value=mock_auth_request_obj)
+
+        # act
+        GcpTokenProvider.add_gcp_token(mock_siempliy_base_obj)
+
+        # assert
+        mock_auth_default.assert_called_once_with(DEFAULT_SCOPES)
+
+        assert mock_siempliy_base_obj.session.headers["Authorization"] == f"Bearer {token}"
+        assert mock_file_storage_session.headers["Authorization"] == f"Bearer {token}"

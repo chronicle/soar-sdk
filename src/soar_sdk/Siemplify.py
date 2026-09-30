@@ -83,6 +83,7 @@ class Siemplify(SiemplifyBase):
         self.ignore_ca_bundle = self.sdk_config.ignore_ca_bundle
         self.temp_folder_path = None
         self.vault_settings = None
+        self.apply_enrichment_to_duplicate_entities: bool = False
 
     @staticmethod
     def _fix_parameters(parameters: dict[Any, Any | None]) -> dict[Any, Any]:
@@ -153,6 +154,38 @@ class Siemplify(SiemplifyBase):
 
         return response.json()
 
+    def get_case_alerts_metadata(
+        self,
+        case_id: str | int,
+        populate_original_file: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Get alerts metadata information for a given case.
+        :param case_id: {string} case identifier
+        :return: {list} List of alerts metadata (without security events, relations, entities)
+        """
+        address = self.address_provider.provide_get_alerts_metadata_address(
+            case_id, populate_original_file
+        )
+        response = self.session.get(address)
+        self.validate_siemplify_error(response)
+        return response.json()
+
+    def get_alerts_full_details(
+        self,
+        case_id: str | int,
+        populate_original_file: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Get entities, relations and security events for all alerts in a case.
+        :param case_id: {string} case identifier
+        :return: {list} List of alerts with entities and relations
+        """
+        address = self.address_provider.provide_get_alerts_full_details_address(
+            case_id, populate_original_file
+        )
+        response = self.session.get(address)
+        self.validate_siemplify_error(response)
+        return response.json()
+
     @property
     def result(self) -> ScriptResult:
         return self._result
@@ -181,7 +214,15 @@ class Siemplify(SiemplifyBase):
         for entity in updated_entities:
             entity_data.append(entity.to_dict())
 
-        response = self.session.post(address, json=entity_data)
+        if self._one_platform_support:
+            payload: Any = {
+                "updated_entities": entity_data,
+                "apply_enrichment_to_duplicate_entities": self.apply_enrichment_to_duplicate_entities,
+            }
+        else:
+            payload = entity_data
+
+        response = self.session.post(address, json=payload)
         self.validate_siemplify_error(response)
 
     def add_attachment(
@@ -261,21 +302,18 @@ class Siemplify(SiemplifyBase):
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
-    def add_comment(self, comment: str, case_id: str, alert_identifier: str) -> None:
+    def add_comment(self, comment: str, case_id: str | int, alert_identifier: str | None) -> None:
         """Add new comment to specific case
         :param comment: {string} comment to be added to case wall
         :param case_id: {string} case identifier
         :param alert_identifier: {string} alert identifier
         """
-        request_dict = {
-            "case_id": case_id,
-            "alert_identifier": alert_identifier,
-            "comment": comment,
-        }
-        address = "{0}/{1}".format(
-            self.API_ROOT,
-            "external/v1/cases/comments?format=snake",
-        )
+        request_dict: dict[str, Any] = {"alert_identifier": alert_identifier, "comment": comment}
+        if self._one_platform_support:
+            address = self.address_provider.provide_one_platform_add_comment_address(case_id)
+        else:
+            address = self.address_provider.provide_add_comment_address()
+            request_dict["case_id"] = case_id
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
 
@@ -294,6 +332,55 @@ class Siemplify(SiemplifyBase):
         address = self.address_provider.provide_add_tag_address()
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
+
+    def add_alert_tag(self, tag: str, case_id: str | int, alert_id: str | int) -> None:
+        """Add new tag to specific alert
+        :param tag: {string} tag to be added
+        :param case_id: {long} case identifier
+        :param alert_id: {long} alert identifier
+        :return:
+        """
+        request_dict = {"tag": tag}
+        address = self.address_provider.provide_one_platform_add_alert_tag_address(
+            case_id, alert_id
+        )
+        response = self.session.post(address, json=request_dict)
+        self.validate_siemplify_error(response)
+
+    def remove_alert_tag(self, tag: str, case_id: str | int, alert_id: str | int) -> None:
+        """Removes a tag from specific alert
+        :param tag: {string} tag to be added
+        :param case_id: {long} case identifier
+        :param alert_id: {long} alert identifier
+        :return:
+        """
+        request_dict = {"tag": tag}
+        address = self.address_provider.provide_one_platform_remove_alert_tag_address(
+            case_id, alert_id
+        )
+        response = self.session.post(address, json=request_dict)
+        self.validate_siemplify_error(response)
+
+    def get_alert_details_by_identifier(
+        self,
+        case_id: str | int,
+        alert_identifier: str,
+    ) -> dict[str, Any]:
+        """get alert details by caseId & alert identifier.
+        :param case_id: {long} case identifier
+        :param alert_identifier: {string} alert identifier
+        :return: single alert resource
+        """
+        address = self.address_provider.provide_one_platform_get_alert_address(case_id)
+
+        query_params = {
+            "pageSize": 1,
+            "filter": f"identifier='{alert_identifier}'",
+        }
+
+        response = self.session.get(address, params=query_params)
+        self.validate_siemplify_error(response)
+        return response.json()
 
     def update_alerts_additional_data(
         self,
@@ -1017,12 +1104,13 @@ class Siemplify(SiemplifyBase):
         self.validate_siemplify_error(response)
         return json.loads(response.text)
 
-    def get_case_comments(self, case_id):
+    def get_case_comments(self, case_id: str | int, fetch_updates: bool = False) -> Any:
         """Get case comments
         :param case_id: {string} case identifier
+        :param fetch_updates: {bool}
         :return:
         """
-        address = self.address_provider.provide_get_case_comments_address(case_id)
+        address = self.address_provider.provide_get_case_comments_address(case_id, fetch_updates)
         response = self.session.get(address)
         self.validate_siemplify_error(response)
         return json.loads(response.text)
@@ -1099,8 +1187,14 @@ class Siemplify(SiemplifyBase):
         for cli in custom_list_items:
             custom_list_items_data.append(cli.__dict__)
 
+        payload = (
+            {"custom_list_items": custom_list_items_data}
+            if self._one_platform_support
+            else custom_list_items_data
+        )
+
         address = self.address_provider.provide_any_entity_in_list_address()
-        response = self.session.post(address, json=custom_list_items_data)
+        response = self.session.post(address, json=payload)
         self.validate_siemplify_error(response)
         return response.text.lower() == "true"
 
@@ -1113,8 +1207,14 @@ class Siemplify(SiemplifyBase):
         for cli in custom_list_items:
             custom_list_items_data.append(cli.__dict__)
 
+        payload = (
+            {"custom_list_items": custom_list_items_data}
+            if self._one_platform_support
+            else custom_list_items_data
+        )
+
         address = self.address_provider.provide_add_entities_to_list_address()
-        response = self.session.post(address, json=custom_list_items_data)
+        response = self.session.post(address, json=payload)
         self.validate_siemplify_error(response)
 
         custom_list_dicts = response.json()
@@ -1132,8 +1232,14 @@ class Siemplify(SiemplifyBase):
         for cli in custom_list_items:
             custom_list_items_data.append(cli.__dict__)
 
+        payload = (
+            {"custom_list_items": custom_list_items_data}
+            if self._one_platform_support
+            else custom_list_items_data
+        )
+
         address = self.address_provider.provide_remove_entities_from_list_address()
-        response = self.session.post(address, json=custom_list_items_data)
+        response = self.session.post(address, json=payload)
         self.validate_siemplify_error(response)
 
         custom_list_dicts = response.json()
@@ -1468,7 +1574,10 @@ class Siemplify(SiemplifyBase):
             "allowed_environments": allowed_environments,
             "vendor": vendor,
         }
-        response = self.session.get(address, json=request)
+        if self.is_running_on_dataplane:
+            response = self.session.post(address, json=request)
+        else:
+            response = self.session.get(address, json=request)
         self.validate_siemplify_error(response)
 
         raw_cases_metadata = response.json()
@@ -1491,7 +1600,10 @@ class Siemplify(SiemplifyBase):
             return []
 
         request = {"case_ids": case_ids}
-        response = self.session.get(address, json=request)
+        if self.is_running_on_dataplane:
+            response = self.session.post(address, json=request)
+        else:
+            response = self.session.get(address, json=request)
         self.validate_siemplify_error(response)
 
         raw_cases = response.json()
@@ -1549,7 +1661,10 @@ class Siemplify(SiemplifyBase):
             "vendor": vendor,
             "include_non_synced_alerts": include_non_synced_alerts,
         }
-        response = self.session.get(address, json=request)
+        if self.is_running_on_dataplane:
+            response = self.session.post(address, json=request)
+        else:
+            response = self.session.get(address, json=request)
         self.validate_siemplify_error(response)
 
         raw_alerts_metadata = response.json()
@@ -1572,7 +1687,10 @@ class Siemplify(SiemplifyBase):
             return []
 
         request = {"alert_group_ids": alert_group_ids}
-        response = self.session.get(address, json=request)
+        if self.is_running_on_dataplane:
+            response = self.session.post(address, json=request)
+        else:
+            response = self.session.get(address, json=request)
         self.validate_siemplify_error(response)
 
         raw_alerts = response.json()
@@ -1727,7 +1845,10 @@ class Siemplify(SiemplifyBase):
             "batch_size": batch_size,
             "environments": environments,
         }
-        response = self.session.get(address, json=request)
+        if self.is_running_on_dataplane:
+            response = self.session.post(address, json=request)
+        else:
+            response = self.session.get(address, json=request)
         self.validate_siemplify_error(response)
 
         return response.json()

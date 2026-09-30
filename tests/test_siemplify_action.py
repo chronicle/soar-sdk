@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import signal
+import sys
 import time
 from typing import TYPE_CHECKING
 
@@ -24,7 +25,7 @@ import pytest
 
 from soar_sdk.CaseAlertsProvider import CaseAlertsProvider
 from soar_sdk.Siemplify import Siemplify
-from soar_sdk.SiemplifyAction import SiemplifyAction
+from soar_sdk.SiemplifyAction import ExecutionScope, SiemplifyAction
 from soar_sdk.SiemplifyBase import SiemplifyBase
 from soar_sdk.SiemplifyDataModel import (
     Alert,
@@ -243,6 +244,108 @@ test_alert = Alert(
 
 
 class TestSiemplifyAction:
+    def test_open_alerts_property(self, mocker: unittest.mock.Mock) -> None:
+        # Arrange
+        context_data = {
+            "case_id": "1",
+            "alert_id": "alert1",
+            "environment": "Default",
+            "workflow_id": "wf1",
+            "parameters": {},
+            "integration_identifier": "int1",
+            "integration_instance": "inst1",
+            "action_definition_name": "act1",
+            "original_requesting_user": "user1",
+            "default_result_value": "Success",
+            "target_entities": [],
+            "open_alert_identifiers": ["open_alert_id"],
+        }
+        mock_stdin = json.dumps(context_data)
+
+        siemplify = SiemplifyAction(mock_stdin=mock_stdin)
+
+        # Mock Case Data
+        case_data = {
+            "identifier": "1",
+            "creation_time": 123,
+            "modification_time": 123,
+            "alert_count": 2,
+            "priority": 1,
+            "is_touched": False,
+            "is_merged": False,
+            "is_important": False,
+            "environment": "Default",
+            "assigned_user": None,
+            "title": "Test Case",
+            "description": "",
+            "status": "OPEN",
+            "is_incident": False,
+            "stage": "",
+            "has_suspicious_entity": False,
+            "high_risk_products": [],
+            "is_locked": False,
+            "has_workflow": False,
+            "sla_expiration_unix_time": 0,
+            "additional_properties": {},
+            "cyber_alerts": [
+                {
+                    "identifier": "open_alert_id",
+                    "alert_group_identifier": "group1",
+                    "creation_time": 123,
+                    "modification_time": 123,
+                    "case_identifier": "1",
+                    "reporting_vendor": "",
+                    "reporting_product": "",
+                    "environment": "",
+                    "name": "Open Alert",
+                    "description": "",
+                    "external_id": "",
+                    "severity": 1,
+                    "rule_generator": "",
+                    "tags": [],
+                    "detected_time": 0,
+                    "security_events": [],
+                    "domain_relations": [],
+                    "domain_entities": [],
+                    "additional_properties": {},
+                    "additional_data": "",
+                },
+                {
+                    "identifier": "closed_alert_id",
+                    "alert_group_identifier": "group2",
+                    "creation_time": 123,
+                    "modification_time": 123,
+                    "case_identifier": "1",
+                    "reporting_vendor": "",
+                    "reporting_product": "",
+                    "environment": "",
+                    "name": "Closed Alert",
+                    "description": "",
+                    "external_id": "",
+                    "severity": 1,
+                    "rule_generator": "",
+                    "tags": [],
+                    "detected_time": 0,
+                    "security_events": [],
+                    "domain_relations": [],
+                    "domain_entities": [],
+                    "additional_properties": {},
+                    "additional_data": "",
+                },
+            ],
+        }
+
+        mocker.patch.object(SiemplifyAction, "_get_case", return_value=case_data)
+
+        # Act
+        siemplify.load_case_data()
+        open_alerts = siemplify.case.open_alerts
+
+        # Assert
+        assert len(siemplify.case.alerts) == 2
+        assert len(open_alerts) == 1
+        assert open_alerts[0].identifier == "open_alert_id"
+
     def test_siemplify_action_init_mock_stdin_is_none(
         self,
         mocker: unittest.mock.Mock,
@@ -443,7 +546,17 @@ class TestSiemplifyAction:
 
         # assert
         obj.assert_called_once()
-        assert response == test_cyber_case
+
+    def test_current_alert_in_case_playbook_returns_none(self) -> None:
+        # arrange
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        # act
+        result = siemplify_action.current_alert
+
+        # assert
+        assert result is None
 
     def test_load_current_alert_response_success(self) -> None:
         # arrange
@@ -915,6 +1028,120 @@ class TestSiemplifyAction:
         # assert
         # assert the correct system version is returned
         assert response == [25, 21, 26, 27, 23, 22, 20, 24]
+
+    def test_get_similar_cases_case_scope_success(self, mocker: unittest.mock.Mock) -> None:
+        # arrange
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = [1, 2, 3]
+        mock_response.raise_for_status.return_value = None
+
+        # Create mock alerts
+        mock_alert1 = mocker.Mock()
+        mock_alert1.relations = [
+            mocker.Mock(destination_port="80", category_outcome="Attempted Information Leak")
+        ]
+        mock_alert1.rule_generator = "Rule1"
+        mock_alert1.detected_time = 1000
+
+        mock_alert2 = mocker.Mock()
+        mock_alert2.relations = [
+            mocker.Mock(destination_port="443", category_outcome="Successful User Logon")
+        ]
+        mock_alert2.rule_generator = "Rule2"
+        mock_alert2.detected_time = 2000
+        mock_case = mocker.Mock()
+        mock_case.alerts = [mock_alert1, mock_alert2]
+        mock_case.end_time = 0
+        mock_case.creation_time = 1000000
+
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        mocker.patch.object(
+            SiemplifyAction, "case", new_callable=PropertyMock, return_value=mock_case
+        )
+        mocker.patch.object(siemplify_action.session, "post", return_value=mock_response)
+
+        # Mock target_entities to avoid calling API or complex setup
+        siemplify_action._SiemplifyAction__target_entities = []
+
+        # act
+        response = siemplify_action.get_similar_cases(
+            consider_ports=True,
+            consider_category_outcome=True,
+            consider_rule_generator=True,
+            consider_entity_identifiers=False,
+            days_to_look_back="1",
+        )
+
+        # assert
+        siemplify_action.session.post.assert_called_once()
+        call_args = siemplify_action.session.post.call_args[1]
+        request_dict = call_args["json"]
+
+        assert "80" in request_dict["ports_filter"]
+        assert "443" in request_dict["ports_filter"]
+        assert "Attempted Information Leak" in request_dict["category_outcome_filter"]
+        assert "Successful User Logon" in request_dict["category_outcome_filter"]
+        assert "Rule1" in request_dict["rule_generator_filter"]
+        assert "Rule2" in request_dict["rule_generator_filter"]
+
+        assert response == [1, 2, 3]
+
+    def test_get_similar_cases_case_scope_deduplication(self, mocker: unittest.mock.Mock) -> None:
+        # arrange
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = [1, 2, 3]
+        mock_response.raise_for_status.return_value = None
+
+        # Create mock alerts with DUPLICATES
+        mock_alert1 = mocker.Mock()
+        mock_alert1.relations = [
+            mocker.Mock(destination_port="80", category_outcome="Attempted Information Leak")
+        ]
+        mock_alert1.rule_generator = "Rule1"
+        mock_alert1.detected_time = 1000
+
+        mock_alert2 = mocker.Mock()
+        mock_alert2.relations = [
+            mocker.Mock(destination_port="80", category_outcome="Attempted Information Leak")
+        ]
+        mock_alert2.rule_generator = "Rule1"
+        mock_alert2.detected_time = 2000
+        mock_case = mocker.Mock()
+        mock_case.alerts = [mock_alert1, mock_alert2]
+        mock_case.end_time = 0
+        mock_case.creation_time = 1000000
+
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        mocker.patch.object(
+            SiemplifyAction, "case", new_callable=PropertyMock, return_value=mock_case
+        )
+        mocker.patch.object(siemplify_action.session, "post", return_value=mock_response)
+
+        # Mock target_entities to avoid calling API or complex setup
+        siemplify_action._SiemplifyAction__target_entities = []
+
+        # act
+        response = siemplify_action.get_similar_cases(
+            consider_ports=True,
+            consider_category_outcome=True,
+            consider_rule_generator=True,
+            consider_entity_identifiers=False,
+            days_to_look_back="1",
+        )
+
+        # assert
+        siemplify_action.session.post.assert_called_once()
+        call_args = siemplify_action.session.post.call_args[1]
+        request_dict = call_args["json"]
+
+        # Verify unique values
+        assert request_dict["ports_filter"] == ["80"]
+        assert request_dict["category_outcome_filter"] == ["Attempted Information Leak"]
+        assert request_dict["rule_generator_filter"] == ["Rule1"]
 
     def test_get_ticket_ids_for_alerts_dismissed_since_timestamp_valid_response_success(
         self,
@@ -1834,6 +2061,63 @@ class TestSiemplifyAction:
         # assert
         assert response is None
 
+    def test_add_entity_to_case_case_scope_success(self, mocker: unittest.mock.Mock) -> None:
+        # arrange
+        mock_response = mocker.Mock()
+        mock_response.raise_for_status.return_value = None
+
+        # Mock execution_scope to Case
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        # Mock current_alert to None
+        mocker.patch.object(
+            SiemplifyAction, "current_alert", new_callable=PropertyMock, return_value=None
+        )
+
+        request_dict = {
+            "case_id": 1,
+            "alert_identifier": "alert_id_123",
+            "entity_identifier": "google.com",
+            "entity_type": "ADDRESS",
+            "is_internal": True,
+            "is_suspicious": True,
+            "is_enriched": True,
+            "is_vulnerable": False,
+            "properties": None,
+            "environment": "Default",
+        }
+
+        mocker.patch.object(siemplify_action.session, "post", return_value=mock_response)
+        mocker.patch.object(
+            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict
+        )
+
+        # act
+        response = siemplify_action.add_entity_to_case(
+            entity_identifier="google.com",
+            entity_type="ADDRESS",
+            is_internal=True,
+            is_suspicous=True,
+            is_enriched=True,
+            is_vulnerable=False,
+            properties=None,
+            case_id=None,
+            alert_identifier="alert_id_123",
+            environment=None,
+        )
+
+        # assert the correct API address is called
+        siemplify_action.session.post.assert_called_with(
+            "{0}/{1}".format(
+                siemplify_action.API_ROOT, "external/v1/sdk/CreateEntity?format=snake"
+            ),
+            json=request_dict,
+        )
+
+        # assert
+        assert response is None
+
     def test_get_case_comments_valid_response_success(self, mocker):
         # arrange
         case_id = "1"
@@ -1909,7 +2193,143 @@ class TestSiemplifyAction:
                 siemplify_action.API_ROOT,
                 "external/v1/sdk/GetCaseComments",
                 case_id,
-                "?format=snake",
+                "?fetchUpdates=False&format=snake",
+            ),
+        )
+
+        # assert
+        assert response == [
+            {
+                "comment": "test",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827156279,
+                "id": 8,
+                "modification_time_unix_time_in_ms": 1681827156279,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+            {
+                "comment": "test",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827157057,
+                "id": 9,
+                "modification_time_unix_time_in_ms": 1681827157057,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+            {
+                "comment": "etest",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827157850,
+                "id": 10,
+                "modification_time_unix_time_in_ms": 1681827157850,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+        ]
+
+    def test_get_case_comments_fetch_updates_true_valid_response_success(
+        self, mocker: unittest.mock.Mock
+    ) -> None:
+        # arrange
+        case_id = "1"
+        mock_response = mocker.Mock()
+        temp = str(
+            json.dumps(
+                [
+                    {
+                        "comment": "test",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827156279,
+                        "id": 8,
+                        "modification_time_unix_time_in_ms": 1681827156279,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                    {
+                        "comment": "test",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827157057,
+                        "id": 9,
+                        "modification_time_unix_time_in_ms": 1681827157057,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                    {
+                        "comment": "etest",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827157850,
+                        "id": 10,
+                        "modification_time_unix_time_in_ms": 1681827157850,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                ],
+            ),
+        )
+        mock_response.text = temp
+        mock_response.raise_for_status.return_value = None
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        mocker.patch.object(siemplify_action.session, "get", return_value=mock_response)
+
+        # act
+        response = siemplify_action.get_case_comments(case_id, fetch_updates=True)
+
+        # assert the correct API address is called
+        siemplify_action.session.get.assert_called_with(
+            "{0}/{1}/{2}{3}".format(
+                siemplify_action.API_ROOT,
+                "external/v1/sdk/GetCaseComments",
+                case_id,
+                "?fetchUpdates=True&format=snake",
             ),
         )
 
@@ -2412,4 +2832,206 @@ class TestSiemplifyAction:
                 "sla",
             ),
             json=request,
+        )
+
+    def test_set_alerts_sla_response_success(self, mocker: unittest.mock.Mock) -> None:
+        # arrange
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        period_time = 1
+        period_type = "Minutes"
+        critical_period_time = 1
+        critical_period_type = "Minutes"
+        case_id = 1
+        alert_ids = ["1", "2"]
+
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        mocker.patch.object(siemplify_action, "set_alert_sla", return_value=None)
+
+        # act
+        response = siemplify_action.set_alerts_sla(
+            period_time,
+            period_type,
+            critical_period_time,
+            critical_period_type,
+            case_id,
+            alert_ids,
+        )
+
+        # assert
+        assert siemplify_action.set_alert_sla.call_count == 2
+        siemplify_action.set_alert_sla.assert_any_call(
+            period_time, period_type, critical_period_time, critical_period_type, case_id, "1"
+        )
+        siemplify_action.set_alert_sla.assert_any_call(
+            period_time, period_type, critical_period_time, critical_period_type, case_id, "2"
+        )
+        assert response == {"1": True, "2": True}
+
+    def test_set_alerts_sla_handles_exception(self, mocker: unittest.mock.Mock) -> None:
+        # arrange
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        period_time = 1
+        period_type = "Minutes"
+        critical_period_time = 1
+        critical_period_type = "Minutes"
+        case_id = 1
+        alert_ids = ["1", "2"]
+
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+
+        # Make the first call fail and the second succeed
+        def side_effect(*args: Any, **kwargs: Any) -> None:
+            if args[-1] == "1":
+                raise Exception("Failed")
+            return None
+
+        mocker.patch.object(siemplify_action, "set_alert_sla", side_effect=side_effect)
+        mocker.patch.object(siemplify_action.LOGGER, "error")
+
+        # act
+        response = siemplify_action.set_alerts_sla(
+            period_time,
+            period_type,
+            critical_period_time,
+            critical_period_type,
+            case_id,
+            alert_ids,
+        )
+
+        # assert
+        assert siemplify_action.set_alert_sla.call_count == 2
+        siemplify_action.LOGGER.error.assert_called_once_with(
+            "Failed to set SLA for alert 1: Failed"
+        )
+        assert response == {"1": False, "2": True}
+
+    def test_add_entity_to_case_case_scope_missing_alert_identifier_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
+        # arrange
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+        mocker.patch.object(
+            siemplify_action, "_get_case_metadata_by_id", return_value=lazy_case_dict
+        )
+
+        # act & assert
+        with pytest.raises(Exception) as excinfo:
+            siemplify_action.add_entity_to_case(
+                entity_identifier="google.com",
+                entity_type="ADDRESS",
+                is_internal=True,
+                is_suspicous=True,
+                is_enriched=True,
+                is_vulnerable=False,
+                properties=None,
+                alert_identifier=None,
+            )
+        assert (
+            "Cannot Create Entity in Case Playbook without specifying a valid alert_identifier"
+            in str(excinfo.value)
+        )
+
+    def test_set_alert_sla_case_scope_missing_alert_id_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
+        # arrange
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        # act & assert
+        with pytest.raises(Exception) as excinfo:
+            siemplify_action.set_alert_sla(1, "Minutes", 1, "Minutes", alert_id=None)
+        assert "Cannot set Alert SLA in Case Playbook without specifying a valid alert_id" in str(
+            excinfo.value
+        )
+
+    def test_close_alert_case_scope_missing_alert_id_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
+        # arrange
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        # act & assert
+        with pytest.raises(Exception) as excinfo:
+            siemplify_action.close_alert("RootCause", "Comment", "Reason", alert_id=None)
+        assert "Cannot close Alert in Case Playbook without specifying a valid alert_id" in str(
+            excinfo.value
+        )
+
+    def test_resolve_case_target_entities_with_parents(self, mocker: unittest.mock.Mock) -> None:
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+
+        siemplify_action.target_entity_ids = [("10.0.0.1", "IP"), ("10.0.0.1", "IP")]
+        siemplify_action._target_entities_alert_identifiers = ["Alert1", "Alert2"]
+
+        entity1 = mocker.Mock()
+        entity1.identifier = "10.0.0.1"
+        entity1.entity_type = "IP"
+        entity1.alert_identifier = "Alert1"
+        entity1.modification_time = 1
+
+        entity2 = mocker.Mock()
+        entity2.identifier = "10.0.0.1"
+        entity2.entity_type = "IP"
+        entity2.alert_identifier = "Alert2"
+        entity2.modification_time = 2
+
+        entity3 = mocker.Mock()
+        entity3.identifier = "10.0.0.1"
+        entity3.entity_type = "IP"
+        entity3.alert_identifier = "Alert1"
+        entity3.modification_time = 3
+
+        all_entities = [entity1, entity2, entity3]
+
+        target_triplets = [
+            (t[0], t[1], a)
+            for t, a in zip(
+                siemplify_action.target_entity_ids,
+                siemplify_action._target_entities_alert_identifiers,
+            )
+        ]
+
+        resolved = siemplify_action._resolve_case_target_entities(
+            all_entities,
+            lambda e: (e.identifier, e.entity_type, e.alert_identifier),
+            target_triplets,
+        )
+
+        assert len(resolved) == 2
+        assert any(e.alert_identifier == "Alert1" and e.modification_time == 3 for e in resolved)
+        assert any(e.alert_identifier == "Alert2" and e.modification_time == 2 for e in resolved)
+
+    def test_load_target_entities_mismatch_lengths_raise_exception(
+        self,
+        mocker: unittest.mock.Mock,
+    ) -> None:
+        mocker.patch.object(sys, "argv", ["test_script", "mock_api_key"])
+        siemplify_action = SiemplifyAction(mock_stdin=DATA)
+        siemplify_action.execution_scope = ExecutionScope.Case
+        siemplify_action.is_remote = False
+
+        siemplify_action.target_entity_ids = [("10.0.0.1", "IP"), ("10.0.0.1", "IP")]
+        siemplify_action._target_entities_alert_identifiers = ["Alert1"]
+
+        siemplify_action._SiemplifyAction__target_entities = None
+        mock_case = mocker.Mock()
+        mock_case.alerts = []
+        siemplify_action._SiemplifyAction__case = mock_case
+
+        with pytest.raises(Exception) as excinfo:
+            siemplify_action._load_target_entities()
+
+        assert "Mismatch between TargetEntities and TargetEntitiesAlertIdentifiers lengths." in str(
+            excinfo.value
         )

@@ -18,6 +18,7 @@ import calendar
 import copy
 import datetime
 import functools
+import importlib.util
 import json
 import logging
 import os
@@ -110,15 +111,30 @@ def set_proxy_state(
             os.environ["proxy"] = "off"
 
 
+class _GlobalLoggerContext:
+    logger = None
+
+
+def get_logger() -> Any:
+    """Static way to get the logger
+    :return: Siemplify logger instance
+    """
+    return _GlobalLoggerContext.logger
+
+
 def output_handler(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except Exception as ex:
             sys.stderr.write("STDOUT:\n")
             sys.stderr.write(my_stdout.getvalue())
             sys.stderr.write("STDERR:\n")
+            logger = get_logger()
+            if logger:
+                # Log internally unhandled script exceptions
+                logger.exception(f"Unhandled script exception: {ex}")
             raise
 
     return wrapper
@@ -906,3 +922,14 @@ def is_str_instance(value: Any) -> bool:
     if is_python_37():
         return isinstance(value, str)
     return isinstance(value, basestring)
+
+
+def is_package_installed(package: str) -> bool:
+    try:
+        return importlib.util.find_spec(package) is not None
+    except ModuleNotFoundError:
+        return False
+
+
+def get_project_id() -> str | None:
+    return os.environ.get("GCP_PROJECT_ID")

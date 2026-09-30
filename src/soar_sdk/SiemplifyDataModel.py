@@ -164,6 +164,11 @@ class CyberCaseInfo(Base):
             int(self.additional_properties.get("EndTime", 0)) if self.additional_properties else 0
         )
 
+    @property
+    def open_alerts(self) -> list[Alert | AlertLazy]:
+        open_ids = getattr(self, "_open_alert_identifiers", [])
+        return [alert for alert in getattr(self, "alerts", []) if alert.identifier in open_ids]
+
 
 class AlertInfo(Base):
     def __init__(
@@ -624,6 +629,123 @@ class Alert(AlertInfo):
         return result
 
 
+class AlertLazy(AlertInfo):
+    def __init__(
+        self,
+        lazy_loader: Any,
+        identifier: str,
+        alert_group_identifier: str,
+        creation_time: int,
+        modification_time: int,
+        case_identifier: str,
+        reporting_vendor: str,
+        reporting_product: str,
+        environment: str,
+        name: str,
+        description: str,
+        external_id: str,
+        severity: int,
+        rule_generator: str,
+        tags: list[str],
+        detected_time: int,
+        additional_properties: dict[str, Any] | None,
+        additional_data: str | None = None,
+    ) -> None:
+        logger.info("Creating AlertLazy model object")
+        self.__lazy_loader = lazy_loader
+
+        super(AlertLazy, self).__init__(
+            identifier,
+            alert_group_identifier,
+            creation_time,
+            modification_time,
+            case_identifier,
+            reporting_vendor,
+            reporting_product,
+            environment,
+            name,
+            description,
+            external_id,
+            severity,
+            rule_generator,
+            tags,
+            detected_time,
+            additional_properties,
+            additional_data,
+        )
+
+        self._security_events: list[SecurityEventInfo] | None = None
+        self._relations: list[DomainRelationInfo] | None = None
+        self._entities: list[DomainEntityInfo] | None = None
+        self._start_time: datetime.datetime | None = None
+
+        logger.info("AlertLazy model created successfully")
+
+    @property
+    def security_events(self) -> list[SecurityEventInfo]:
+        # Note: fetching security_events also populates entities and relations due to a shared API endpoint.
+        if self._security_events is None:
+            self.__lazy_loader.load_details(self)
+        return self._security_events  # type: ignore[return-value]
+
+    @security_events.setter
+    def security_events(self, value: list[SecurityEventInfo]) -> None:
+        self._security_events = value
+
+    @property
+    def relations(self) -> list[DomainRelationInfo]:
+        # Note: fetching relations also populates entities and security_events due to a shared API endpoint.
+        if self._relations is None:
+            self.__lazy_loader.load_details(self)
+        return self._relations  # type: ignore[return-value]
+
+    @relations.setter
+    def relations(self, value: list[DomainRelationInfo]) -> None:
+        self._relations = value
+
+    @property
+    def entities(self) -> list[DomainEntityInfo]:
+        # Note: fetching entities also populates relations and security_events due to a shared API endpoint.
+        if self._entities is None:
+            self.__lazy_loader.load_details(self)
+        return self._entities  # type: ignore[return-value]
+
+    @entities.setter
+    def entities(self, value: list[DomainEntityInfo]) -> None:
+        self._entities = value
+
+    @property
+    def start_time(self) -> datetime.datetime:
+        # Note: fetching start_time also populates security_events, relations and entities due to a shared API endpoint.
+        if self._start_time is None:
+            self._start_time = self.get_alert_start_time(self.creation_time, self.security_events)
+        return self._start_time
+
+    @start_time.setter
+    def start_time(self, value: datetime.datetime) -> None:
+        self._start_time = value
+
+    @staticmethod
+    def get_alert_start_time(
+        creation_time: int,
+        security_events: list[SecurityEventInfo],
+    ) -> datetime.datetime:
+        min_time = 0
+
+        for sec in security_events:
+            sec_start_time = sec.start_time or 0
+            is_correlation = sec.is_correlation or False
+
+            if not is_correlation and sec_start_time != 0:
+                if min_time == 0 or sec_start_time < min_time:
+                    min_time = sec_start_time
+
+        if min_time == 0:
+            min_time = creation_time
+
+        return SiemplifyUtils.convert_unixtime_to_datetime(min_time)
+
+
 class CyberCase(CyberCaseInfo):
     def __init__(
         self,
@@ -740,10 +862,12 @@ class CyberCaseLazy(CyberCaseInfo):
         logger.info("CyberCaseLazy model created successfully")
 
     @property
-    def alerts(self) -> list[Alert]:
+    def alerts(self) -> list[Alert | AlertLazy]:
         if self._alerts is None:
             loaded_alerts = self.__alerts_provider.get_alerts()
-            self._alerts = [Alert(**alert) for alert in loaded_alerts]
+            self._alerts = [
+                Alert(**alert) if isinstance(alert, dict) else alert for alert in loaded_alerts
+            ]
 
         return self._alerts
 
@@ -905,6 +1029,7 @@ class CustomList(Base):
 
 
 class LogRecordTypeEnum:
+    WARN = 3
     KEEP_ALIVE = 2
     ERROR = 1
     INFO = 0

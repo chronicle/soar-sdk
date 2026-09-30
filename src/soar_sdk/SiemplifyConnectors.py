@@ -22,7 +22,6 @@ import SiemplifyUtils
 from OverflowManager import OverflowAlertDetails, OverflowManager
 from SiemplifyBase import SiemplifyBase
 from SiemplifyConnectorsDataModel import ConnectorContext
-from SiemplifyLogger import ConnectorsFileLogsCollector
 from SiemplifyUtils import extract_script_param, is_python_37, my_stdout, real_stdout
 
 SiemplifyUtils.override_stdout()
@@ -39,14 +38,6 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         self.is_locally_scheduled_remote_connector = (
             self.context.connector_info.is_locally_scheduled_remote_connector
         )
-
-        if self.sdk_config.is_remote_publisher_sdk:
-            self.set_logs_collector(
-                ConnectorsFileLogsCollector(
-                    self.sdk_config.run_folder_path,
-                    self.context,
-                ),
-            )
 
         self.LOGGER.module = "%s_%s_%s" % (
             self.context.connector_info.integration,
@@ -111,7 +102,10 @@ class SiemplifyConnectorExecution(SiemplifyBase):
         path = os.path.join(path, script_name)
 
         if not os.path.exists(path):
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
 
         return path
 
