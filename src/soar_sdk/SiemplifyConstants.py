@@ -26,6 +26,11 @@ class SiemplifyConstants:
     USE_ELASTIC_OPTION = "useElastic"
     LOG_PATH_OPTION = "logPath="
     LOG_PATH_NAME = "--logPath"
+    DEBUG_MODE_NAME = "--debugMode"
+    FEAT_SDK_RETRIES_NAME = "--featSDKRetries"
+    STRUCTURED_LOGGER_NAME = "--structuredLogger"
+    BAGGAGE_NAME = "--baggage"
+    ALERT_LAZY_LOADING = "--alertLazyLoadingEnabled"
     ARG_OPTIONS = [
         USE_ELASTIC_OPTION,
         LOG_PATH_OPTION,
@@ -33,5 +38,28 @@ class SiemplifyConstants:
         "traceId=",
         "baggage=",
         "onePlatformSupport",
+        "dataplaneSupport",
+        "filesDataplaneSupport",
+        "alertLazyLoadingEnabled",
         "debugMode",
+        "structuredLogger",
+        "featSDKRetries",
     ]
+
+
+SIGNAL_CODES = SiemplifyConstants.SIGNAL_CODES
+REQUEST_CA_BUNDLE = SiemplifyConstants.REQUEST_CA_BUNDLE
+NO_CONTENT_STATUS_CODE = SiemplifyConstants.NO_CONTENT_STATUS_CODE
+DECODE_FORMAT = SiemplifyConstants.DECODE_FORMAT
+PARAMETERS_KEY = SiemplifyConstants.PARAMETERS_KEY
+USE_ELASTIC_OPTION = SiemplifyConstants.USE_ELASTIC_OPTION
+LOG_PATH_OPTION = SiemplifyConstants.LOG_PATH_OPTION
+LOG_PATH_NAME = SiemplifyConstants.LOG_PATH_NAME
+DEBUG_MODE_NAME = SiemplifyConstants.DEBUG_MODE_NAME
+FEAT_SDK_RETRIES_NAME = SiemplifyConstants.FEAT_SDK_RETRIES_NAME
+STRUCTURED_LOGGER_NAME = SiemplifyConstants.STRUCTURED_LOGGER_NAME
+BAGGAGE_NAME = SiemplifyConstants.BAGGAGE_NAME
+ALERT_LAZY_LOADING = SiemplifyConstants.ALERT_LAZY_LOADING
+ARG_OPTIONS = SiemplifyConstants.ARG_OPTIONS
+X_GOOG_API_VERSION = "x-goog-api-version"
+V1_ALPHA_API_VERSION = "v1alpha"

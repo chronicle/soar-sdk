@@ -24,10 +24,14 @@ ONE_PLATFORM_URL_LOCATION: str = "ONE_PLATFORM_URL_LOCATION"
 ONE_PLATFORM_URL_INSTANCE: str = "ONE_PLATFORM_URL_INSTANCE"
 
 
+GOOGLE_APPLICATION_CREDENTIALS: str = "GOOGLE_APPLICATION_CREDENTIALS"
+V1ALPHA: str = "/v1alpha"
+
+
 class SiemplifySdkConfig:
     config_file_path = path.join(path.dirname(__file__), "sdk_config.ini")
 
-    def __init__(self) -> None:
+    def __init__(self, dataplane_support: bool = False) -> None:
         self._config = configparser.ConfigParser()
         self._config.read(self.config_file_path)
         self.is_remote_publisher_sdk = self._config.getboolean(
@@ -35,6 +39,7 @@ class SiemplifySdkConfig:
             "IsRemotePublisherSdk",
             fallback=False,
         )
+        self._dataplane_support = dataplane_support
         self.api_root_uri = (
             self._build_remote_api_server_uri()
             if self.is_remote_publisher_sdk
@@ -51,8 +56,8 @@ class SiemplifySdkConfig:
             if self.is_remote_publisher_sdk
             else self._build_api_server_uri_for_remote_file_storage()
         )
+        self.domain = getenv(ONE_PLATFORM_URL_DOMAIN)
         self.one_platform_api_root_uri_format = self._build_1p_api_server_uri_format()
-        self.gcp_auth_required = self._gcp_auth_required()
 
     def _build_api_server_uri(self) -> str:
         return f"{self.__build_server_uri()}/api"
@@ -78,7 +83,15 @@ class SiemplifySdkConfig:
         api_root = publisher_api_root.rstrip(publisher_suffix)
         return f"{api_root}/api"
 
-    def _build_1p_api_server_uri_format(self) -> str:
+    def _build_remote_server_uri(self) -> str | None:
+        publisher_suffix = "pub/api"
+        publisher_api_root = environ.get("SERVER_API_ROOT")
+        if not publisher_api_root or not publisher_api_root.endswith(publisher_suffix):
+            return None
+        return publisher_api_root.rstrip(publisher_suffix)
+
+    @property
+    def _resource_path(self) -> str:
         project = getenv(
             ONE_PLATFORM_URL_PROJECT,
             self._config.get("ServerService", "Project", fallback="project"),
@@ -91,18 +104,25 @@ class SiemplifySdkConfig:
             ONE_PLATFORM_URL_INSTANCE,
             self._config.get("ServerService", "Instance", fallback="instance"),
         )
-        domain = getenv(ONE_PLATFORM_URL_DOMAIN)
+        return f"/projects/{project}/locations/{location}/instances/{instance}"
 
-        if domain:
-            server_address = "https://" + domain
+    def _build_1p_api_server_uri_format(self) -> str:
+        if self.is_remote_publisher_sdk:
+            server_address = (
+                f"https://{self.domain}"
+                if self.remote_gcp_auth_required
+                else self._build_remote_server_uri() or ""
+            )
         else:
-            server_address = self.__build_server_uri()
+            server_address = (
+                f"https://{self.domain}" if self.gcp_auth_required else self.__build_server_uri()
+            )
 
-        return (
-            server_address
-            + "/{}"
-            + f"/projects/{project}/locations/{location}/instances/{instance}"
-        )
+        return server_address + "/{}" + self._resource_path
+
+    @property
+    def one_platform_api_files_uri_format(self) -> str:
+        return f"https://{self.domain}" + "/{}" + V1ALPHA + self._resource_path
 
     def __build_server_uri(self) -> str:
         use_ssl_env = self._safe_cast(getenv("APP_USE_SSL"), bool)
@@ -123,14 +143,19 @@ class SiemplifySdkConfig:
         )
         return f"{_scheme}://{_host}:{_port}"
 
-    def _gcp_auth_required(self) -> bool:
-        domain = getenv(ONE_PLATFORM_URL_DOMAIN)
-        return domain is not None
+    @property
+    def gcp_auth_required(self) -> bool:
+        return bool(self.domain) and self._dataplane_support
+
+    @property
+    def remote_gcp_auth_required(self) -> bool:
+        cred_path = getenv(GOOGLE_APPLICATION_CREDENTIALS)
+        return bool(self.domain) and cred_path is not None and path.isfile(cred_path)
 
     @staticmethod
     def _safe_cast(val: str, to_type: type, default: Any | None = None) -> Any | None:
         try:
             _val = eval(val)
-            return _val if type(_val) == to_type else default
+            return _val if type(_val) is to_type else default
         except (ValueError, TypeError, NameError):
             return default

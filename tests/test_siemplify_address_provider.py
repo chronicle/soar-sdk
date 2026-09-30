@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from soar_sdk.SiemplifyAddressProvider import SiemplifyAddressProvider
+from soar_sdk.SiemplifyAddressProvider import CustomEndpoints, SiemplifyAddressProvider
 from soar_sdk.SiemplifySdkConfig import SiemplifySdkConfig
 
 LOCAL_HOST_ADDRESS = "https://localhost:8443"
@@ -31,6 +31,14 @@ test_cases = [
     (True, EXPECTED_1P_ADDRESS),
     (False, EXPECTED_ADDRESS),
 ]
+
+
+@pytest.fixture(autouse=True)
+def isolate_environment(monkeypatch):
+    """Isolate tests from ambient One Platform environment variables."""
+    monkeypatch.delenv("ONE_PLATFORM_URL_PROJECT", raising=False)
+    monkeypatch.delenv("ONE_PLATFORM_URL_LOCATION", raising=False)
+    monkeypatch.delenv("ONE_PLATFORM_URL_INSTANCE", raising=False)
 
 
 @pytest.fixture
@@ -445,19 +453,27 @@ class TestSiemplify:
             siemplify_address_provider = SiemplifyAddressProvider(sdk_config, support_one_platform)
             # act
             address_false = siemplify_address_provider.provide_get_case_comments_address(
-                case_id, fetch_updates=False,
+                case_id,
+                fetch_updates=False,
             )
             address_true = siemplify_address_provider.provide_get_case_comments_address(
-                case_id, fetch_updates=True,
+                case_id,
+                fetch_updates=True,
             )
 
             # assert
             if support_one_platform:
                 expected_url_false = "{0}?caseId={1}&fetchUpdates={2}&{3}".format(
-                    expected_address.format("GetCaseComments"), case_id, False, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseComments"),
+                    case_id,
+                    False,
+                    FORMAT_QUERY_PARAM,
                 )
                 expected_url_true = "{0}?caseId={1}&fetchUpdates={2}&{3}".format(
-                    expected_address.format("GetCaseComments"), case_id, True, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseComments"),
+                    case_id,
+                    True,
+                    FORMAT_QUERY_PARAM,
                 )
 
                 assert address_false == expected_url_false
@@ -465,10 +481,16 @@ class TestSiemplify:
 
             else:
                 expected_url_false = "{0}/{1}?fetchUpdates={2}&{3}".format(
-                    expected_address.format("GetCaseComments"), case_id, False, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseComments"),
+                    case_id,
+                    False,
+                    FORMAT_QUERY_PARAM,
                 )
                 expected_url_true = "{0}/{1}?fetchUpdates={2}&{3}".format(
-                    expected_address.format("GetCaseComments"), case_id, True, FORMAT_QUERY_PARAM,
+                    expected_address.format("GetCaseComments"),
+                    case_id,
+                    True,
+                    FORMAT_QUERY_PARAM,
                 )
 
                 assert address_false == expected_url_false
@@ -1563,3 +1585,96 @@ class TestSiemplify:
                 expected_address.format("AddAttachment"),
                 FORMAT_QUERY_PARAM,
             )
+
+    def test_provide_get_alerts_metadata_address(self):
+        # arrange
+        sdk_config = SiemplifySdkConfig()
+        case_id = "42"
+        for support_one_platform, expected_address in test_cases:
+            siemplify_address_provider = SiemplifyAddressProvider(
+                sdk_config,
+                support_one_platform,
+            )
+            # act & assert
+            if support_one_platform:
+                address_with_original_file = (
+                    siemplify_address_provider.provide_get_alerts_metadata_address(
+                        case_id,
+                        populate_original_file=True,
+                    )
+                )
+                address_without_original_file = (
+                    siemplify_address_provider.provide_get_alerts_metadata_address(
+                        case_id,
+                    )
+                )
+
+                assert (
+                    address_with_original_file
+                    == "{0}?caseId={1}&populateOriginalFile={2}&{3}".format(
+                        expected_address.format("AlertsMetadata"),
+                        case_id,
+                        True,
+                        FORMAT_QUERY_PARAM,
+                    )
+                )
+                assert (
+                    address_without_original_file
+                    == "{0}?caseId={1}&populateOriginalFile={2}&{3}".format(
+                        expected_address.format("AlertsMetadata"),
+                        case_id,
+                        False,
+                        FORMAT_QUERY_PARAM,
+                    )
+                )
+            else:
+                with pytest.raises(
+                    NotImplementedError,
+                    match="GetAlertsMetadata is only supported for OnePlatform endpoints.",
+                ):
+                    siemplify_address_provider.provide_get_alerts_metadata_address(
+                        case_id,
+                    )
+
+    def test_provide_add_comment_address(self):
+        sdk_config = SiemplifySdkConfig()
+        siemplify_address_provider = SiemplifyAddressProvider(sdk_config, False)
+        address = siemplify_address_provider.provide_add_comment_address()
+        assert address == siemplify_address_provider.base_root + CustomEndpoints.ADD_COMMENT
+
+    def test_one_platform_provide_add_comment_address(self):
+        sdk_config = SiemplifySdkConfig()
+        siemplify_address_provider = SiemplifyAddressProvider(sdk_config, True)
+        address = siemplify_address_provider.provide_one_platform_add_comment_address(42)
+        assert (
+            address
+            == siemplify_address_provider.base_root
+            + CustomEndpoints.ADD_COMMENT_ONE_PLATFORM.format(42)
+        )
+
+    def test_one_platform_provide_add_alert_tag_address(self):
+        sdk_config = SiemplifySdkConfig()
+        siemplify_address_provider = SiemplifyAddressProvider(sdk_config, True)
+        address = siemplify_address_provider.provide_one_platform_add_alert_tag_address(42, 101)
+        assert (
+            address
+            == siemplify_address_provider.base_root + CustomEndpoints.ADD_ALERT_TAG.format(42, 101)
+        )
+
+    def test_one_platform_provide_remove_alert_tag_address(self):
+        sdk_config = SiemplifySdkConfig()
+        siemplify_address_provider = SiemplifyAddressProvider(sdk_config, True)
+        address = siemplify_address_provider.provide_one_platform_remove_alert_tag_address(42, 101)
+        assert (
+            address
+            == siemplify_address_provider.base_root
+            + CustomEndpoints.REMOVE_ALERT_TAG.format(42, 101)
+        )
+
+    def test_one_platform_provide_get_alert_address(self):
+        sdk_config = SiemplifySdkConfig()
+        siemplify_address_provider = SiemplifyAddressProvider(sdk_config, True)
+        address = siemplify_address_provider.provide_one_platform_get_alert_address(42)
+        assert address == siemplify_address_provider.base_root + CustomEndpoints.GET_ALERT.format(
+            42
+        )

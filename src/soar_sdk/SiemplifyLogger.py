@@ -27,6 +27,7 @@ from typing import Any, Never
 import arrow
 import SiemplifyUtils
 import six
+from OtelLoggingUtils import LoadStructuredLogHandler
 from SiemplifyConnectorsDataModel import ConnectorContext
 from SiemplifyDataModel import (
     ActionLogRecord,
@@ -52,11 +53,13 @@ class SiemplifyLogger:
 
     def __init__(
         self,
-        log_path: str,
+        log_path: str | None = None,
         log_location: str = DEFAULT_LOG_LOCATION,
         module: str | None = None,
         logs_collector: FileLogsCollector | None = None,
         debug_mode: bool | None = None,
+        use_structured_logger: bool = False,
+        traceparent: str | None = None,
     ) -> None:
         self.config_file_path = path.join(
             path.dirname(__file__),
@@ -67,39 +70,70 @@ class SiemplifyLogger:
         self._logs_collector = logs_collector
         self._log_rows = []
         self._debug_mode = debug_mode
+        self.module = module
+        self.use_structured_logger = use_structured_logger
 
         try:
             config = self.loadConfigFromFile(log_path, log_location)
             logging.config.dictConfig(config)
             self._log = logging.getLogger(self.DEFAULT_LOGGER_NAME)
-            self.module = module
+
+            if self.use_structured_logger:
+                LoadStructuredLogHandler(
+                    self._log,
+                    min_severity=logging.DEBUG if self._debug_mode else logging.INFO,
+                    traceparent=traceparent,
+                )
+
             if self._debug_mode:
                 self.set_log_level(logging.DEBUG)
-        except:
-            SiemplifyLogger.print_to_stderr("LOGGER: Error initializing")
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(
+                f"LOGGER: Error initializing: {type(ex).__name__}: {ex}"
+            )
             traceback.print_exc()
 
-    def loadConfigFromFile(self, log_path: str, log_location: Never) -> dict[str, Any]:
-        """Load config file
-        :param run_folder: {string} running folder path
-        :param log_location: {string} elastic search log location
-        :return:
+    def loadConfigFromFile(
+        self,
+        log_path: str | None = None,
+        log_location: str | None = None,
+    ) -> dict[str, Any]:
+        """Load config file.
+        :param log_path: {str} Optional path to set the log file name in the configuration handlers.
+        :return: {dict} A dictionary suitable for use with logging.config.dictConfig().
         """
         try:
-            configfile = open(self.config_file_path)
-            config_json_string = configfile.read()
-            configfile.close()
-            logging_config_from_file = json.loads(config_json_string)
+            with open(self.config_file_path, "r") as config_file:
+                logging_config = json.loads(config_file.read())
 
-            handlers = logging_config_from_file["handlers"]
-            if self.DEFAULT_FILE_HANDLER_NAME in handlers and log_path:
-                handlers[self.DEFAULT_FILE_HANDLER_NAME]["filename"] = log_path
+            file_handler = logging_config.get("handlers", {}).get(
+                self.DEFAULT_FILE_HANDLER_NAME,
+            )
+            if file_handler and log_path:
+                file_handler["filename"] = log_path
 
-            return logging_config_from_file
-        except:
-            SiemplifyLogger.print_to_stderr("LOGGER: loadConfigFromFile FAILED")
+            return logging_config
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(
+                f"LOGGER: loadConfigFromFile FAILED: {type(ex).__name__}: {ex}",
+            )
+            return {}
 
-    def exception(self, message: str | Exception, *args: Never, **kwargs: Any) -> None:
+    def _prepare_message(self, message: Any) -> str:
+        if isinstance(message, str):
+            message = message.replace("%", "%%")
+        return str(message)
+
+    def _prepare_extra_data(self, **kwargs: Any) -> dict[str, Any]:
+        extra_data = {}
+        if self.module:
+            extra_data["siemplify_module"] = self.module
+        user_labels = kwargs.get("labels", {})
+        if user_labels and isinstance(user_labels, dict):
+            extra_data["labels"] = user_labels
+        return extra_data
+
+    def exception(self, message: str | Exception, *args: Any, **kwargs: Any) -> None:
         """Configure log - type exception
         :param message: {string} message
         """
@@ -107,7 +141,7 @@ class SiemplifyLogger:
 
         try:
             self.append_message(message, LogLevelEnum.ERROR)
-            self.safe_print(message)
+            self.safe_print(str(message))
             if isinstance(message, Exception):
                 version_safe_print_exception(message)
 
@@ -119,18 +153,14 @@ class SiemplifyLogger:
                 else:
                     escaped_msg = message.replace("%", "%%")
 
-                if self.module:
-                    kwargs.update({"module": self.module})
-
-                if kwargs:
-                    self._log.error(escaped_msg, kwargs, exc_info=True)
-                else:
-                    self._log.error(escaped_msg, exc_info=True)
-
-            if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.ERROR)
-        except Exception:
-            SiemplifyLogger.print_to_stderr("LOGGER.exception FAILED.")
+                self._log.error(
+                    escaped_msg,
+                    exc_info=True,
+                    extra=self._prepare_extra_data(**kwargs),
+                    stacklevel=2,
+                )
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(f"LOGGER.exception FAILED: {type(ex).__name__}: {ex}")
 
     def set_log_level(self, level: str | int) -> None:
         if self._log:
@@ -138,7 +168,7 @@ class SiemplifyLogger:
             for handler in self._log.handlers:
                 handler.setLevel(level)
 
-    def error(self, message: str, *args: Never, **kwargs: Any) -> None:
+    def error(self, message: Any, *args: Any, **kwargs: Any) -> None:
         """Configure log - type error
         :param message: {string} message
         """
@@ -146,39 +176,33 @@ class SiemplifyLogger:
 
         try:
             self.append_message(message, LogLevelEnum.ERROR)
-            self.safe_print(message)
+            self.safe_print(str(message))
             if self._log:
-                if self.module:
-                    kwargs.update({"module": self.module})
-                if kwargs:
-                    self._log.error(message.replace("%", "%%"), kwargs)
-                else:
-                    self._log.error(message)
-            if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.ERROR)
-        except:
-            SiemplifyLogger.print_to_stderr("LOGGER.error FAILED")
+                self._log.error(
+                    self._prepare_message(message),
+                    extra=self._prepare_extra_data(**kwargs),
+                    stacklevel=2,
+                )
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(f"LOGGER.error FAILED: {type(ex).__name__}: {ex}")
 
-    def warn(self, message: str, *args: Never, **kwargs: Any) -> None:
+    def warn(self, message: Any, *args: Any, **kwargs: Any) -> None:
         """Configure log - type warn
         :param message: {string} message
         """
         try:
             self.append_message(message, LogLevelEnum.WARN)
-            self.safe_print(message)
+            self.safe_print(str(message))
             if self._log:
-                if self.module:
-                    kwargs.update({"module": self.module})
-                if kwargs:
-                    self._log.warn(message.replace("%", "%%"), kwargs)
-                else:
-                    self._log.warn(message)
-            if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.WARN)
-        except:
-            SiemplifyLogger.print_to_stderr("LOGGER.warn FAILED")
+                self._log.warn(
+                    self._prepare_message(message),
+                    extra=self._prepare_extra_data(**kwargs),
+                    stacklevel=2,
+                )
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(f"LOGGER.warn FAILED: {type(ex).__name__}: {ex}")
 
-    def debug(self, message: str, *args: Never, **kwargs: Any) -> None:
+    def debug(self, message: Any, *args: Any, **kwargs: Any) -> None:
         """Configure log - type debug
         :param message: {string} message
         """
@@ -187,37 +211,31 @@ class SiemplifyLogger:
 
         try:
             self.append_message(message, LogLevelEnum.DEBUG)
-            self.safe_print(message)
+            self.safe_print(str(message))
             if self._log:
-                if self.module:
-                    kwargs.update({"module": self.module})
-                if kwargs:
-                    self._log.debug(message.replace("%", "%%"), kwargs)
-                else:
-                    self._log.debug(message)
-            if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.KEEP_ALIVE)
-        except:
-            SiemplifyLogger.print_to_stderr("LOGGER.debug FAILED")
+                self._log.debug(
+                    self._prepare_message(message),
+                    extra=self._prepare_extra_data(**kwargs),
+                    stacklevel=2,
+                )
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(f"LOGGER.debug FAILED: {type(ex).__name__}: {ex}")
 
-    def info(self, message: str, *args: Never, **kwargs: Any) -> None:
+    def info(self, message: Any, *args: Any, **kwargs: Any) -> None:
         """Configure log - type info
         :param message: {string} message
         """
         try:
             self.append_message(message, LogLevelEnum.INFO)
-            self.safe_print(message)
+            self.safe_print(str(message))
             if self._log:
-                if self.module:
-                    kwargs.update({"module": self.module})
-                if kwargs:
-                    self._log.info(message.replace("%", "%%"), kwargs)
-                else:
-                    self._log.info(message)
-            if self._logs_collector:
-                self._logs_collector.collect(message, LogRecordTypeEnum.INFO)
-        except Exception:
-            SiemplifyLogger.print_to_stderr("LOGGER.info FAILED")
+                self._log.info(
+                    self._prepare_message(message),
+                    extra=self._prepare_extra_data(**kwargs),
+                    stacklevel=2,
+                )
+        except Exception as ex:
+            SiemplifyLogger.print_to_stderr(f"LOGGER.info FAILED: {type(ex).__name__}: {ex}")
 
     def append_message(self, message: str | Exception, log_level: LogLevelEnum) -> None:
         try:
@@ -251,8 +269,8 @@ class SiemplifyLogger:
         return self._log_rows
 
     @staticmethod
-    def print_to_stderr(message: Never) -> None:
-        stderr.write("LOGGER: loadConfigFromFile FAILED")
+    def print_to_stderr(error_message: str) -> None:
+        stderr.write(f"LOGGER: {error_message}")
 
     @property
     def error_logged(self) -> bool:

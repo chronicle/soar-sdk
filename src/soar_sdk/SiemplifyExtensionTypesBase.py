@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import base64
 import getopt
 import json
 import os
@@ -24,10 +25,17 @@ import tempfile
 import uuid
 from typing import Any
 
-import SiemplifyLogger
-import SiemplifyUtils
-from ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
-from SiemplifyConstants import SiemplifyConstants
+try:
+    from . import SiemplifyLogger, SiemplifyUtils
+    from .OtelLoggingUtils import LoadOpenTelemetryBaggage
+    from .ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
+    from .SiemplifyConstants import SiemplifyConstants
+except (ImportError, ValueError):
+    import SiemplifyLogger
+    import SiemplifyUtils
+    from OtelLoggingUtils import LoadOpenTelemetryBaggage
+    from ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
+    from SiemplifyConstants import SiemplifyConstants
 
 # CONSTS
 LOG_LOCATION = "SDK_Transformers"
@@ -46,10 +54,15 @@ class SiemplifyExtensionTypesBase:
         self._result: ScriptResult = ScriptResult([])
         self.parameters: dict[str, Any] = self.context_data.get(SiemplifyConstants.PARAMETERS_KEY)
         self._logger: SiemplifyLogger.SiemplifyLogger | None = None
-        self._logs_collector: Any | None = None
         self._log_path: str | None = None
         self.temp_folder_path: str | None = None
-        options, _ = getopt.gnu_getopt(sys.argv[1:], "", SiemplifyConstants.ARG_OPTIONS)
+        self.debug_mode: bool = False
+        self.use_structured_logger: bool = False
+        self.baggage: str | None = None
+        try:
+            options, _ = getopt.gnu_getopt(sys.argv[1:], "", SiemplifyConstants.ARG_OPTIONS)
+        except getopt.GetoptError:
+            options = []
 
         signal.signal(signal.SIGTERM, self.termination_signal_handler)
         signal.signal(signal.SIGINT, self.cancellation_signal_handler)
@@ -57,6 +70,15 @@ class SiemplifyExtensionTypesBase:
         for name, value in options:
             if name == SiemplifyConstants.LOG_PATH_NAME:
                 self._log_path = value.strip('"')
+            elif name == SiemplifyConstants.DEBUG_MODE_NAME:
+                self.debug_mode = True
+            elif name == SiemplifyConstants.STRUCTURED_LOGGER_NAME:
+                self.use_structured_logger = True
+            elif name == SiemplifyConstants.BAGGAGE_NAME:
+                self.baggage = base64.b64decode(value.strip('"').encode("utf-8")).decode("utf-8")
+
+        if self.baggage and self.use_structured_logger:
+            LoadOpenTelemetryBaggage(self.baggage)
 
     @property
     def result(self) -> ScriptResult:
@@ -66,9 +88,10 @@ class SiemplifyExtensionTypesBase:
     def LOGGER(self) -> SiemplifyLogger.SiemplifyLogger:
         if not self._logger:
             self._logger = SiemplifyLogger.SiemplifyLogger(
-                self._log_path,
+                log_path=self._log_path,
                 log_location=self.log_location,
-                logs_collector=self._logs_collector,
+                debug_mode=self.debug_mode,
+                use_structured_logger=self.use_structured_logger,
             )
         return self._logger
 

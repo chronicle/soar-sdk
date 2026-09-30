@@ -151,7 +151,8 @@ class SiemplifyJob(Siemplify):
         :return:
         """
         address = self.address_provider.provide_add_agent_logs_address()
-        response = self.session.post(address, json=records)
+        payload = {"log_events": records} if self._one_platform_support else records
+        response = self.session.post(address, json=payload)
         self.validate_siemplify_error(response)
 
     @property

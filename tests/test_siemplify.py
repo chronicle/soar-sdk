@@ -30,6 +30,7 @@ import requests
 from soar_sdk import SiemplifyUtils
 from soar_sdk.ScriptResult import EXECUTION_STATE_COMPLETED, ScriptResult
 from soar_sdk.Siemplify import Siemplify
+from soar_sdk.SiemplifyBase import SiemplifyBase
 from soar_sdk.SiemplifyDataModel import (
     ApiSyncAlertCloseReasonEnum,
     ApiSyncAlertPriorityEnum,
@@ -336,6 +337,168 @@ class TestSiemplify:
         # assert
         # assert the correct system version is returned
         assert response == None
+
+    def test_one_platform_update_entities_valid_response_success(
+        self,
+        mocker,
+        updated_entities={
+            "CaseIdentifier": "2",
+            "AlertIdentifier": "DATA EXFILTRATION_63C61D5A-1F52-4463-AF4C-77C6E3E60A51",
+            "EntityType": "HOSTNAME",
+            "IsInternal": False,
+            "IsSuspicious": False,
+            "IsArtifact": False,
+            "IsEnriched": False,
+            "IsVulnerable": False,
+            "IsPivot": False,
+            "Identifier": "LAB@SIEMPLIFY.LOCAL",
+            "CreationTime": 0,
+            "ModificationTime": 0,
+            "AdditionalProperties": {
+                "AutomationEntityKey_ez": "AutomationEntityValue_qs",
+                "IsVulnerable": "False",
+                "IsInternalAsset": "False",
+                "IsAttacker": "False",
+                "IsFromLdapString": "False",
+                "IsTestCase": "False",
+                "Environment": "Default Environment",
+                "Network_Priority": "0",
+                "Alert_Id": "DATA EXFILTRATION_63C61D5A-1F52-4463-AF4C-77C6E3E60A51",
+                "IsPivot": "False",
+                "IsArtifact": "False",
+                "IsSuspicious": "False",
+                "IsManuallyCreated": "False",
+                "Identifier": "LAB@SIEMPLIFY.LOCAL",
+                "Type": "HOSTNAME",
+                "IsEnriched": "False",
+            },
+        },
+    ):
+        # arrange
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.return_value = None
+
+        # Create entity
+        test_entity = DomainEntityInfo(
+            updated_entities.get("Identifier"),
+            updated_entities.get("CreationTime"),
+            updated_entities.get("ModificationTime"),
+            updated_entities.get("CaseIdentifier"),
+            updated_entities.get("AlertIdentifier"),
+            updated_entities.get("EntityType"),
+            updated_entities.get("IsInternal"),
+            updated_entities.get("IsSuspicious"),
+            updated_entities.get("IsArtifact"),
+            updated_entities.get("IsEnriched"),
+            updated_entities.get("IsVulnerable"),
+            updated_entities.get("IsPivot"),
+            updated_entities.get("AdditionalProperties"),
+        )
+
+        test_entity._update_internal_properties()
+        entity_data = []
+        entity_data.append(test_entity.to_dict())
+        expected_payload = {
+            "updated_entities": entity_data,
+            "apply_enrichment_to_duplicate_entities": False,
+        }
+
+        mocker.patch.object(
+            Siemplify,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+        with patch.object(sys, "argv", ["test_script.py", "dummy_api_key"]):
+            siemplify = Siemplify()
+            mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+
+            # act
+            response = siemplify.update_entities([test_entity])
+
+            # assert the correct API address is called
+            siemplify.session.post.assert_called_with(
+                siemplify.address_provider.provide_update_entities_address(),
+                json=expected_payload,
+            )
+
+        # assert
+        assert response is None
+
+    def test_update_entities_with_enrichment_enabled(
+        self,
+        mocker,
+        updated_entities={
+            "CaseIdentifier": "2",
+            "AlertIdentifier": "DATA EXFILTRATION_63C61D5A-1F52-4463-AF4C-77C6E3E60A51",
+            "EntityType": "HOSTNAME",
+            "IsInternal": False,
+            "IsSuspicious": False,
+            "IsArtifact": False,
+            "IsEnriched": False,
+            "IsVulnerable": False,
+            "IsPivot": False,
+            "Identifier": "LAB@SIEMPLIFY.LOCAL",
+            "CreationTime": 0,
+            "ModificationTime": 0,
+            "AdditionalProperties": {
+                "AutomationEntityKey_ez": "AutomationEntityValue_qs",
+            },
+        },
+    ):
+        # arrange
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.return_value = None
+
+        test_entity = DomainEntityInfo(
+            updated_entities.get("Identifier"),
+            updated_entities.get("CreationTime"),
+            updated_entities.get("ModificationTime"),
+            updated_entities.get("CaseIdentifier"),
+            updated_entities.get("AlertIdentifier"),
+            updated_entities.get("EntityType"),
+            updated_entities.get("IsInternal"),
+            updated_entities.get("IsSuspicious"),
+            updated_entities.get("IsArtifact"),
+            updated_entities.get("IsEnriched"),
+            updated_entities.get("IsVulnerable"),
+            updated_entities.get("IsPivot"),
+            updated_entities.get("AdditionalProperties"),
+        )
+
+        test_entity._update_internal_properties()
+        entity_data = [test_entity.to_dict()]
+        expected_payload = {
+            "updated_entities": entity_data,
+            "apply_enrichment_to_duplicate_entities": True,
+        }
+
+        mocker.patch.object(
+            Siemplify,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+
+        with patch.object(sys, "argv", ["test_script.py", "dummy_api_key"]):
+            siemplify = Siemplify()
+            mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+
+            # act
+            siemplify.apply_enrichment_to_duplicate_entities = True
+            response = siemplify.update_entities([test_entity])
+
+            # assert
+            siemplify.session.post.assert_called_with(
+                siemplify.address_provider.provide_update_entities_address(),
+                json=expected_payload,
+            )
+
+        assert response is None
 
     def test_update_entities_invalid_response_raise_exception(
         self,
@@ -3324,6 +3487,56 @@ class TestSiemplify:
         # assert
         assert "404: Not Found" in str(excinfo.value)
 
+    def test_add_alert_tag_valid_response_success(self, mocker, tag="test", case_id="1", alert="2"):
+        # arrange
+        # create a mock response object
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.return_value = None
+
+        # set the mock response to be returned by the session.get method
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+
+        # act
+        response = siemplify.add_alert_tag(tag, case_id, alert)
+
+        # assert the correct API address is called
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_one_platform_add_alert_tag_address(case_id, alert),
+            json={"tag": "test"},
+        )
+
+        # assert
+        assert response is None
+
+    def test_remove_alert_tag_valid_response_success(
+        self, mocker, tag="test", case_id="1", alert="2"
+    ):
+        # arrange
+        # create a mock response object
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.return_value = None
+
+        # set the mock response to be returned by the session.get method
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+
+        # act
+        response = siemplify.remove_alert_tag(tag, case_id, alert)
+
+        # assert the correct API address is called
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_one_platform_remove_alert_tag_address(
+                case_id, alert
+            ),
+            json={"tag": "test"},
+        )
+
+        # assert
+        assert response is None
+
     def test_add_comment_valid_response_success(
         self,
         mocker,
@@ -3363,6 +3576,50 @@ class TestSiemplify:
         # assert
         # assert the correct system version is returned
         assert response == None
+
+    def test_one_platform_add_comment_valid_response_success(
+        self, mocker, comment="test", case_id=1, alert_identifier=1
+    ):
+        # arrange
+        # create a mock response object
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = None
+        mock_response.raise_for_status.return_value = None
+        mocker.patch.object(
+            Siemplify,
+            "is_running_on_dataplane",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+        )
+        mocker.patch.object(
+            SiemplifyBase,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+
+        # set the mock response to be returned by the session.get method
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+
+        # act
+        response = siemplify.add_comment(comment, case_id, alert_identifier)
+
+        # assert the correct API address is called
+        request_dict = {
+            "case_id": case_id,
+            "alert_identifier": alert_identifier,
+            "comment": comment,
+        }
+        request_dict.pop("case_id")
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_one_platform_add_comment_address(case_id),
+            json=request_dict,
+        )
+
+        # assert
+        assert response is None
 
     def test_add_comment_invalid_response_raise_exception(
         self,
@@ -4583,12 +4840,150 @@ class TestSiemplify:
                 siemplify.API_ROOT,
                 "external/v1/sdk/GetCaseComments",
                 case_id,
-                "?format=snake",
+                "?fetchUpdates=False&format=snake",
             ),
         )
 
         # assert
         # assert the correct system version is returned
+        assert response == [
+            {
+                "comment": "test",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827156279,
+                "id": 8,
+                "modification_time_unix_time_in_ms": 1681827156279,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+            {
+                "comment": "test",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827157057,
+                "id": 9,
+                "modification_time_unix_time_in_ms": 1681827157057,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+            {
+                "comment": "etest",
+                "is_deleted": False,
+                "last_editor_full_name": "oriann barzely",
+                "modification_time_unix_time_in_ms_for_client": 0,
+                "creation_time_unix_time_in_ms": 1681827157850,
+                "id": 10,
+                "modification_time_unix_time_in_ms": 1681827157850,
+                "case_id": 4,
+                "is_favorite": False,
+                "alert_identifier": None,
+                "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                "type": 5,
+                "comment_for_client": None,
+                "creator_full_name": "oriann barzely",
+            },
+        ]
+
+    def test_get_case_comments_with_fetch_updates_true_valid_response_success(
+        self, mocker, case_id="1"
+    ):
+        # arrange
+        # create a mock response object
+        mock_response = mocker.Mock()
+        temp = str(
+            json.dumps(
+                [
+                    {
+                        "comment": "test",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827156279,
+                        "id": 8,
+                        "modification_time_unix_time_in_ms": 1681827156279,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                    {
+                        "comment": "test",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827157057,
+                        "id": 9,
+                        "modification_time_unix_time_in_ms": 1681827157057,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                    {
+                        "comment": "etest",
+                        "is_deleted": False,
+                        "last_editor_full_name": "oriann barzely",
+                        "modification_time_unix_time_in_ms_for_client": 0,
+                        "creation_time_unix_time_in_ms": 1681827157850,
+                        "id": 10,
+                        "modification_time_unix_time_in_ms": 1681827157850,
+                        "case_id": 4,
+                        "is_favorite": False,
+                        "alert_identifier": None,
+                        "creator_user_id": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "last_editor": "cd1c112a-0277-44a9-b68d-98ceef9b0399",
+                        "type": 5,
+                        "comment_for_client": None,
+                        "creator_full_name": "oriann barzely",
+                    },
+                ],
+            ),
+        )
+        mock_response.text = temp
+        mock_response.raise_for_status.return_value = None
+
+        # set the mock response to be returned by the session.get method
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "get", return_value=mock_response)
+
+        # act
+        response = siemplify.get_case_comments(case_id, fetch_updates=True)
+
+        # assert the correct API address is called
+        siemplify.session.get.assert_called_with(
+            "{0}/{1}/{2}{3}".format(
+                siemplify.API_ROOT,
+                "external/v1/sdk/GetCaseComments",
+                case_id,
+                "?fetchUpdates=True&format=snake",
+            ),
+        )
+
+        # assert
         assert response == [
             {
                 "comment": "test",
@@ -4961,6 +5356,42 @@ class TestSiemplify:
         )
         assert response
 
+    def test_one_platform_any_entity_in_custom_list(
+        self, mocker, custom_list_items=[CustomList("test", "test", "test")]
+    ):
+        # arrange
+        request_dict = {
+            "identifier": "test",
+            "creation_time": None,
+            "modification_time": None,
+            "additional_properties": None,
+            "category": "test",
+            "environment": "test",
+        }
+        mock_response = mocker.Mock()
+        mock_response.text = "True"
+        mock_response.raise_for_status.return_value = 200
+        expected_payload = {"custom_list_items": [request_dict]}
+        mocker.patch.object(
+            Siemplify,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+
+        # act
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+        response = siemplify.any_entity_in_custom_list(custom_list_items=custom_list_items)
+
+        # assert
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_any_entity_in_list_address(),
+            json=expected_payload,
+        )
+        assert response
+
     def test_add_entities_to_custom_list(
         self,
         mocker,
@@ -4997,6 +5428,42 @@ class TestSiemplify:
         )
         assert isinstance(response[0], CustomList)
 
+    def test_one_platform_add_entities_to_custom_list(
+        self, mocker, custom_list_items=[CustomList("test", "test", "test")]
+    ):
+        # arrange
+        request_dict = {"identifier": "test", "category": "test", "environment": "test"}
+        response_dict = {
+            "identifier": "test",
+            "creation_time": None,
+            "modification_time": None,
+            "additional_properties": None,
+            "category": "test",
+            "environment": "test",
+        }
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = [request_dict]
+        mock_response.raise_for_status.return_value = 200
+        expected_payload = {"custom_list_items": [response_dict]}
+        mocker.patch.object(
+            Siemplify,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+        # act
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+        response = siemplify.add_entities_to_custom_list(custom_list_items=custom_list_items)
+
+        # assert
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_add_entities_to_list_address(),
+            json=expected_payload,
+        )
+        assert isinstance(response[0], CustomList)
+
     def test_remove_entities_from_custom_list(
         self,
         mocker,
@@ -5030,6 +5497,42 @@ class TestSiemplify:
                 "external/v1/sdk/RemoveEntitiesFromCustomList?format=snake",
             ),
             json=[response_dict],
+        )
+        assert isinstance(response[0], CustomList)
+
+    def test_one_platform_remove_entities_from_custom_list(
+        self, mocker, custom_list_items=[CustomList("test", "test", "test")]
+    ):
+        # arrange
+        request_dict = {"identifier": "test", "category": "test", "environment": "test"}
+        response_dict = {
+            "identifier": "test",
+            "creation_time": None,
+            "modification_time": None,
+            "additional_properties": None,
+            "category": "test",
+            "environment": "test",
+        }
+        mock_response = mocker.Mock()
+        mock_response.json.return_value = [request_dict]
+        mock_response.raise_for_status.return_value = 200
+        mocker.patch.object(
+            Siemplify,
+            "_one_platform_support",
+            new_callable=mocker.PropertyMock,
+            return_value=True,
+            create=True,
+        )
+        expected_payload = {"custom_list_items": [response_dict]}
+        # act
+        siemplify = Siemplify()
+        mocker.patch.object(siemplify.session, "post", return_value=mock_response)
+        response = siemplify.remove_entities_from_custom_list(custom_list_items=custom_list_items)
+
+        # assert
+        siemplify.session.post.assert_called_with(
+            siemplify.address_provider.provide_remove_entities_from_list_address(),
+            json=expected_payload,
         )
         assert isinstance(response[0], CustomList)
 

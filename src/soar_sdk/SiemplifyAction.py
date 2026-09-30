@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from collections import Counter
+from enum import Enum
 import json
 import os
 from typing import Any
@@ -79,6 +81,11 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             ]
             self.support_old_entities = False
 
+        self._target_entities_alert_identifiers = self.context_data.get(
+            "target_entities_alert_identifiers", []
+        )
+        self.__open_alert_identifiers = self.context_data.get("open_alert_identifiers", [])
+
         self._result = ScriptResult(self.target_entity_ids, self.support_old_entities)
         self.case_id = self.context_data["case_id"]
         self.alert_id = self.context_data["alert_id"]
@@ -89,6 +96,9 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             "parent_workflow_instance_id",
         )
         self.parameters = self._fix_parameters(self.context_data["parameters"])
+        self.apply_enrichment_to_duplicate_entities = self.context_data.get(
+            "apply_enrichment_to_duplicate_entities", False
+        )
         self.integration_identifier = self.context_data["integration_identifier"]
         self.integration_instance = self.context_data["integration_instance"]
         self.action_definition_name = self.context_data["action_definition_name"]
@@ -114,30 +124,37 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         self.max_json_result_size = self.context_data.get("max_json_result_size", 15)
         self.vault_settings = self.context_data.get("vault_settings", None)
         self.environment_api_key = self.context_data.get("environment_api_key")
+        self.files_dataplane_support = (
+            self.is_running_on_dataplane and self._files_dataplane_support
+        )
+        if self.context_data.get("execution_scope") == ExecutionScope.Case.value:
+            self.execution_scope = ExecutionScope.Case
+        else:
+            self.execution_scope = ExecutionScope.Alert
 
         self._alerts_provider = CaseAlertsProvider(
-            self.session,
-            self.API_ROOT,
+            self,
             self.case_id,
-            self.get_source_file,
-            self.LOGGER,
-            self.address_provider,
+            self.is_alert_lazy_loading_enabled,
         )
 
         if self.use_proxy_settings and not self.sdk_config.is_remote_publisher_sdk:
             self.init_proxy_settings()
 
         if self.sdk_config.is_remote_publisher_sdk:
-            self.set_logs_collector(
-                ActionsFileLogsCollector(
-                    self.sdk_config.run_folder_path,
-                    self.context_data,
-                ),
-            )
             # Check if key and api_root exist for remote SDK calls.
             if self.environment_api_key and self.API_ROOT:
                 self._init_remote_session(self.environment_api_key)
                 self._init_remote_file_storage_session()
+
+        if (
+            self.workflow_instance_id is not None
+            and getattr(self, "session", None)
+            and hasattr(self.session, "headers")
+        ):
+            self.session.headers.update(
+                {"X-Goog-Soar-Workflow-Instance-Id": str(self.workflow_instance_id)}
+            )
 
         PersistentFileStorageMixin.__init__(
             self,
@@ -147,6 +164,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             self.sdk_config.is_remote_publisher_sdk,
             self.file_storage_session,
             self.FILE_STORAGE_API_ROOT,
+            self.files_dataplane_support,
         )
 
     @property
@@ -217,6 +235,30 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         # object, use the case.alerts.
         return self.is_remote or (self.__case and self.__case.has_alerts_loaded())
 
+    def _resolve_case_target_entities(
+        self,
+        all_entities: list[DomainEntityInfo],
+        key_extractor: Any,
+        target_keys: list[Any],
+    ) -> list[DomainEntityInfo]:
+        counts = Counter(target_keys)
+        target_list = []
+
+        # Sort by modification_time descending to ensure we pick the latest enriched entity
+        sorted_entities = sorted(
+            all_entities,
+            key=lambda e: (e.modification_time or 0),
+            reverse=True,
+        )
+
+        for entity in sorted_entities:
+            key = key_extractor(entity)
+            if counts[key] > 0:
+                target_list.append(entity)
+                counts[key] -= 1
+
+        return target_list
+
     def _load_target_entities(self) -> None:
         """Load target entities
         if in alert context - run only on alert entities. if not - run on all case
@@ -224,9 +266,30 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         """
         target_entities: dict[str | tuple[str, str], DomainEntityInfo] = {}
 
+        # Case Playbook Logic: Respect count of entities from backend (Handle duplicates)
+        if self.execution_scope == ExecutionScope.Case:
+            all_entities = [entity for alert in self.case.alerts for entity in alert.entities]
+
+            if len(self._target_entities_alert_identifiers) != len(self.target_entity_ids):
+                raise Exception(
+                    "Mismatch between TargetEntities and TargetEntitiesAlertIdentifiers lengths."
+                )
+
+            target_triplets = [
+                (t[0], t[1], a)
+                for t, a in zip(self.target_entity_ids, self._target_entities_alert_identifiers)
+            ]
+
+            self.__target_entities = self._resolve_case_target_entities(
+                all_entities,
+                lambda e: (e.identifier, e.entity_type, e.alert_identifier),
+                target_triplets,
+            )
+            return
+
         current_alert = self.current_alert
         all_entities = []
-        if current_alert == None:
+        if current_alert is None:
             # no current alert context
             all_entities = [entity for alert in self.case.alerts for entity in alert.entities]
         else:
@@ -280,7 +343,10 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.case
 
     @property
-    def current_alert(self) -> Alert:
+    def current_alert(self) -> Alert | None:
+        if self.execution_scope == ExecutionScope.Case:
+            return None
+
         if not self.__current_alert:
             if self.is_remote:
                 self.load_case_data()
@@ -289,7 +355,7 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         return self.__current_alert
 
     @property
-    def _current_alert(self) -> Alert:
+    def _current_alert(self) -> Alert | None:
         """This property prevents regression for customers who used the _current_alert
         attribute in their code and
         expected it to be populated after calling SiemplifyAction
@@ -321,12 +387,14 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         """Load case data"""
         case_json = self._get_case(self.get_source_file)
         self.__case = CyberCase(**case_json)
+        self.__case._open_alert_identifiers = self.__open_alert_identifiers
         self._load_current_alert()
         self._load_target_entities()
 
     def load_lazy_case_data(self) -> None:
         case_json = self._get_case(self.get_source_file, metadata_only=True)
         self.__case = CyberCaseLazy(self._alerts_provider, **case_json)
+        self.__case._open_alert_identifiers = self.__open_alert_identifiers
 
     def add_attachment(
         self,
@@ -450,28 +518,42 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         :param end_time_unix_ms
         :return: {dict}
         """
-        current_alert = self.current_alert
+        if self.execution_scope == ExecutionScope.Case:
+            alerts = self.case.alerts
+        else:
+            alerts = [self.current_alert]
+
         ports_filter = []
         category_outcome_filter = []
         rule_generator_filter = []
         entity_identifiers_filter = []
 
-        for relation in current_alert.relations:
-            if str(consider_ports) == "True":
-                ports_filter.append(relation.destination_port)
-            if str(consider_category_outcome) == "True":
-                category_outcome_filter.append(relation.category_outcome)
+        for alert in alerts:
+            for relation in alert.relations:
+                if str(consider_ports) == "True":
+                    ports_filter.append(relation.destination_port)
+                if str(consider_category_outcome) == "True":
+                    category_outcome_filter.append(relation.category_outcome)
 
-        if str(consider_rule_generator) == "True":
-            rule_generator_filter.append(current_alert.rule_generator)
+            if str(consider_rule_generator) == "True":
+                rule_generator_filter.append(alert.rule_generator)
 
         if str(consider_entity_identifiers) == "True":
             for entity in self.target_entities:
                 if entity.entity_type != "ALERT":
                     entity_identifiers_filter.append(entity.identifier)
 
+        if self.execution_scope == ExecutionScope.Case:
+            # Deduplicate filters since multiple alerts might share the same characteristics (e.g. same port)
+            ports_filter = list(set(ports_filter))
+            category_outcome_filter = list(set(category_outcome_filter))
+            rule_generator_filter = list(set(rule_generator_filter))
+            entity_identifiers_filter = list(set(entity_identifiers_filter))
+
         end_time_unix_ms = (
-            self.case.end_time if self.case.end_time != 0 else current_alert.detected_time
+            self.case.end_time
+            if self.case.end_time != 0
+            else max([a.detected_time for a in alerts])
         )
         start_time_unix_ms = end_time_unix_ms - int(days_to_look_back) * 24 * 60 * 60 * 1000
         return super(SiemplifyAction, self).get_similar_cases(
@@ -601,12 +683,18 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         :param case_id: {string} case identifier
         :param alert_id: {string} alert identifier
         """
+        resolved_alert_id = self._resolve_alert_id(
+            provided_alert_id=alert_id,
+            case_scope_error_message="Cannot close Alert in Case Playbook without specifying a valid alert_id.",
+            alert_scope_fallback_id=self.alert_id,
+        )
+
         return super(SiemplifyAction, self).close_alert(
             root_cause,
             comment,
             reason,
             self.case_id,
-            self.alert_id,
+            resolved_alert_id,
         )
 
     def add_entity_insight(
@@ -701,17 +789,48 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             property_value,
         )
 
-    def get_alert_context_property(self, property_key: str) -> Any:
+    def get_alert_context_property(
+        self,
+        property_key: str,
+        alert_group_identifier: str | None = None,
+    ) -> Any:
+        if self.execution_scope == ExecutionScope.Case:
+            if not alert_group_identifier:
+                raise Exception(
+                    "Cannot get alert context property in Case Playbook without specifying a valid alert_group_identifier.",
+                )
+            resolved_identifier = alert_group_identifier
+        else:
+            resolved_identifier = (
+                self.current_alert.alert_group_identifier if self.current_alert else None
+            )
+
         return super(SiemplifyAction, self).get_context_property(
             2,
-            self.current_alert.alert_group_identifier,
+            resolved_identifier,
             property_key,
         )
 
-    def set_alert_context_property(self, property_key: str, property_value: Any) -> Any:
+    def set_alert_context_property(
+        self,
+        property_key: str,
+        property_value: Any,
+        alert_group_identifier: str | None = None,
+    ) -> Any:
+        if self.execution_scope == ExecutionScope.Case:
+            if not alert_group_identifier:
+                raise Exception(
+                    "Cannot set alert context property in Case Playbook without specifying a valid alert_group_identifier.",
+                )
+            resolved_identifier = alert_group_identifier
+        else:
+            resolved_identifier = (
+                self.current_alert.alert_group_identifier if self.current_alert else None
+            )
+
         return super(SiemplifyAction, self).set_context_property(
             2,
-            self.current_alert.alert_group_identifier,
+            resolved_identifier,
             property_key,
             property_value,
         )
@@ -720,10 +839,22 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         self,
         property_key: str,
         property_value: Any,
+        alert_group_identifier: str | None = None,
     ) -> Any:
+        if self.execution_scope == ExecutionScope.Case:
+            if not alert_group_identifier:
+                raise Exception(
+                    "Cannot try set alert context property in Case Playbook without specifying a valid alert_group_identifier.",
+                )
+            resolved_identifier = alert_group_identifier
+        else:
+            resolved_identifier = (
+                self.current_alert.alert_group_identifier if self.current_alert else None
+            )
+
         return super(SiemplifyAction, self).try_set_context_property(
             2,
-            self.current_alert.alert_group_identifier,
+            resolved_identifier,
             property_key,
             property_value,
         )
@@ -734,25 +865,42 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         timezone: bool = False,
         new_timestamp: int = SiemplifyUtils.unix_now(),
     ) -> Any:
-        return super(SiemplifyAction, self).save_timestamp(
-            datetime_format,
-            timezone,
-            new_timestamp,
-            2,
-            self.current_alert.alert_group_identifier,
-        )
+        if self.execution_scope == ExecutionScope.Case:
+            return super(SiemplifyAction, self).save_timestamp(
+                datetime_format,
+                timezone,
+                new_timestamp,
+                1,
+                self.case_id,
+            )
+        else:
+            return super(SiemplifyAction, self).save_timestamp(
+                datetime_format,
+                timezone,
+                new_timestamp,
+                2,
+                self.current_alert.alert_group_identifier if self.current_alert else None,
+            )
 
     def fetch_timestamp(
         self,
         datetime_format: bool = False,
         timezone: bool = False,
     ) -> Any:
-        return super(SiemplifyAction, self).fetch_timestamp(
-            datetime_format,
-            timezone,
-            2,
-            self.current_alert.alert_group_identifier,
-        )
+        if self.execution_scope == ExecutionScope.Case:
+            return super(SiemplifyAction, self).fetch_timestamp(
+                datetime_format,
+                timezone,
+                1,
+                self.case_id,
+            )
+        else:
+            return super(SiemplifyAction, self).fetch_timestamp(
+                datetime_format,
+                timezone,
+                2,
+                self.current_alert.alert_group_identifier if self.current_alert else None,
+            )
 
     def fetch_and_save_timestamp(
         self,
@@ -803,12 +951,18 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         :param properties: {dict}
         :param environment: {string}
         """
-        if not self.current_alert:
+        if self.execution_scope != ExecutionScope.Case and not self.current_alert:
             raise Exception("Cannot Create Entity without given alert identifier.")
+
+        resolved_alert_identifier = self._resolve_alert_id(
+            provided_alert_id=alert_identifier,
+            case_scope_error_message="Cannot Create Entity in Case Playbook without specifying a valid alert_identifier, as entities must be linked to an alert.",
+            alert_scope_fallback_id=self.alert_id,
+        )
 
         return super(SiemplifyAction, self).add_entity_to_case(
             self.case_id,
-            self.alert_id,
+            resolved_alert_identifier,
             entity_identifier,
             entity_type,
             is_internal,
@@ -819,12 +973,15 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             self.case.environment,
         )
 
-    def get_case_comments(self, case_id: str | None = None) -> Any:
+    def get_case_comments(self, case_id: str | None = None, fetch_updates: bool = False) -> Any:
         """Get case comments
         :param case_id: {string} case identifier
+        :param fetch_updates: {bool} whether to fetch updates
         :return:
         """
-        return super(SiemplifyAction, self).get_case_comments(self.case_id)
+        if case_id:
+            return super(SiemplifyAction, self).get_case_comments(case_id, fetch_updates)
+        return super(SiemplifyAction, self).get_case_comments(self.case_id, fetch_updates)
 
     # dictionary of indicatorIdentifier - string data
     def update_alerts_additional_data(
@@ -1073,14 +1230,89 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
         :param case_id: {long}
         :param alert_id: {str}
         """
+
+    def set_alerts_sla(
+        self,
+        period_time: int | str,
+        period_type: str,
+        critical_period_time: int | str,
+        critical_period_type: str,
+        case_id: str | None = None,
+        alert_ids: list[str] | None = None,
+    ) -> dict[str, bool]:
+        """Sets the SLA of the given @alert_ids of @case_id.
+
+        :param period_time: {int/str} Represents the total SLA period. period_time > 0.
+        :param period_type: {str} Represents the time units of @period_time, represented by ApiPeriodTypeEnum.
+        :param critical_period_time: {int/str} Represents the critical SLA period. critical_period_time >= 0.
+        :param critical_period_type: {str} Represents the time units of @critical_period_time.
+        :param case_id: {long}
+        :param alert_ids: {list} list of alert identifiers
+        :return: {dict} mapping alert_id to boolean success state
+        """
+        alert_ids = alert_ids or []
+        results = {}
+        for alert_id in alert_ids:
+            try:
+                self.set_alert_sla(
+                    period_time,
+                    period_type,
+                    critical_period_time,
+                    critical_period_type,
+                    case_id,
+                    alert_id,
+                )
+                results[alert_id] = True
+            except Exception as e:
+                self.LOGGER.error(f"Failed to set SLA for alert {alert_id}: {e}")
+                results[alert_id] = False
+        return results
+
+    def set_alert_sla(
+        self,
+        period_time: int | str,
+        period_type: str,
+        critical_period_time: int | str,
+        critical_period_type: str,
+        case_id: str | None = None,
+        alert_id: str | None = None,
+    ) -> Any:
+        """Sets the SLA of the given @alert_identifier of @case_id. SLA being set using
+        this API should surpass all other alert SLA types.
+        :param period_time: {int/str} Represents the total SLA period. period_time > 0.
+        :param period_type: {str} Represents the time units of @period_time,
+        represented by ApiPeriodTypeEnum.
+        :param critical_period_time: {int/str} Represents the critical SLA period.
+        critical_period_time >= 0.
+        : Critical period (after scaling with its time units) should be smaller than
+        the total period.
+        :param critical_period_type: {str} Represents the time units of
+        @critical_period_time, represented by
+        : ApiPeriodTypeEnum.
+        :param case_id: {long}
+        :param alert_id: {str}
+        """
+        resolved_alert_id = self._resolve_alert_id(
+            provided_alert_id=alert_id,
+            case_scope_error_message="Cannot set Alert SLA in Case Playbook without specifying a valid alert_id. Use set_case_sla to set SLA for the whole case.",
+            alert_scope_fallback_id=alert_id or self.alert_id,
+        )
+
         return super(SiemplifyAction, self).set_alert_sla(
             period_time,
             period_type,
             critical_period_time,
             critical_period_type,
             case_id or self.case_id,
-            alert_id or self.alert_id,
+            resolved_alert_id,
         )
+
+    def get_execution_scope(self) -> ExecutionScope:
+        """Returns the execution scope of the current action.
+
+        :return: {ExecutionScope} The execution scope.
+        """
+        return self.execution_scope
 
     def get_case_summary(self, is_first_request: bool) -> dict[str, Any]:
         """Returns existing case summary that was generated by the AI case summary,
@@ -1124,3 +1356,23 @@ class SiemplifyAction(Siemplify, PersistentFileStorageMixin):
             error_msg = f"Could not generate case summary. Response: {e} Error: {response.content}"
             self.LOGGER.error(error_msg)
             raise Exception(error_msg)
+
+    def _resolve_alert_id(
+        self,
+        provided_alert_id: str | None,
+        case_scope_error_message: str,
+        alert_scope_fallback_id: str | None,
+    ) -> str:
+        """Resolves the alert_id depending on the execution scope."""
+        if self.execution_scope == ExecutionScope.Case:
+            if not provided_alert_id:
+                raise Exception(case_scope_error_message)
+            return provided_alert_id
+
+        return alert_scope_fallback_id  # type: ignore[return-value]
+
+
+class ExecutionScope(Enum):
+    ExecutionScopeUnspecified = 0
+    Alert = 1
+    Case = 2

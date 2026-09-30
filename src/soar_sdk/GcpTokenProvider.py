@@ -41,6 +41,9 @@ class GcpTokenProvider:
         )
         if token is not None:
             siemplify_base.session.headers["Authorization"] = f"Bearer {token}"
+            file_storage_session = getattr(siemplify_base, "file_storage_session", None)
+            if file_storage_session is not None:
+                file_storage_session.headers["Authorization"] = f"Bearer {token}"
 
     @staticmethod
     def _get_service_account_auth_token(

@@ -14,7 +14,13 @@
 
 from __future__ import annotations
 
-from SiemplifyExtensionTypesBase import SiemplifyExtensionTypesBase
+import json
+from typing import Any
+
+try:
+    from .SiemplifyExtensionTypesBase import SiemplifyExtensionTypesBase
+except (ImportError, ValueError):
+    from SiemplifyExtensionTypesBase import SiemplifyExtensionTypesBase
 
 
 class SiemplifyLogicalOperator(SiemplifyExtensionTypesBase):
@@ -22,3 +28,31 @@ class SiemplifyLogicalOperator(SiemplifyExtensionTypesBase):
 
     LEFT_SIDE_PARAMETER_NAME = "Left Side"
     RIGHT_SIDE_PARAMETER_NAME = "Right Side"
+
+    def __init__(self, mock_stdin: str | None = None) -> None:
+        super().__init__(mock_stdin)
+
+    def extract_param(
+        self,
+        param_name: str,
+        default_value: Any | None = None,
+        input_type: type = str,
+        is_mandatory: bool = False,
+        print_value: bool = True,
+    ) -> Any:
+        parameter_value = super().extract_param(
+            param_name,
+            default_value,
+            input_type,
+            is_mandatory,
+            print_value,
+        )
+        return self.handle_input_serialization(param_name, parameter_value)
+
+    def handle_input_serialization(self, param_name: str, param_value: Any) -> Any:
+        if (
+            param_name == self.LEFT_SIDE_PARAMETER_NAME
+            or param_name == self.RIGHT_SIDE_PARAMETER_NAME
+        ):
+            param_value = json.loads(param_value)
+        return param_value

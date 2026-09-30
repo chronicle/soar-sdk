@@ -25,12 +25,27 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from requests.adapters import HTTPAdapter
 import SiemplifyLogger
 import SiemplifyUtils
 from GcpTokenProvider import GcpTokenProvider
+from OtelLoggingUtils import LoadOpenTelemetryBaggage, LoadRequestsInstrumentation
+from SDKRetryPolicy import SDKRetryPolicy
 from SiemplifyAddressProvider import SiemplifyAddressProvider
+from SiemplifyConstants import (
+    ALERT_LAZY_LOADING,
+    ARG_OPTIONS,
+    BAGGAGE_NAME,
+    DEBUG_MODE_NAME,
+    FEAT_SDK_RETRIES_NAME,
+    LOG_PATH_NAME,
+    STRUCTURED_LOGGER_NAME,
+    V1_ALPHA_API_VERSION,
+    X_GOOG_API_VERSION,
+)
 from SiemplifyPublisherUtils import SiemplifySession
 from SiemplifySdkConfig import SiemplifySdkConfig
+from SiemplifyUtils import _GlobalLoggerContext
 
 HEADERS: dict[str, str] = {
     "Content-Type": "application/json",
@@ -45,13 +60,61 @@ class SiemplifyBase:
     SIGNAL_CODES: dict[int, int] = {signal.SIGTERM: 143, signal.SIGINT: 130}
 
     def __init__(self, is_connector: bool = False):
+        try:
+            options, _ = getopt.gnu_getopt(
+                sys.argv[1:],
+                "",
+                ARG_OPTIONS,
+            )
+        except getopt.GetoptError:
+            options = []
+
+        signal.signal(signal.SIGTERM, self.termination_signal_handler)
+        signal.signal(signal.SIGINT, self.cancellation_signal_handler)
+
+        self._log_path: str | None = None
+        self._one_platform_support: bool = False
+        self._dataplane_support: bool = False
+        self._files_dataplane_support: bool = False
+        self.debug_mode: bool = False
+        self.feat_sdk_retries: bool = False
+        self.use_structured_logger: bool = False
+        self.baggage: str | None = None
+        self.traceparent: str | None = None
+        self.is_alert_lazy_loading_enabled: bool = False
+
+        for name, value in options:
+            if name == LOG_PATH_NAME:
+                self._log_path = value.strip('"')
+            elif name == "--correlationId":
+                HEADERS.update({"correlation-id": value.strip('"')})
+            elif name == "--traceId":
+                self.traceparent = value.strip('"')
+                HEADERS.update({"traceparent": self.traceparent})
+            elif name == BAGGAGE_NAME:
+                self.baggage = base64.b64decode(value.strip('"').encode("utf-8")).decode("utf-8")
+                HEADERS.update({"baggage": self.baggage})
+            elif name == "--onePlatformSupport":
+                self._one_platform_support = True
+            elif name == "--dataplaneSupport":
+                self._dataplane_support = True
+            elif name == "--filesDataplaneSupport":
+                self._files_dataplane_support = True
+            elif name == DEBUG_MODE_NAME:
+                self.debug_mode = True
+            elif name == FEAT_SDK_RETRIES_NAME:
+                self.feat_sdk_retries = True
+            elif name == STRUCTURED_LOGGER_NAME:
+                self.use_structured_logger = True
+            elif name == ALERT_LAZY_LOADING:
+                self.is_alert_lazy_loading_enabled = True
+
         self.api_key: str | None = None
-        self.sdk_config: SiemplifySdkConfig = SiemplifySdkConfig()
+        self.sdk_config = SiemplifySdkConfig(self._dataplane_support)
         self.RUN_FOLDER: str = self.sdk_config.run_folder_path
         self.script_name: str = ""
         self._logger: SiemplifyLogger.SiemplifyLogger | None = None
         self._logs_collector: SiemplifyLogger.FileLogsCollector | None = None
-        self._log_path: str | None = None
         self.API_ROOT: str = self.sdk_config.api_root_uri
         self.FILE_STORAGE_API_ROOT: str = self.sdk_config.file_storage_api_root_uri
         self.FILE_SYSTEM_CONTEXT_PATH: str = os.path.join(
@@ -59,51 +122,20 @@ class SiemplifyBase:
             "context_file.json",
         )
         self.is_locally_scheduled_remote_connector: bool = False
-        self._one_platform_support: bool = False
-        self.debug_mode: bool = False
-
-        options, _ = getopt.gnu_getopt(
-            sys.argv[1:],
-            "",
-            [
-                "useElastic",
-                "logPath=",
-                "correlationId=",
-                "traceId=",
-                "baggage=",
-                "onePlatformSupport",
-            ],
-        )
-
-        signal.signal(signal.SIGTERM, self.termination_signal_handler)
-        signal.signal(signal.SIGINT, self.cancellation_signal_handler)
-
-        for name, value in options:
-            if name == "--logPath":
-                self._log_path = value.strip('"')
-            elif name == "--correlationId":
-                HEADERS.update({"correlation_id": value.strip('"')})
-            elif name == "--traceId":
-                HEADERS.update({"traceparent": value.strip('"')})
-            elif name == "--baggage":
-                HEADERS.update(
-                    {
-                        "baggage": base64.b64decode(
-                            value.strip('"').encode("utf-8"),
-                        ).decode("utf-8"),
-                    },
-                )
-            elif name == "--onePlatformSupport":
-                self._one_platform_support = True
 
         if not self.sdk_config.is_remote_publisher_sdk:
+            if self.baggage and self.use_structured_logger:
+                LoadOpenTelemetryBaggage(self.baggage)
+                if self.debug_mode:
+                    LoadRequestsInstrumentation()
+
             # Checking Environment Variables
             # For action runs we get api key as first param, for connectors we get
             # api key as second param and isTest as first param
             if is_connector:
-                self.api_key = sys.argv[2]
+                self.api_key = sys.argv[2] if len(sys.argv) > 2 else ""
             else:
-                self.api_key = sys.argv[1]
+                self.api_key = sys.argv[1] if len(sys.argv) > 1 else ""
             if REQUEST_CA_BUNDLE in os.environ:
                 if self.sdk_config.ignore_ca_bundle:
                     del os.environ[REQUEST_CA_BUNDLE]
@@ -114,10 +146,14 @@ class SiemplifyBase:
                     )
 
             # Create regular session
-            self.session = self.create_session(self.api_key, HEADERS)
+            self.session = self.create_session(
+                self.api_key, HEADERS, self.feat_sdk_retries, self.LOGGER
+            )
 
             # Create file storage session
             self.file_storage_session = self.create_session(self.api_key)
+            if self.sdk_config.gcp_auth_required:
+                GcpTokenProvider.add_gcp_token(self)
 
         else:
             # Create custom Session
@@ -126,18 +162,26 @@ class SiemplifyBase:
             # File storage is intentionally not initialized here
             # Initialization occurs in SiemlifyAction
             self.file_storage_session = None
+            # Structured logging is currently not supported for agent
+            self.use_structured_logger = False
+            self.is_alert_lazy_loading_enabled = False
 
         self.address_provider = SiemplifyAddressProvider(
             self.sdk_config,
             self._one_platform_support,
         )
-        if self.sdk_config.gcp_auth_required:
-            GcpTokenProvider.add_gcp_token(self)
 
     def _init_remote_session(self, key: str) -> None:
         self.api_key = key
         self.remote_agent_proxy: str | None = os.environ.get("PROXY_ADDRESS")
         self.session = self._create_remote_session(self.api_key, HEADERS)
+        self.handle_remote_gcp_session()
+
+    def handle_remote_gcp_session(self) -> None:
+        if self.sdk_config.remote_gcp_auth_required:
+            GcpTokenProvider.add_gcp_token(self)
+        elif self._one_platform_support:
+            self.session.headers.update({X_GOOG_API_VERSION: V1_ALPHA_API_VERSION})
 
     def _create_remote_session(self, key: str, headers: dict = {}) -> requests.Session:
         """Create a remote requests session to be used from the Agent
@@ -194,7 +238,10 @@ class SiemplifyBase:
         path = os.path.join(path, self.script_name)
 
         if not os.path.exists(path):
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except OSError:
+                pass
 
         return path
 
@@ -210,6 +257,8 @@ class SiemplifyBase:
                 log_location=self.log_location,
                 logs_collector=self._logs_collector,
                 debug_mode=self.debug_mode,
+                use_structured_logger=self.use_structured_logger,
+                traceparent=self.traceparent,
             )
 
             _GlobalLoggerContext.logger = self._logger
@@ -227,13 +276,31 @@ class SiemplifyBase:
             raise Exception(f"{e}: {response.content}")
 
     @staticmethod
-    def create_session(app_key: str, headers: dict = {}) -> requests.Session:
+    def _get_session_with_retries(logger: Any) -> requests.Session:
+        session = requests.Session()
+        retry_strategy = SDKRetryPolicy(logger=logger)
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        return session
+
+    @staticmethod
+    def create_session(
+        app_key: str,
+        headers: dict = {},
+        feat_sdk_retries: bool = False,
+        logger: Any = None,
+    ) -> requests.Session:
         """Create default siemplify requests session
         :param app_key: the SDK app key
         :param headers: headers to use when initializing the session
         :return: siemplify session
         """
-        session = requests.Session()
+        if feat_sdk_retries and logger:
+            session = SiemplifyBase._get_session_with_retries(logger=logger)
+        else:
+            session = requests.Session()
+
         session.verify = False
         headers.update({"AppKey": app_key})
         session.headers.update(headers)
@@ -243,7 +310,8 @@ class SiemplifyBase:
         self,
         logs_collector: SiemplifyLogger.FileLogsCollector | None,
     ) -> None:
-        self._logs_collector = logs_collector
+        """Deprecated, use python logger instead."""
+        pass
 
     def fetch_timestamp(
         self,
@@ -524,10 +592,26 @@ class SiemplifyBase:
         address = self.address_provider.provide_get_context_property_address()
         response = self.session.post(address, json=request_dict)
         self.validate_siemplify_error(response)
-        if response.status_code == NO_CONTENT_STATUS_CODE:
+        if self.has_no_data(response):
             self.LOGGER.info(f"No data found for property key: {property_key}")
             return None
         return response.json()
+
+    def has_no_data(self, response: requests.Response) -> bool:
+        """Check if response has no data.
+
+        Data Plane does not allow sending 204,
+        this method checks if response has no data when running from Data Plane.
+        """
+        return response.status_code == NO_CONTENT_STATUS_CODE or (
+            self.is_running_on_dataplane and not response.content
+        )
+
+    @property
+    def is_running_on_dataplane(self) -> bool:
+        return (
+            self.sdk_config.is_remote_publisher_sdk and self.sdk_config.remote_gcp_auth_required
+        ) or self.sdk_config.gcp_auth_required
 
     @staticmethod
     def get_script_context() -> str | bytes:

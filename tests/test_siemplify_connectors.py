@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 import unittest.mock
 from configparser import ConfigParser
+
+import pytest
 
 from soar_sdk.SiemplifyBase import SiemplifyBase
 from soar_sdk.SiemplifyConnectors import SiemplifyConnectorExecution
@@ -31,6 +34,11 @@ raw_context_data_run_connector_task = (
     '"is_locally_scheduled_remote_connector": true, "params": [{"param_name": '
     '"TEST", "param_value":"TEST"}]}, "connector_api_key": "123"}'
 )
+
+
+@pytest.fixture(autouse=True)
+def mock_argv(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys, "argv", ["pytest", "arg1"])
 
 
 class TestSiemplifyConnectors:
@@ -72,6 +80,7 @@ class TestSiemplifyConnectors:
             "_init_remote_session",
             return_value=None,
         )
+        mocker.patch.dict(os.environ, {"SERVER_API_ROOT": "https://soar.com/pub/api"})
         mocker.patch.object(ConfigParser, "getboolean", return_value=True)
         mocker.patch.object(
             SiemplifySdkConfig,
